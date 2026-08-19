@@ -37,8 +37,21 @@ Fokus utama MVP:
 
 ```text
 simpay/
-├── README.md
+│
 ├── .gitignore
-├── docs/
+├── README.md
+├── package.json
+├── prisma/
+│   └── schema.prisma
+│
+├── public/
+│
 ├── src/
-└── assets/
+│   ├── app/
+│   ├── components/
+│   ├── lib/
+│   └── generated/
+│
+└── docs/
+    ├── product-discovery/
+    └── prototype/
