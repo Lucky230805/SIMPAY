@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  password       String
+  role           String
+  medicalRecords MedicalRecord[]
+}
+
+model Patient {
+  id              Int              @id @default(autoincrement())
+  name            String
+  dateOfBirth     DateTime
+  gender          String
+  address         String?
+  phone           String?
+  medicalRecords  MedicalRecord[]
+  queues          Queue[]
+  prescriptions   Prescription[]
+}
+
+model MedicalRecord {
+  id                 Int            @id @default(autoincrement())
+  patientId          Int
+  doctorId           Int?
+  examinationDate    DateTime
+  complaint          String?
+  diagnosis          String?
+  treatment          String?
+  notes              String?
+  icd10Code          String?
+  secondaryDiagnosis String?
+  bloodPressure      String?
+  temperature        String?
+  heartRate          String?
+  respiratoryRate    String?
+  allergy            String?
+
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  doctor        User?          @relation(fields: [doctorId], references: [id])
+  prescriptions Prescription[]
+}
+
+model Queue {
+  id          Int      @id @default(autoincrement())
+  patientId   Int
+  queueNumber Int
+  status      String
+  polyclinic  String?
+  date        DateTime @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id])
+}
+
+model Prescription {
+  id               Int     @id @default(autoincrement())
+  patientId        Int
+  medicalRecordId  Int
+  medicineName     String
+  dosage           String
+  instructions     String?
+
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  medicalRecord MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
+}
