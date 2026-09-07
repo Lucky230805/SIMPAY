@@ -219,7 +219,25 @@ export async function saveMedicalRecordAndComplete(data: {
         },
       })
 
-      // 2. Ubah status antrean menjadi SELESAI
+      // 2. Simpan relasi Prescription jika ada resep obat
+      const validMedicines = data.medicines.filter(m => m.nama && m.nama.trim() !== '')
+      if (validMedicines.length > 0) {
+        await Promise.all(
+          validMedicines.map(m =>
+            tx.prescription.create({
+              data: {
+                patientId: Number(data.patientId),
+                medicalRecordId: createdRecord.id,
+                medicineName: m.nama.trim(),
+                dosage: m.dosis?.trim() || '1x1',
+                instructions: m.jumlah ? `Jumlah: ${m.jumlah}` : null,
+              },
+            })
+          )
+        )
+      }
+
+      // 3. Ubah status antrean menjadi SELESAI
       await tx.queue.update({
         where: { id: Number(data.queueId) },
         data: { status: 'SELESAI' },
@@ -229,6 +247,7 @@ export async function saveMedicalRecordAndComplete(data: {
     })
 
     revalidatePath('/antrean')
+    revalidatePath('/resep')
     revalidatePath(`/antrean/${data.queueId}`)
     return { success: true }
   } catch (error: any) {
