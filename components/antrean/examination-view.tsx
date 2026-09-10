@@ -11,6 +11,7 @@ import { createMedicalRecord } from '@/app/rekam-medis/actions'
 import { saveMedicalRecordAndComplete } from '@/app/antrean/actions'
 import { ExaminationSuccessNotification } from './examination-success-notification'
 import type { QueueWithPatientDetail } from '@/app/antrean/actions'
+import { PatientHistoryDrawer } from '@/components/pasien/patient-history-drawer'
 
 interface ExaminationViewProps {
   queue: QueueWithPatientDetail
@@ -59,6 +60,7 @@ export function ExaminationView({ queue }: ExaminationViewProps) {
   const [generalError, setGeneralError] = useState<string | null>(null)
   const [savedRecordId, setSavedRecordId] = useState<number | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState(false)
   const isCompleted = queue.status === 'SELESAI' || showSuccess
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,12 +85,17 @@ export function ExaminationView({ queue }: ExaminationViewProps) {
         queueId: queue.id,
         patientId: patient.id,
         complaint: complaint.trim(),
+        allergy: allergy.trim(),
         bloodPressure: bloodPressure.trim(),
         pulse: heartRate.trim(),
         temperature: temperature.trim(),
+        respiratoryRate: respiratoryRate.trim(),
         weight: '',
         objectiveNotes: notes.trim(),
         diagnosis: diagnosis.trim(),
+        icd10Code: icd10Code.trim(),
+        secondaryDiagnosis: secondaryDiagnosis.trim(),
+        actionTreatment: treatment.trim(),
         medicines: treatment.trim() ? [{ nama: treatment.trim(), dosis: '', jumlah: '1' }] : [],
       })
 
@@ -198,8 +205,25 @@ export function ExaminationView({ queue }: ExaminationViewProps) {
                   <span className="text-foreground leading-relaxed">{patient.address}</span>
                 </div>
               )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsHistoryDrawerOpen(true)}
+                className="w-full mt-2 text-xs font-semibold gap-1.5 text-slate-800 border-slate-300 hover:bg-slate-50"
+              >
+                <FileText className="w-3.5 h-3.5 text-blue-600" />
+                Riwayat Medis Lengkap
+              </Button>
             </div>
           </div>
+
+          <PatientHistoryDrawer
+            patientId={patient.id}
+            isOpen={isHistoryDrawerOpen}
+            onClose={() => setIsHistoryDrawerOpen(false)}
+          />
 
           {/* Recent Medical History */}
           {patient.medicalRecords && patient.medicalRecords.length > 0 && (

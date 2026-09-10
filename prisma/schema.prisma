@@ -7,30 +7,33 @@ datasource db {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  name           String
-  email          String          @unique
-  password       String
-  role           String
-  medicalRecords MedicalRecord[]
+  id                Int             @id @default(autoincrement())
+  name              String
+  email             String          @unique
+  password          String
+  role              String
+  medicalRecords    MedicalRecord[]
+  processedPayments Payment[]
 }
 
 model Patient {
-  id              Int              @id @default(autoincrement())
-  name            String
-  dateOfBirth     DateTime
-  gender          String
-  address         String?
-  phone           String?
-  medicalRecords  MedicalRecord[]
-  queues          Queue[]
-  prescriptions   Prescription[]
+  id             Int             @id @default(autoincrement())
+  name           String
+  dateOfBirth    DateTime
+  gender         String
+  address        String?
+  phone          String?
+  medicalRecords MedicalRecord[]
+  queues         Queue[]
+  prescriptions  Prescription[]
+  billings       Billing[]
 }
 
 model MedicalRecord {
   id                 Int            @id @default(autoincrement())
   patientId          Int
   doctorId           Int?
+  queueId            Int?           @unique
   examinationDate    DateTime
   complaint          String?
   diagnosis          String?
@@ -43,10 +46,13 @@ model MedicalRecord {
   heartRate          String?
   respiratoryRate    String?
   allergy            String?
+  status             String?        @default("ANTRE")
 
   patient       Patient        @relation(fields: [patientId], references: [id])
   doctor        User?          @relation(fields: [doctorId], references: [id])
+  queue         Queue?         @relation(fields: [queueId], references: [id])
   prescriptions Prescription[]
+  billing       Billing?
 }
 
 model Queue {
@@ -57,17 +63,91 @@ model Queue {
   polyclinic  String?
   date        DateTime @default(now())
 
-  patient Patient @relation(fields: [patientId], references: [id])
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  medicalRecord MedicalRecord?
+  billing       Billing?
 }
 
 model Prescription {
-  id               Int     @id @default(autoincrement())
-  patientId        Int
-  medicalRecordId  Int
-  medicineName     String
-  dosage           String
-  instructions     String?
+  id              Int     @id @default(autoincrement())
+  patientId       Int
+  medicalRecordId Int
+  medicineId      Int?
+  medicineName    String
+  dosage          String
+  instructions    String?
+  quantity        Int?    @default(1)
+  unitPrice       Float?  @default(0)
+  totalPrice      Float?  @default(0)
+  status          String? @default("ANTRE")
 
   patient       Patient        @relation(fields: [patientId], references: [id])
   medicalRecord MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
+  medicine      Medicine?      @relation(fields: [medicineId], references: [id])
+}
+
+model Medicine {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  code          String?         @unique
+  unit          String          @default("Pcs")
+  category      String?         @default("Obat Bebas")
+  unitPrice     Float           @default(0)
+  purchasePrice Float?          @default(0)
+  minStock      Int             @default(10)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  batches       MedicineBatch[]
+  prescriptions Prescription[]
+}
+
+model MedicineBatch {
+  id              Int      @id @default(autoincrement())
+  medicineId      Int
+  batchNumber     String
+  stockQuantity   Int      @default(0)
+  initialQuantity Int      @default(0)
+  expiryDate      DateTime
+  receivedDate    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+}
+
+model Billing {
+  id              Int            @id @default(autoincrement())
+  patientId       Int
+  queueId         Int?           @unique
+  medicalRecordId Int?           @unique
+  registrationFee Float          @default(0)
+  consultationFee Float          @default(50000)
+  medicineFee     Float          @default(0)
+  otherFee        Float          @default(0)
+  totalAmount     Float          @default(50000)
+  status          String         @default("BELUM_LUNAS") // BELUM_LUNAS | LUNAS | CANCELLED
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  queue         Queue?         @relation(fields: [queueId], references: [id])
+  medicalRecord MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
+  payment       Payment?
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  billingId     Int      @unique
+  processedById Int?
+  paymentNumber String   @unique // e.g. INV-20260909-001
+  paymentMethod String // TUNAI | QRIS | TRANSFER
+  totalAmount   Float
+  amountPaid    Float
+  changeAmount  Float    @default(0)
+  paymentDate   DateTime @default(now())
+
+  billing     Billing @relation(fields: [billingId], references: [id])
+  processedBy User?   @relation(fields: [processedById], references: [id])
 }

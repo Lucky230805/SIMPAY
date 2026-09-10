@@ -1,11 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
-import { FileText, CheckCircle2, AlertCircle, ArrowLeft, Printer } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { FileText, CheckCircle2, AlertCircle, ArrowLeft, Printer, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { processPrescriptionQueue } from '@/app/resep/actions'
 
 export interface PrescriptionQueueItem {
   id: number
+  queueId?: number
   code: string
   priority: 'Cito' | 'Normal'
   patientName: string
@@ -13,6 +16,8 @@ export interface PrescriptionQueueItem {
   doctorName: string
   waitTimeMinutes: number
   status: 'ANTRE' | 'PROSES' | 'SELESAI'
+  billingId?: number | null
+  billingStatus?: string
   createdAt: Date
   items: {
     id: number
@@ -20,6 +25,11 @@ export interface PrescriptionQueueItem {
     dosage: string
     notes?: string
     qty: string
+    quantity?: number
+    unitPrice?: number
+    totalPrice?: number
+    availableStock?: number
+    isStockSufficient?: boolean
   }[]
   patient: {
     id: number
@@ -38,30 +48,56 @@ interface ResepViewProps {
 }
 
 export function ResepView({ initialQueues }: ResepViewProps) {
+  const router = useRouter()
   const [queues, setQueues] = useState(initialQueues)
+
+  React.useEffect(() => {
+    setQueues(initialQueues)
+  }, [initialQueues])
+
+  const isToday = (dateInput: Date | string) => {
+    const d = new Date(dateInput)
+    const today = new Date()
+    return (
+      d.getFullYear() === today.getFullYear() &&
+      d.getMonth() === today.getMonth() &&
+      d.getDate() === today.getDate()
+    )
+  }
+
+  const antreList = queues.filter((q) => q.status !== 'SELESAI')
+  const selesaiList = queues.filter((q) => q.status === 'SELESAI' && isToday(q.createdAt))
+
   const [activeTab, setActiveTab] = useState<'antrean' | 'selesai'>('antrean')
   const [selectedQueueId, setSelectedQueueId] = useState<number | null>(
-    initialQueues.length > 0 ? initialQueues[0].id : null
+    antreList.length > 0 ? antreList[0].id : null
   )
   const [processedAlert, setProcessedAlert] = useState<string | null>(null)
   const [detailMode, setDetailMode] = useState<boolean>(false)
 
-  const antreList = queues.filter((q) => q.status !== 'SELESAI')
-  const selesaiList = queues.filter((q) => q.status === 'SELESAI')
-
   const displayedList = activeTab === 'antrean' ? antreList : selesaiList
-  const selectedQueue = queues.find((q) => q.id === selectedQueueId) || displayedList[0] || null
+  const selectedQueue = displayedList.find((q) => q.id === selectedQueueId) || displayedList[0] || null
 
   const handleSelectQueue = (id: number) => {
     setSelectedQueueId(id)
   }
 
-  const handleProsesDanSerahkan = (queue: PrescriptionQueueItem) => {
-    setQueues((prev) =>
-      prev.map((q) => (q.id === queue.id ? { ...q, status: 'SELESAI' as const } : q))
+  const handleProsesDanSerahkan = async (queue: PrescriptionQueueItem) => {
+    const updatedQueues = queues.map((q) =>
+      q.id === queue.id ? { ...q, status: 'SELESAI' as const, createdAt: new Date() } : q
     )
+    setQueues(updatedQueues)
+
+    const remainingAntre = updatedQueues.filter((q) => q.status !== 'SELESAI')
+    if (remainingAntre.length > 0) {
+      setSelectedQueueId(remainingAntre[0].id)
+    } else {
+      setSelectedQueueId(null)
+    }
+
     setProcessedAlert(`Obat untuk pasien ${queue.patientName} telah diserahkan dan status antrean resep telah diperbarui menjadi Selesai.`)
-    setDetailMode(true)
+    await processPrescriptionQueue(queue.id)
+    router.refresh()
   }
 
   return (
@@ -112,6 +148,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               onClick={() => {
                 setActiveTab('antrean')
                 if (antreList.length > 0) setSelectedQueueId(antreList[0].id)
+                else setSelectedQueueId(null)
               }}
               className={cn(
                 'pb-3 border-b-2 transition-colors',
@@ -126,6 +163,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               onClick={() => {
                 setActiveTab('selesai')
                 if (selesaiList.length > 0) setSelectedQueueId(selesaiList[0].id)
+                else setSelectedQueueId(null)
               }}
               className={cn(
                 'pb-3 border-b-2 transition-colors',
@@ -180,6 +218,16 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                             >
                               {isCito ? '▲ Cito' : 'Normal'}
                             </span>
+                            <span
+                              className={cn(
+                                'text-[10px] px-1.5 py-0.2 rounded font-semibold border',
+                                item.billingStatus === 'LUNAS'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              )}
+                            >
+                              {item.billingStatus === 'LUNAS' ? '✓ Tagihan Lunas' : 'Tagihan Belum Lunas'}
+                            </span>
                           </div>
                           <h3 className="font-bold text-base text-foreground leading-tight">
                             {item.patientName}
@@ -228,23 +276,35 @@ export function ResepView({ initialQueues }: ResepViewProps) {
             </div>
 
             {/* RIGHT DETAIL PANEL (5 cols) */}
-            {selectedQueue && (
+            {selectedQueue ? (
               <div className="lg:col-span-5 bg-white border border-border rounded-xl p-5 shadow-sm space-y-5">
                 <div>
                   <div className="flex justify-between items-start">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       DETAIL RESEP AKTIF
                     </span>
-                    <span
-                      className={cn(
-                        'text-[10px] px-2 py-0.5 rounded font-bold border',
-                        selectedQueue.priority === 'Cito'
-                          ? 'bg-red-100 text-red-700 border-red-200'
-                          : 'bg-gray-100 text-gray-600 border-gray-200'
-                      )}
-                    >
-                      {selectedQueue.priority}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          'text-[10px] px-2 py-0.5 rounded font-bold border',
+                          selectedQueue.priority === 'Cito'
+                            ? 'bg-red-100 text-red-700 border-red-200'
+                            : 'bg-gray-100 text-gray-600 border-gray-200'
+                        )}
+                      >
+                        {selectedQueue.priority}
+                      </span>
+                      <span
+                        className={cn(
+                          'text-[10px] px-2 py-0.5 rounded font-bold border',
+                          selectedQueue.billingStatus === 'LUNAS'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        )}
+                      >
+                        {selectedQueue.billingStatus === 'LUNAS' ? '✓ LUNAS' : 'BELUM LUNAS'}
+                      </span>
+                    </div>
                   </div>
                   <p className="font-mono text-xs text-muted-foreground mt-0.5">
                     {selectedQueue.code}
@@ -254,19 +314,47 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                   </h2>
                 </div>
 
-                {/* Prescription items list */}
+                {/* Prescription items list with Stock Badges */}
                 <div className="space-y-3 divide-y divide-border/60">
-                  {selectedQueue.items.map((item, idx) => (
-                    <div key={idx} className="pt-2.5 first:pt-0 flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-bold text-foreground text-sm">{item.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{item.dosage}</p>
-                      </div>
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded border border-gray-200 font-mono font-semibold text-xs shrink-0">
-                        {item.qty}
-                      </span>
+                  {selectedQueue.items.length === 0 ? (
+                    <div className="py-4 text-center text-muted-foreground bg-slate-50 rounded-lg border border-slate-200">
+                      <p className="font-semibold text-xs">Tidak Ada Resep Obat</p>
+                      <p className="text-[11px] mt-0.5">Dokter tidak meresepkan obat untuk kunjungan ini.</p>
                     </div>
-                  ))}
+                  ) : (
+                    selectedQueue.items.map((item, idx) => {
+                      const hasStockInfo = item.availableStock !== undefined
+                      const isSufficient = item.isStockSufficient !== false
+
+                      return (
+                        <div key={idx} className="pt-2.5 first:pt-0 flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                              <span>{item.name}</span>
+                              {hasStockInfo && (
+                                <span
+                                  className={cn(
+                                    'text-[10px] px-2 py-0.5 rounded font-bold border',
+                                    isSufficient
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : 'bg-red-50 text-red-700 border-red-200'
+                                  )}
+                                >
+                                  {isSufficient
+                                    ? `✓ Stok Tersedia (${item.availableStock})`
+                                    : `⚠ Stok Kurang (${item.availableStock}/${item.quantity})`}
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{item.dosage}</p>
+                          </div>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded border border-gray-200 font-mono font-semibold text-xs shrink-0">
+                            {item.qty}
+                          </span>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
 
                 {/* Allergy warning if present */}
@@ -282,23 +370,39 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                 )}
 
                 {/* Submit action */}
-                <div className="pt-3 border-t">
-                  {selectedQueue.status !== 'SELESAI' ? (
+                <div className="pt-3 border-t space-y-2">
+                  {selectedQueue.status !== 'SELESAI' && selectedQueue.items.length > 0 ? (
                     <button
                       onClick={() => handleProsesDanSerahkan(selectedQueue)}
                       className="w-full py-2.5 bg-slate-800 text-white rounded-lg font-bold text-sm hover:bg-slate-900 transition text-center"
                     >
-                      Selesai &amp; Serahkan
+                      Selesai &amp; Serahkan Obat
                     </button>
-                  ) : (
+                  ) : selectedQueue.status === 'SELESAI' ? (
                     <button
                       onClick={() => setDetailMode(true)}
                       className="w-full py-2.5 border border-gray-300 text-gray-700 bg-white rounded-lg font-bold text-sm hover:bg-gray-50 transition text-center"
                     >
                       Lihat Detail Lengkap
                     </button>
-                  )}
+                  ) : null}
+                  <button
+                    onClick={() => router.push(`/pembayaran?queueId=${selectedQueue.queueId || selectedQueue.id}`)}
+                    className="w-full py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-bold text-xs hover:bg-emerald-100 transition text-center flex items-center justify-center gap-1.5"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" /> Buka Kasir Pembayaran Pasien
+                  </button>
                 </div>
+              </div>
+            ) : (
+              <div className="lg:col-span-5 bg-white border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm flex flex-col items-center justify-center space-y-2 min-h-[250px]">
+                <FileText className="w-10 h-10 text-gray-300 mx-auto" />
+                <p className="text-sm font-semibold text-foreground">Tidak Ada Resep Terpilih</p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  {activeTab === 'antrean'
+                    ? 'Tidak ada antrean resep aktif yang perlu diproses.'
+                    : 'Belum ada resep yang selesai diserahkan.'}
+                </p>
               </div>
             )}
           </div>
