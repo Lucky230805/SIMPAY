@@ -94,6 +94,13 @@ export function setTestUser(user: AuthUser | null) {
   ;(globalThis as any).__SIMPAY_TEST_USER__ = user
 }
 
+export const DEMO_USER: AuthUser = {
+  id: 1,
+  email: 'demo@simpay.local',
+  name: 'Demo Tenaga Medis (SIMPAY)',
+  role: 'DOKTER',
+}
+
 /**
  * Get full authenticated user record from session & DB
  */
@@ -103,7 +110,12 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   }
 
   const session = await getSession()
-  if (!session) return null
+  if (!session) {
+    if (process.env.DEMO_MODE === 'true') {
+      return DEMO_USER
+    }
+    return null
+  }
 
   try {
     const dbUser = await prisma.user.findUnique({
@@ -111,8 +123,14 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       select: { id: true, email: true, name: true, role: true },
     })
 
-    if (!dbUser) return null
-    if (dbUser.role !== 'DOKTER' && dbUser.role !== 'PERAWAT') return null
+    if (!dbUser) {
+      if (process.env.DEMO_MODE === 'true') return DEMO_USER
+      return null
+    }
+    if (dbUser.role !== 'DOKTER' && dbUser.role !== 'PERAWAT') {
+      if (process.env.DEMO_MODE === 'true') return DEMO_USER
+      return null
+    }
 
     return {
       id: dbUser.id,
@@ -121,7 +139,8 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       role: dbUser.role as AuthRole,
     }
   } catch (error) {
-    // If DB read fails, fallback to verified session payload if valid
+    // If DB read fails (e.g. offline/read-only cloud DB in demo mode), fallback to verified session or demo user
+    if (process.env.DEMO_MODE === 'true') return DEMO_USER
     return {
       id: session.userId,
       email: session.email,
@@ -159,6 +178,9 @@ export async function requireRole(allowedRoles: AuthRole | AuthRole[]): Promise<
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles]
 
   if (!roles.includes(user.role)) {
+    if (process.env.DEMO_MODE === 'true') {
+      return user
+    }
     const roleNames = roles.join(' atau ')
     throw new Error(
       `UNAUTHORIZED: Akses ditolak. Fungsi ini hanya dapat diakses oleh pengguna dengan peran ${roleNames}.`

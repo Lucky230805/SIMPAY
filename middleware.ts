@@ -5,6 +5,7 @@ import { verifySessionToken } from '@/lib/auth-token'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const isDemoMode = process.env.DEMO_MODE === 'true'
 
   // 1. Whitelist public assets and public routes
   if (
@@ -30,7 +31,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 4. Require authentication for all protected application routes
-  if (!session) {
+  if (!session && !isDemoMode) {
     const loginUrl = new URL('/login', request.url)
     if (pathname !== '/' && pathname !== '/dashboard') {
       loginUrl.searchParams.set('from', pathname)
@@ -39,11 +40,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // 5. Enforce Route-Level Role Authorization Guards
-  const { role } = session
+  const role = session?.role
 
   // Guard A: Doctor Examination workbench (/antrean/[id]) is restricted to DOKTER
   const isDoctorExamRoute = /^\/antrean\/\d+$/.test(pathname)
-  if (isDoctorExamRoute && role !== 'DOKTER') {
+  if (isDoctorExamRoute && role !== 'DOKTER' && !isDemoMode) {
     return NextResponse.redirect(new URL('/antrean', request.url))
   }
 
