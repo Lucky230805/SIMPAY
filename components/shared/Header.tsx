@@ -26,7 +26,7 @@ const navItems = [
   { label: 'Antrean Pemeriksaan', href: '/antrean', icon: ClipboardList, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Rekam Medis', href: '/rekam-medis', icon: FileText, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Resep & Obat', href: '/resep', icon: Pill, roles: ['DOKTER', 'PERAWAT'] },
-  { label: 'Kasir & Pembayaran', href: '/pembayaran', icon: CreditCard, roles: ['PERAWAT'] },
+  { label: 'Kasir & Pembayaran', href: '/pembayaran', icon: CreditCard, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Laporan', href: '/laporan', icon: BarChart2, roles: ['DOKTER', 'PERAWAT'] },
 ]
 
