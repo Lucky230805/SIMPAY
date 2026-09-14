@@ -1,12 +1,35 @@
 import { PrismaClient } from '@prisma/client'
+import fs from 'fs'
+import path from 'path'
+
+function getDatabaseUrl(): string {
+  if (process.env.DATABASE_URL) {
+    const rawUrl = process.env.DATABASE_URL
+    return rawUrl.replace('file:./', 'file:')
+  }
+
+  // In Vercel Serverless environment, use /tmp/dev.db for full SQLite read & write permissions
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    const tmpPath = path.join('/tmp', 'dev.db')
+    const sourcePath = path.join(process.cwd(), 'dev.db')
+    try {
+      if (!fs.existsSync(tmpPath) && fs.existsSync(sourcePath)) {
+        fs.copyFileSync(sourcePath, tmpPath)
+      }
+    } catch (e) {
+      console.error('Failed to copy database to /tmp:', e)
+    }
+    return `file:${tmpPath}`
+  }
+
+  return 'file:dev.db'
+}
 
 // PrismaLibSql must be required at runtime to avoid CJS/ESM issues
 function createAdapter() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaLibSql } = require('@prisma/adapter-libsql')
-  const rawUrl = process.env.DATABASE_URL || 'file:./dev.db'
-  // LibSQL expects file:dev.db, not file:./dev.db
-  const url = rawUrl.replace('file:./', 'file:')
+  const url = getDatabaseUrl()
   return new PrismaLibSql({ url })
 }
 
