@@ -1,26 +1,50 @@
-import { requireAuth } from '@/lib/auth'
+"use client"
+
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { getBillingQueues } from './actions'
 import { PembayaranView } from '@/components/pembayaran/pembayaran-view'
 
-export const metadata = { title: 'Kasir & Pembayaran — SIMPAY' }
+function PembayaranContent() {
+  const searchParams = useSearchParams()
+  const queueIdStr = searchParams.get('queueId')
+  const queueIdNum = queueIdStr ? Number(queueIdStr) : null
 
-interface PembayaranPageProps {
-  searchParams: Promise<{ queueId?: string }>
-}
+  const [queues, setQueues] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-export default async function PembayaranPage({ searchParams }: PembayaranPageProps) {
-  const user = await requireAuth()
-  const params = await searchParams
-  const queueIdNum = params?.queueId ? Number(params.queueId) : null
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const q = await getBillingQueues()
+        setQueues(q)
+      } catch (err) {
+        console.error('Failed to load billing queues:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
-  const queues = await getBillingQueues()
+  if (loading) {
+    return <div className="p-6 text-sm text-muted-foreground animate-pulse">Memuat antrean kasir...</div>
+  }
 
   return (
     <PembayaranView
       initialQueues={queues}
       selectedQueueIdFromUrl={queueIdNum}
-      currentUserRole={user.role as any}
-      currentUserName={user.name}
+      currentUserRole="PERAWAT"
+      currentUserName="Kasir Klinik"
     />
+  )
+}
+
+export default function PembayaranPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Memuat antrean kasir...</div>}>
+      <PembayaranContent />
+    </Suspense>
   )
 }

@@ -1,20 +1,47 @@
+"use client"
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ClipboardList, Users, CheckCircle2, Clock, Tv, ExternalLink } from 'lucide-react'
 import { getTodayQueues } from './actions'
 import { QueueTable } from '@/components/antrean/queue-table'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export default function AntreanPage() {
+  const [queues, setQueues] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-export const metadata = { title: 'Antrean Pemeriksaan — SIMPAY' }
-
-export default async function AntreanPage() {
-  const queues = await getTodayQueues()
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const q = await getTodayQueues()
+        setQueues(q)
+      } catch (err) {
+        console.error('Failed to load today queues:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   const total = queues.length
   const menunggu = queues.filter((q) => q.status === 'MENUNGGU').length
   const dalamPemeriksaan = queues.filter((q) => q.status === 'DALAM_PEMERIKSAAN').length
   const selesai = queues.filter((q) => q.status === 'SELESAI').length
+
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6 w-full animate-pulse">
+        <div className="h-8 w-48 bg-muted rounded" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-20 bg-muted rounded-xl" />
+          ))}
+        </div>
+        <div className="h-64 bg-muted rounded-xl" />
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 space-y-6 w-full">

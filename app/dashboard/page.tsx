@@ -1,7 +1,8 @@
-import { Suspense } from 'react'
+"use client"
+
+import { useEffect, useState } from 'react'
 import { getDashboardStats, getRecentPatients } from './actions'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   Users,
   ClipboardList,
@@ -12,14 +13,6 @@ import {
   TrendingUp,
   Calendar,
 } from 'lucide-react'
-
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
-export const metadata = {
-  title: 'Dashboard — SIMPAY',
-  description: 'Ringkasan aktivitas klinik hari ini',
-}
 
 function StatCard({
   title,
@@ -45,8 +38,9 @@ function StatCard({
           )}
         </div>
         <div
-          className={`flex items-center justify-center w-10 h-10 rounded-lg ${accent || 'bg-primary/10'
-            }`}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg ${
+            accent || 'bg-primary/10'
+          }`}
         >
           <Icon className={`w-5 h-5 ${accent ? 'text-white' : 'text-primary'}`} />
         </div>
@@ -71,11 +65,25 @@ function QueueStatusBadge({ status }: { status: string }) {
   )
 }
 
-async function DashboardContent() {
-  const [stats, recentPatients] = await Promise.all([
-    getDashboardStats(),
-    getRecentPatients(),
-  ])
+export default function DashboardPage() {
+  const [stats, setStats] = useState<any>(null)
+  const [recentPatients, setRecentPatients] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [s, r] = await Promise.all([getDashboardStats(), getRecentPatients()])
+        setStats(s)
+        setRecentPatients(r)
+      } catch (err) {
+        console.error('Failed to load dashboard stats:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   const today = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -83,6 +91,26 @@ async function DashboardContent() {
     month: 'long',
     day: 'numeric',
   })
+
+  if (loading || !stats) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="h-8 w-40 bg-muted animate-pulse rounded" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-28 bg-muted animate-pulse rounded-lg" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 h-64 bg-muted animate-pulse rounded-lg" />
+          <div className="space-y-4">
+            <div className="h-32 bg-muted animate-pulse rounded-lg" />
+            <div className="h-32 bg-muted animate-pulse rounded-lg" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -168,7 +196,7 @@ async function DashboardContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {stats.todayQueues.map((queue) => (
+                  {stats.todayQueues.map((queue: any) => (
                     <tr key={queue.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-5 py-3.5">
                         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold">
@@ -264,7 +292,7 @@ async function DashboardContent() {
               <p className="text-xs text-muted-foreground">Belum ada data pasien</p>
             ) : (
               <ul className="space-y-2.5">
-                {recentPatients.map((patient) => (
+                {recentPatients.map((patient: any) => (
                   <li key={patient.id} className="flex items-center gap-2.5">
                     <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 shrink-0">
                       <span className="text-[10px] font-semibold text-primary">
@@ -283,31 +311,5 @@ async function DashboardContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function DashboardPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="p-6 space-y-6">
-          <div className="h-8 w-40 bg-muted animate-pulse rounded" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-28 bg-muted animate-pulse rounded-lg" />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 h-64 bg-muted animate-pulse rounded-lg" />
-            <div className="space-y-4">
-              <div className="h-32 bg-muted animate-pulse rounded-lg" />
-              <div className="h-32 bg-muted animate-pulse rounded-lg" />
-            </div>
-          </div>
-        </div>
-      }
-    >
-      <DashboardContent />
-    </Suspense>
   )
 }
