@@ -2,9 +2,6 @@ import { requireAuth } from '@/lib/auth'
 import { getBillingQueues } from './actions'
 import { PembayaranView } from '@/components/pembayaran/pembayaran-view'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 export const metadata = { title: 'Kasir & Pembayaran — SIMPAY' }
 
 interface PembayaranPageProps {

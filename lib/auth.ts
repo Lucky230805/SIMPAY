@@ -91,7 +91,7 @@ export async function getSession(): Promise<SessionPayload | null> {
  * Set global test user context for CLI test runners
  */
 export function setTestUser(user: AuthUser | null) {
-  ;(globalThis as any).__SIMPAY_TEST_USER__ = user
+  ; (globalThis as any).__SIMPAY_TEST_USER__ = user
 }
 
 /**

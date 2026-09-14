@@ -45,9 +45,8 @@ function StatCard({
           )}
         </div>
         <div
-          className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-            accent || 'bg-primary/10'
-          }`}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg ${accent || 'bg-primary/10'
+            }`}
         >
           <Icon className={`w-5 h-5 ${accent ? 'text-white' : 'text-primary'}`} />
         </div>
