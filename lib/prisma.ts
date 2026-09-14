@@ -11,10 +11,20 @@ function getDatabaseUrl(): string {
   // In Vercel Serverless environment, use /tmp/dev.db for full SQLite read & write permissions
   if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
     const tmpPath = path.join('/tmp', 'dev.db')
-    const sourcePath = path.join(process.cwd(), 'dev.db')
+    const possibleSources = [
+      path.join(process.cwd(), 'dev.db'),
+      path.join(__dirname, '..', 'dev.db'),
+      path.join(__dirname, '..', '..', 'dev.db'),
+      path.resolve('dev.db'),
+    ]
+
+    const sourcePath = possibleSources.find(p => fs.existsSync(p) && fs.statSync(p).size > 0)
+
     try {
-      if (!fs.existsSync(tmpPath) && fs.existsSync(sourcePath)) {
+      const needsCopy = !fs.existsSync(tmpPath) || fs.statSync(tmpPath).size === 0
+      if (needsCopy && sourcePath) {
         fs.copyFileSync(sourcePath, tmpPath)
+        console.log(`Successfully copied ${sourcePath} to ${tmpPath}`)
       }
     } catch (e) {
       console.error('Failed to copy database to /tmp:', e)
