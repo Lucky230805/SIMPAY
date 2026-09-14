@@ -18,7 +18,7 @@ import {
   Layers,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getSessionUserAction, logoutAction } from '@/app/login/actions'
+import { getSessionUserAction, logoutAction, switchDemoRoleAction } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
@@ -139,6 +139,23 @@ export default function Sidebar() {
 
       {/* User Session Footer */}
       <div className="px-4 py-4 border-t border-border space-y-3">
+        {user && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const nextRole = user.role === 'DOKTER' ? 'PERAWAT' : 'DOKTER'
+              await switchDemoRoleAction(nextRole)
+              window.location.reload()
+            }}
+            className="w-full text-xs font-medium justify-between px-2.5 h-8 border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 shadow-none"
+            title="Klik untuk berganti Peran Demo (Dokter / Perawat)"
+          >
+            <span className="text-slate-500">Ganti Peran:</span>
+            <span className="font-bold text-primary">{isDokter ? 'DOKTER 🩺' : 'PERAWAT 📋'}</span>
+          </Button>
+        )}
+
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <div

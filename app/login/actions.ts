@@ -63,3 +63,14 @@ export async function getSessionUserAction() {
   return await getCurrentUser()
 }
 
+export async function switchDemoRoleAction(role: 'DOKTER' | 'PERAWAT') {
+  const { cookies } = await import('next/headers')
+  const cookieStore = await cookies()
+  cookieStore.set('simpay_demo_role', role, {
+    httpOnly: false,
+    path: '/',
+    maxAge: 86400 * 30,
+  })
+  return { success: true }
+}
+

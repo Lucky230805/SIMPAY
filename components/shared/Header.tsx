@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { getSessionUserAction, logoutAction } from '@/app/login/actions'
+import { getSessionUserAction, logoutAction, switchDemoRoleAction } from '@/app/login/actions'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['DOKTER', 'PERAWAT'] },
@@ -55,6 +55,12 @@ export default function Header() {
   const roleInitials = isDokter ? 'DR' : 'PR'
   const roleLabel = isDokter ? 'Dokter' : 'Perawat'
 
+  const handleToggleRole = async () => {
+    const nextRole = user?.role === 'DOKTER' ? 'PERAWAT' : 'DOKTER'
+    await switchDemoRoleAction(nextRole)
+    window.location.reload()
+  }
+
   return (
     <>
       {/* Top Header — mobile + page title */}
@@ -78,8 +84,21 @@ export default function Header() {
           <span className="text-sm font-semibold">SIMPAY</span>
         </div>
 
-        {/* Right side user badge & logout */}
-        <div className="ml-auto flex items-center gap-3">
+        {/* Right side user badge & role switcher & logout */}
+        <div className="ml-auto flex items-center gap-2.5">
+          {user && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleRole}
+              className="text-xs font-medium gap-1 px-2.5 h-8 border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 shadow-none"
+              title="Klik untuk berganti Peran Demo (Dokter / Perawat)"
+            >
+              <span className="hidden md:inline text-slate-500">Peran Demo:</span>
+              <span className="font-bold text-primary">{isDokter ? 'DOKTER 🩺' : 'PERAWAT 📋'}</span>
+            </Button>
+          )}
+
           <div className="flex items-center gap-2">
             <div
               className={cn(

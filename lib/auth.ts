@@ -94,10 +94,35 @@ export function setTestUser(user: AuthUser | null) {
   ;(globalThis as any).__SIMPAY_TEST_USER__ = user
 }
 
+export async function getDemoUser(): Promise<AuthUser> {
+  let role: AuthRole = 'DOKTER'
+  try {
+    const cookieStore = await cookies()
+    const roleCookie = cookieStore.get('simpay_demo_role')?.value
+    if (roleCookie === 'PERAWAT' || roleCookie === 'DOKTER') {
+      role = roleCookie
+    }
+  } catch {}
+
+  return role === 'PERAWAT'
+    ? {
+        id: 2,
+        email: 'perawat@simpay.local',
+        name: 'Siti Rahma (Demo Perawat)',
+        role: 'PERAWAT',
+      }
+    : {
+        id: 1,
+        email: 'dokter@simpay.local',
+        name: 'dr. Andi Wijaya (Demo Dokter)',
+        role: 'DOKTER',
+      }
+}
+
 export const DEMO_USER: AuthUser = {
   id: 1,
-  email: 'demo@simpay.local',
-  name: 'Demo Tenaga Medis (SIMPAY)',
+  email: 'dokter@simpay.local',
+  name: 'dr. Andi Wijaya (Demo Dokter)',
   role: 'DOKTER',
 }
 
@@ -112,7 +137,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   const session = await getSession()
   if (!session) {
     if (process.env.DEMO_MODE === 'true') {
-      return DEMO_USER
+      return await getDemoUser()
     }
     return null
   }
@@ -124,11 +149,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     })
 
     if (!dbUser) {
-      if (process.env.DEMO_MODE === 'true') return DEMO_USER
+      if (process.env.DEMO_MODE === 'true') return await getDemoUser()
       return null
     }
     if (dbUser.role !== 'DOKTER' && dbUser.role !== 'PERAWAT') {
-      if (process.env.DEMO_MODE === 'true') return DEMO_USER
+      if (process.env.DEMO_MODE === 'true') return await getDemoUser()
       return null
     }
 
@@ -140,7 +165,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     }
   } catch (error) {
     // If DB read fails (e.g. offline/read-only cloud DB in demo mode), fallback to verified session or demo user
-    if (process.env.DEMO_MODE === 'true') return DEMO_USER
+    if (process.env.DEMO_MODE === 'true') return await getDemoUser()
     return {
       id: session.userId,
       email: session.email,
