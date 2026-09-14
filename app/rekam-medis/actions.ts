@@ -202,7 +202,13 @@ export async function getMedicalRecords(
     }
   } catch (error: any) {
     console.error('Error fetching medical records:', error)
-    throw new Error('Gagal mengambil data rekam medis: ' + (error.message || 'Kesalahan database'))
+    return {
+      records: [],
+      total: 0,
+      page,
+      pageSize,
+      totalPages: 1,
+    }
   }
 }
 
@@ -220,7 +226,7 @@ export async function getMedicalRecordById(id: number): Promise<MedicalRecordIte
     return record ? enrichMedicalRecord(record) : null
   } catch (error: any) {
     console.error(`Error fetching medical record ${id}:`, error)
-    throw new Error('Gagal mengambil detail rekam medis')
+    return null
   }
 }
 

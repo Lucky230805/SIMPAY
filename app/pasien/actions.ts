@@ -96,7 +96,13 @@ export async function getPatients(params: GetPatientsParams = {}): Promise<GetPa
     }
   } catch (error: any) {
     console.error('Error fetching patients:', error)
-    throw new Error('Gagal mengambil data pasien: ' + (error.message || 'Kesalahan database'))
+    return {
+      patients: [],
+      total: 0,
+      page,
+      pageSize,
+      totalPages: 1,
+    }
   }
 }
 

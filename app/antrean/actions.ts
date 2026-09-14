@@ -60,7 +60,7 @@ export async function getTodayQueues(): Promise<QueueItem[]> {
     return queues as QueueItem[]
   } catch (error: any) {
     console.error('Error fetching today queues:', error)
-    throw new Error('Gagal mengambil data antrean hari ini')
+    return []
   }
 }
 
@@ -167,7 +167,7 @@ export async function getQueueWithPatient(queueId: number): Promise<QueueWithPat
     return queue as QueueWithPatientDetail | null
   } catch (error: any) {
     console.error(`Error fetching queue ${queueId}:`, error)
-    throw new Error('Gagal mengambil data antrean')
+    return null
   }
 }
 
