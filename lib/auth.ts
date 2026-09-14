@@ -94,38 +94,6 @@ export function setTestUser(user: AuthUser | null) {
   ;(globalThis as any).__SIMPAY_TEST_USER__ = user
 }
 
-export async function getDemoUser(): Promise<AuthUser> {
-  let role: AuthRole = 'DOKTER'
-  try {
-    const cookieStore = await cookies()
-    const roleCookie = cookieStore.get('simpay_demo_role')?.value
-    if (roleCookie === 'PERAWAT' || roleCookie === 'DOKTER') {
-      role = roleCookie
-    }
-  } catch {}
-
-  return role === 'PERAWAT'
-    ? {
-        id: 2,
-        email: 'perawat@simpay.local',
-        name: 'Siti Rahma (Demo Perawat)',
-        role: 'PERAWAT',
-      }
-    : {
-        id: 1,
-        email: 'dokter@simpay.local',
-        name: 'dr. Andi Wijaya (Demo Dokter)',
-        role: 'DOKTER',
-      }
-}
-
-export const DEMO_USER: AuthUser = {
-  id: 1,
-  email: 'dokter@simpay.local',
-  name: 'dr. Andi Wijaya (Demo Dokter)',
-  role: 'DOKTER',
-}
-
 /**
  * Get full authenticated user record from session & DB
  */
@@ -135,12 +103,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   }
 
   const session = await getSession()
-  if (!session) {
-    if (process.env.DEMO_MODE === 'true') {
-      return await getDemoUser()
-    }
-    return null
-  }
+  if (!session) return null
 
   try {
     const dbUser = await prisma.user.findUnique({
@@ -148,14 +111,8 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       select: { id: true, email: true, name: true, role: true },
     })
 
-    if (!dbUser) {
-      if (process.env.DEMO_MODE === 'true') return await getDemoUser()
-      return null
-    }
-    if (dbUser.role !== 'DOKTER' && dbUser.role !== 'PERAWAT') {
-      if (process.env.DEMO_MODE === 'true') return await getDemoUser()
-      return null
-    }
+    if (!dbUser) return null
+    if (dbUser.role !== 'DOKTER' && dbUser.role !== 'PERAWAT') return null
 
     return {
       id: dbUser.id,
@@ -164,8 +121,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       role: dbUser.role as AuthRole,
     }
   } catch (error) {
-    // If DB read fails (e.g. offline/read-only cloud DB in demo mode), fallback to verified session or demo user
-    if (process.env.DEMO_MODE === 'true') return await getDemoUser()
+    // If DB read fails, fallback to verified session payload if valid
     return {
       id: session.userId,
       email: session.email,
@@ -203,9 +159,6 @@ export async function requireRole(allowedRoles: AuthRole | AuthRole[]): Promise<
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles]
 
   if (!roles.includes(user.role)) {
-    if (process.env.DEMO_MODE === 'true') {
-      return user
-    }
     const roleNames = roles.join(' atau ')
     throw new Error(
       `UNAUTHORIZED: Akses ditolak. Fungsi ini hanya dapat diakses oleh pengguna dengan peran ${roleNames}.`
