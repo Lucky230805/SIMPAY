@@ -9,9 +9,7 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export async function generateStaticParams() {
-  return []
-}
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params

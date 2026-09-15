@@ -8,9 +8,13 @@ const prisma = new PrismaClient({ adapter })
 
 async function main() {
   // Clear existing data in correct FK order
+  await prisma.payment.deleteMany()
+  await prisma.billing.deleteMany()
   await prisma.prescription.deleteMany()
-  await prisma.queue.deleteMany()
+  await prisma.medicineBatch.deleteMany()
+  await prisma.medicine.deleteMany()
   await prisma.medicalRecord.deleteMany()
+  await prisma.queue.deleteMany()
   await prisma.patient.deleteMany()
   await prisma.user.deleteMany()
 
@@ -26,7 +30,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      name: 'Ns. Dewi Puspitasari',
+      name: 'Ns. Windy Apriyani',
       email: 'perawat@simpay.local',
       password: 'password123',
       role: 'PERAWAT',
