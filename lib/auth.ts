@@ -139,14 +139,7 @@ import { redirect } from 'next/navigation'
 export async function requireAuth(): Promise<AuthUser> {
   const user = await getCurrentUser()
   if (!user) {
-    try {
-      redirect('/login')
-    } catch (err: any) {
-      if (err?.digest?.startsWith('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') {
-        throw err
-      }
-    }
-    throw new Error('UNAUTHENTICATED: Akses ditolak. Silakan login terlebih dahulu.')
+    redirect('/login')
   }
   return user
 }
