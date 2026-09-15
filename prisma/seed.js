@@ -1,10 +1,9 @@
-const { PrismaLibSql } = require('@prisma/adapter-libsql')
+const { PrismaPg } = require('@prisma/adapter-pg')
 const { PrismaClient } = require('@prisma/client')
 require('dotenv').config()
 
-const rawUrl = process.env.DATABASE_URL || 'file:./dev.db'
-const url = rawUrl.replace('file:./', 'file:')
-const adapter = new PrismaLibSql({ url })
+const connectionString = process.env.DATABASE_URL || ''
+const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
