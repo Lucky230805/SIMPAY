@@ -14,9 +14,18 @@ import {
   Edit2,
   RefreshCw,
   Info,
+  Trash2,
 } from 'lucide-react'
-import { MedicineItem, createMedicine, updateMedicine, addMedicineBatch } from '@/app/obat/actions'
+import {
+  MedicineItem,
+  createMedicine,
+  updateMedicine,
+  addMedicineBatch,
+  updateMedicineBatch,
+  deleteMedicineBatch,
+} from '@/app/obat/actions'
 import { Button } from '@/components/ui/button'
+import { MedicineCategoryBadge } from '@/components/ui/medicine-category-badge'
 
 interface MedicineInventoryViewProps {
   initialInventory: MedicineItem[]
@@ -49,6 +58,17 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
   const [batchNumber, setBatchNumber] = useState('')
   const [batchQty, setBatchQty] = useState('50')
   const [batchExpiryDate, setBatchExpiryDate] = useState('')
+
+  // Custom Delete Batch Modal State
+  const [batchToDelete, setBatchToDelete] = useState<{ id: number; batchNumber: string } | null>(null)
+
+  // Custom Edit Batch Expiry Modal State
+  const [batchToEditExpiry, setBatchToEditExpiry] = useState<{
+    id: number
+    batchNumber: string
+    currentExpiry: Date
+  } | null>(null)
+  const [newExpiryDateInput, setNewExpiryDateInput] = useState('')
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -90,6 +110,20 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
     setMedUnitPrice('15000')
     setMedPurchasePrice('10000')
     setMedMinStock('10')
+    setErrorMsg(null)
+    setIsAddMedOpen(true)
+  }
+
+  // Open Add Action/Procedure Modal
+  const openAddActionModal = () => {
+    setEditingMed(null)
+    setMedName('')
+    setMedCode(`TND-${Math.floor(Math.random() * 900 + 100)}`)
+    setMedUnit('Kali')
+    setMedCategory('Tindakan / Layanan Medis')
+    setMedUnitPrice('50000')
+    setMedPurchasePrice('10000')
+    setMedMinStock('0')
     setErrorMsg(null)
     setIsAddMedOpen(true)
   }
@@ -156,18 +190,19 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
           category: medCategory,
           unitPrice: parseFloat(medUnitPrice) || 0,
           purchasePrice: parseFloat(medPurchasePrice) || 0,
-          minStock: parseInt(medMinStock, 10) || 10,
+          minStock: parseInt(medMinStock, 10) || 0,
         })
         if (!res.success) {
-          setErrorMsg(res.error || 'Gagal menambahkan obat')
+          setErrorMsg(res.error || 'Gagal menambahkan item')
         } else {
-          setSuccessMsg(`Obat "${medName}" berhasil ditambahkan`)
+          setSuccessMsg(`Item/Tindakan "${medName}" berhasil ditambahkan`)
           setIsAddMedOpen(false)
           window.location.reload()
         }
       }
     })
   }
+
 
   // Handle Save Batch
   const handleSaveBatch = (e: React.FormEvent) => {
@@ -189,6 +224,50 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
         setSuccessMsg(`Batch ${batchNumber} untuk "${selectedMedForBatch.name}" berhasil ditambahkan`)
         setIsBatchModalOpen(false)
         window.location.reload()
+      }
+    })
+  }
+
+  // Open Delete Batch Modal
+  const openDeleteBatchModal = (batchId: number, batchNumber: string) => {
+    setBatchToDelete({ id: batchId, batchNumber })
+  }
+
+  // Execute Delete Batch Action
+  const confirmDeleteBatch = () => {
+    if (!batchToDelete) return
+
+    startTransition(async () => {
+      const res = await deleteMedicineBatch(batchToDelete.id)
+      if (res.success) {
+        setSuccessMsg(`Batch ${batchToDelete.batchNumber} berhasil dihapus`)
+        setBatchToDelete(null)
+        window.location.reload()
+      } else {
+        setErrorMsg(res.error || 'Gagal menghapus batch')
+      }
+    })
+  }
+
+  // Open Edit Batch Expiry Modal
+  const openEditBatchExpiryModal = (batchId: number, batchNumber: string, currentExpiry: Date) => {
+    setBatchToEditExpiry({ id: batchId, batchNumber, currentExpiry })
+    setNewExpiryDateInput(new Date(currentExpiry).toISOString().slice(0, 10))
+  }
+
+  // Execute Edit Batch Expiry Action
+  const confirmEditBatchExpiry = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!batchToEditExpiry || !newExpiryDateInput) return
+
+    startTransition(async () => {
+      const res = await updateMedicineBatch(batchToEditExpiry.id, { expiryDate: newExpiryDateInput })
+      if (res.success) {
+        setSuccessMsg('Tanggal kedaluwarsa batch berhasil diperbarui')
+        setBatchToEditExpiry(null)
+        window.location.reload()
+      } else {
+        setErrorMsg(res.error || 'Gagal memperbarui tanggal kedaluwarsa')
       }
     })
   }
@@ -218,14 +297,25 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
           )}
 
           {isNurse && (
-            <Button
-              onClick={openAddModal}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-1.5 shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Obat Baru</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={openAddActionModal}
+                className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-sm text-xs h-9"
+              >
+                <Plus className="w-3.5 h-3.5 text-blue-600" />
+                <span>+ Tambah Master Tindakan / Injeksi</span>
+              </Button>
+              <Button
+                onClick={openAddModal}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-1.5 shadow-sm text-xs h-9"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Tambah Obat Baru</span>
+              </Button>
+            </div>
           )}
+
         </div>
       </div>
 
@@ -306,7 +396,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
           }`}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Mendekati ED</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Mendekati Kedaluwarsa</span>
             <Clock className="w-4 h-4 text-orange-600" />
           </div>
           <div className="text-2xl font-extrabold">{nearExpiryCount}</div>
@@ -360,7 +450,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
               {st === 'ALL' && 'Semua'}
               {st === 'LOW_STOCK' && 'Stok Menipis'}
               {st === 'OUT_OF_STOCK' && 'Stok Habis'}
-              {st === 'NEAR_EXPIRY' && 'Mendekati ED'}
+              {st === 'NEAR_EXPIRY' && 'Mendekati Kedaluwarsa'}
               {st === 'EXPIRED' && 'Kedaluwarsa'}
             </button>
           ))}
@@ -400,9 +490,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                     </td>
                     <td className="px-4 py-3 font-bold text-slate-900">{med.name}</td>
                     <td className="px-4 py-3 text-slate-600">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-medium">
-                        {med.category || 'Umum'}
-                      </span>
+                      <MedicineCategoryBadge category={med.category} size="sm" />
                     </td>
                     <td className="px-4 py-3 text-slate-600">{med.unit}</td>
                     <td className="px-4 py-3 text-right font-bold text-slate-900">
@@ -439,7 +527,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                         </span>
                       ) : med.nearExpiryBatchesCount > 0 ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 text-[10px] font-bold">
-                          <Clock className="w-3 h-3" /> Near ED ({med.nearExpiryBatchesCount} Batch)
+                          <Clock className="w-3 h-3" /> Mendekati Kedaluwarsa ({med.nearExpiryBatchesCount} Batch)
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
@@ -525,26 +613,35 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kode Obat</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kode Obat <span className="font-normal text-slate-400 text-[10px]">(Opsional / Otomatis OBT-xxx)</span></label>
                   <input
                     type="text"
                     value={medCode}
                     onChange={(e) => setMedCode(e.target.value)}
-                    placeholder="mis. OBT-001"
+                    placeholder="Otomatis terisi mis. OBT-001"
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kategori</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kategori Obat (Golongan BPOM) *</label>
+                  <select
                     value={medCategory}
                     onChange={(e) => setMedCategory(e.target.value)}
-                    placeholder="mis. Obat Bebas / Bebas Terbatas"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
-                  />
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-white"
+                  >
+                    <option value="Obat Bebas">Obat Bebas (Lingkaran Hijau Tepi Hitam)</option>
+                    <option value="Obat Bebas Terbatas">Obat Bebas Terbatas (Lingkaran Biru Tepi Hitam)</option>
+                    <option value="Obat Keras">Obat Keras & Psikotropika (Huruf K Merah Tepi Hitam)</option>
+                    <option value="Tindakan / Layanan Medis">Tindakan / Layanan Medis</option>
+                  </select>
                 </div>
+              </div>
+
+              {/* BPOM Symbol & Description Live Preview */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Simbol Golongan Obat (BPOM)</span>
+                <MedicineCategoryBadge category={medCategory} showDescription={true} size="md" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -720,6 +817,13 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
             </div>
 
             <div className="p-6 space-y-4">
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 leading-relaxed flex items-start gap-2">
+                <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong>Informasi Manajemen Stok (Sistem FEFO):</strong> Stok obat terbagi per-batch. Peringatan status obat dihitung berdasarkan batch yang stoknya masih tersisa. Jika batch lama sudah tidak berlaku/dibuang/salah input ED, Anda dapat mengedit tanggal kedaluwarsa atau menghapus batch lama di kolom <strong>Aksi</strong>.
+                </div>
+              </div>
+
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                 <div>
                   <span className="text-slate-500">Stok Aktif Tersedia: </span>
@@ -749,6 +853,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                         <th className="px-3 py-2 text-center">Stok Awal</th>
                         <th className="px-3 py-2">Tanggal ED</th>
                         <th className="px-3 py-2 text-center">Status</th>
+                        {isNurse && <th className="px-3 py-2 text-center">Aksi</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -777,14 +882,36 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                               </span>
                             ) : b.isNearExpiry ? (
                               <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 font-bold text-[10px]">
-                                Near ED
+                                Mendekati Kedaluwarsa
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">
-                                Valid
+                                Aman
                               </span>
                             )}
                           </td>
+                          {isNurse && (
+                            <td className="px-3 py-2 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  type="button"
+                                  title="Ubah Tanggal ED Batch"
+                                  onClick={() => openEditBatchExpiryModal(b.id, b.batchNumber, b.expiryDate)}
+                                  className="p-1 rounded text-blue-600 hover:bg-blue-50 border border-blue-200 transition-colors"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Hapus Batch Ini"
+                                  onClick={() => openDeleteBatchModal(b.id, b.batchNumber)}
+                                  className="p-1 rounded text-red-600 hover:bg-red-50 border border-red-200 transition-colors"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -801,6 +928,106 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 4: Custom Delete Batch Confirmation Dialog */}
+      {batchToDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto border border-red-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Hapus Batch Stok Obat?</h3>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Apakah Anda yakin ingin menghapus <strong className="text-slate-900 font-mono font-bold">{batchToDelete.batchNumber}</strong>?
+                  <br />
+                  Stok dari batch ini akan dihapus permanen dari inventaris. Action ini tidak dapat dibatalkan.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setBatchToDelete(null)}
+                  disabled={isPending}
+                  className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteBatch}
+                  disabled={isPending}
+                  className="py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-1.5"
+                >
+                  {isPending ? 'Menghapus...' : 'Ya, Hapus Batch'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 5: Custom Edit Batch Expiry Date Dialog */}
+      {batchToEditExpiry && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span>Ubah Tanggal Kedaluwarsa</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setBatchToEditExpiry(null)}
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={confirmEditBatchExpiry} className="p-6 space-y-4">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                <span className="text-slate-500 font-medium">Nomor Batch: </span>
+                <span className="font-mono font-bold text-slate-900">{batchToEditExpiry.batchNumber}</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Tanggal Kedaluwarsa Baru (ED) *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={newExpiryDateInput}
+                  onChange={(e) => setNewExpiryDateInput(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setBatchToEditExpiry(null)}
+                  disabled={isPending}
+                  className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md transition-all"
+                >
+                  {isPending ? 'Menyimpan...' : 'Simpan Tanggal'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

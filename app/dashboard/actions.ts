@@ -35,7 +35,23 @@ export async function getDashboardStats() {
 
     const waitingCount = todayQueues.filter((q) => q.status === 'MENUNGGU').length
     const inProgressCount = todayQueues.filter((q) => q.status === 'DALAM_PEMERIKSAAN').length
+    const waitingPharmacyCount = todayQueues.filter((q) => q.status === 'MENUNGGU_OBAT_DAN_BAYAR').length
     const doneCount = todayQueues.filter((q) => q.status === 'SELESAI').length
+
+    todayQueues.sort((a, b) => {
+      const getPriority = (st: string) => {
+        const norm = (st || '').trim().toUpperCase()
+        if (norm === 'DALAM_PEMERIKSAAN') return 1
+        if (norm === 'MENUNGGU') return 2
+        if (norm === 'MENUNGGU_OBAT_DAN_BAYAR') return 3
+        if (norm === 'SELESAI') return 4
+        return 5
+      }
+      const pA = getPriority(a.status)
+      const pB = getPriority(b.status)
+      if (pA !== pB) return pA - pB
+      return a.queueNumber - b.queueNumber
+    })
 
     return {
       totalPatients,
@@ -44,6 +60,7 @@ export async function getDashboardStats() {
         total: todayQueues.length,
         waiting: waitingCount,
         inProgress: inProgressCount,
+        waitingPharmacy: waitingPharmacyCount,
         done: doneCount,
       },
       patientsByGender,
@@ -57,6 +74,7 @@ export async function getDashboardStats() {
         total: 0,
         waiting: 0,
         inProgress: 0,
+        waitingPharmacy: 0,
         done: 0,
       },
       patientsByGender: [],

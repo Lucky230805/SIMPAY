@@ -20,6 +20,11 @@ export interface PatientRecord {
   gender: string
   address: string | null
   phone: string | null
+  todayQueue?: {
+    id: number
+    queueNumber: number
+    status: string
+  } | null
   _count?: {
     medicalRecords: number
     queues: number
@@ -53,9 +58,9 @@ export async function getPatients(params: GetPatientsParams = {}): Promise<GetPa
   if (search) {
     const rmId = parseNoRM(search)
     const orConditions: any[] = [
-      { name: { contains: search } },
-      { phone: { contains: search } },
-      { address: { contains: search } },
+      { name: { contains: search, mode: 'insensitive' } },
+      { phone: { contains: search, mode: 'insensitive' } },
+      { address: { contains: search, mode: 'insensitive' } },
     ]
 
     if (rmId !== null) {
@@ -66,6 +71,11 @@ export async function getPatients(params: GetPatientsParams = {}): Promise<GetPa
   }
 
   const where = andConditions.length > 0 ? { AND: andConditions } : {}
+
+  const startOfDay = new Date()
+  startOfDay.setHours(0, 0, 0, 0)
+  const endOfDay = new Date()
+  endOfDay.setHours(23, 59, 59, 999)
 
   try {
     const [total, patients] = await Promise.all([
@@ -83,12 +93,38 @@ export async function getPatients(params: GetPatientsParams = {}): Promise<GetPa
               prescriptions: true,
             },
           },
+          queues: {
+            where: {
+              date: {
+                gte: startOfDay,
+                lte: endOfDay,
+              },
+              status: { in: ['MENUNGGU', 'DALAM_PEMERIKSAAN'] },
+            },
+            take: 1,
+            select: {
+              id: true,
+              queueNumber: true,
+              status: true,
+            },
+          },
         },
       }),
     ])
 
+    const formattedPatients: PatientRecord[] = patients.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      dateOfBirth: p.dateOfBirth,
+      gender: p.gender,
+      address: p.address,
+      phone: p.phone,
+      _count: p._count,
+      todayQueue: p.queues && p.queues.length > 0 ? p.queues[0] : null,
+    }))
+
     return {
-      patients,
+      patients: formattedPatients,
       total,
       page,
       pageSize,
@@ -214,7 +250,7 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
       const nextQueueNumber = todayQueueCount + 1
 
       // 3. Buat data antrean otomatis untuk hari ini
-      await tx.queue.create({
+      const newQueue = await tx.queue.create({
         data: {
           patientId: newPatient.id,
           queueNumber: nextQueueNumber,
@@ -223,7 +259,10 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
         },
       })
 
-      return newPatient
+      return {
+        patient: newPatient,
+        queue: newQueue,
+      }
     })
 
     try {
@@ -236,7 +275,8 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
 
     return {
       success: true,
-      patient: result,
+      patient: result.patient,
+      queue: result.queue,
     }
   } catch (error: any) {
     console.error('Error creating patient and queue:', error)
@@ -246,6 +286,92 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
     }
   }
 }
+
+export async function addExistingPatientToQueue(patientId: number, polyclinic: string = 'Poli Umum') {
+  try {
+    await requireRole('PERAWAT')
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Akses ditolak' }
+  }
+
+  try {
+    const patient = await prisma.patient.findUnique({
+      where: { id: patientId },
+      select: { id: true, name: true },
+    })
+
+    if (!patient) {
+      return { success: false, error: 'Data pasien tidak ditemukan.' }
+    }
+
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+
+    const endOfDay = new Date()
+    endOfDay.setHours(23, 59, 59, 999)
+
+    // Check if patient already has an active queue today (MENUNGGU or DALAM_PEMERIKSAAN)
+    const existingQueue = await prisma.queue.findFirst({
+      where: {
+        patientId,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+        status: { in: ['MENUNGGU', 'DALAM_PEMERIKSAAN'] },
+      },
+    })
+
+    if (existingQueue) {
+      return {
+        success: false,
+        error: `Pasien ${patient.name} sudah terdaftar di antrean hari ini (No. Antrean #${existingQueue.queueNumber}, Status: ${existingQueue.status === 'MENUNGGU' ? 'Menunggu' : 'Dalam Pemeriksaan'}).`,
+      }
+    }
+
+    const todayQueueCount = await prisma.queue.count({
+      where: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+    })
+
+    const nextQueueNumber = todayQueueCount + 1
+
+    const newQueue = await prisma.queue.create({
+      data: {
+        patientId,
+        queueNumber: nextQueueNumber,
+        status: 'MENUNGGU',
+        polyclinic: polyclinic || 'Poli Umum',
+      },
+    })
+
+    try {
+      revalidatePath('/pasien')
+      revalidatePath(`/pasien/${patientId}`)
+      revalidatePath('/antrean')
+      revalidatePath('/dashboard')
+    } catch {
+      // Ignored outside request context
+    }
+
+    return {
+      success: true,
+      queue: newQueue,
+      patientName: patient.name,
+    }
+  } catch (error: any) {
+    console.error(`Error adding patient ${patientId} to queue:`, error)
+    return {
+      success: false,
+      error: 'Gagal memasukkan pasien ke antrean: ' + (error.message || 'Kesalahan server'),
+    }
+  }
+}
+
 
 export async function updatePatient(id: number, data: PatientInput) {
   try {
@@ -471,7 +597,7 @@ export async function getPatientMedicalHistory(
     // Specific ICD-10 filter
     if (filters.icd10Code && filters.icd10Code.trim() !== '') {
       andConditions.push({
-        icd10Code: { contains: filters.icd10Code.trim() },
+        icd10Code: { contains: filters.icd10Code.trim(), mode: 'insensitive' },
       })
     }
 
@@ -480,11 +606,11 @@ export async function getPatientMedicalHistory(
       const q = filters.search.trim()
       andConditions.push({
         OR: [
-          { complaint: { contains: q } },
-          { diagnosis: { contains: q } },
-          { secondaryDiagnosis: { contains: q } },
-          { icd10Code: { contains: q } },
-          { prescriptions: { some: { medicineName: { contains: q } } } },
+          { complaint: { contains: q, mode: 'insensitive' } },
+          { diagnosis: { contains: q, mode: 'insensitive' } },
+          { secondaryDiagnosis: { contains: q, mode: 'insensitive' } },
+          { icd10Code: { contains: q, mode: 'insensitive' } },
+          { prescriptions: { some: { medicineName: { contains: q, mode: 'insensitive' } } } },
         ],
       })
     }

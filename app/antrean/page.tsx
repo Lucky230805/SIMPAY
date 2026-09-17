@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { ClipboardList, Users, CheckCircle2, Clock, Tv, ExternalLink } from 'lucide-react'
+import { ClipboardList, Users, CheckCircle2, Clock } from 'lucide-react'
 import { getTodayQueues } from './actions'
 import { QueueTable } from '@/components/antrean/queue-table'
 
@@ -46,27 +45,14 @@ export default function AntreanPage() {
   return (
     <div className="p-6 space-y-6 w-full">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <ClipboardList className="w-5 h-5 text-primary" />
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Antrean Pemeriksaan</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">Kelola daftar pasien yang menunggu hari ini.</p>
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <ClipboardList className="w-5 h-5 text-primary" />
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Antrean Pemeriksaan</h1>
         </div>
-        <div>
-          <Link
-            href="/antrean/display"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-          >
-            <Tv className="w-4 h-4 text-emerald-400" />
-            <span>Layar Antrean TV</span>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-          </Link>
-        </div>
+        <p className="text-sm text-muted-foreground">Kelola daftar pasien yang menunggu hari ini.</p>
       </div>
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

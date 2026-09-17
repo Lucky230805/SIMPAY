@@ -201,6 +201,40 @@ export async function getOrCreateBillingForVisit(queueId: number) {
       })
     }
 
+    if (billingRecord.otherFee > 0) {
+      let addedActions = false
+      if (mr?.treatment && mr.treatment.includes('Tindakan Medis Ditentukan:')) {
+        const section = mr.treatment.split('Tindakan Medis Ditentukan:')[1]?.split('\n\n')[0]
+        if (section) {
+          const lines = section.split('\n').filter((l) => l.trim().startsWith('- '))
+          lines.forEach((line) => {
+            const match = line.match(/^-\s*(.*?)\s*\(Jml:\s*(\d+),\s*Tarif:\s*Rp\s*([\d\.]+)\)/)
+            if (match) {
+              const actionName = match[1].trim()
+              const qty = parseInt(match[2], 10) || 1
+              const unitPrice = parseFloat(match[3].replace(/\./g, '')) || 0
+              items.push({
+                name: `Tindakan: ${actionName}`,
+                quantity: qty,
+                unitPrice,
+                totalPrice: qty * unitPrice,
+              })
+              addedActions = true
+            }
+          })
+        }
+      }
+
+      if (!addedActions) {
+        items.push({
+          name: 'Biaya Tindakan Medis & Injeksi',
+          quantity: 1,
+          unitPrice: billingRecord.otherFee,
+          totalPrice: billingRecord.otherFee,
+        })
+      }
+    }
+
     const billingDetail: BillingDetail = {
       id: billingRecord.id,
       patientId: patient.id,

@@ -15,6 +15,7 @@ import {
   Activity,
   CreditCard,
   LogOut,
+  Layers,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -23,12 +24,14 @@ import { getSessionUserAction, logoutAction } from '@/app/login/actions'
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Data Pasien', href: '/pasien', icon: Users, roles: ['DOKTER', 'PERAWAT'] },
-  { label: 'Antrean Pemeriksaan', href: '/antrean', icon: ClipboardList, roles: ['DOKTER', 'PERAWAT'] },
-  { label: 'Rekam Medis', href: '/rekam-medis', icon: FileText, roles: ['DOKTER', 'PERAWAT'] },
-  { label: 'Resep & Obat', href: '/resep', icon: Pill, roles: ['DOKTER', 'PERAWAT'] },
+  { label: 'Antrean Pemeriksaan', href: '/antrean', icon: ClipboardList, roles: ['DOKTER'] },
+  { label: 'Rekam Medis', href: '/rekam-medis', icon: FileText, roles: ['DOKTER'] },
+  { label: 'Resep & Penyerahan', href: '/resep', icon: Pill, roles: ['PERAWAT'] },
+  { label: 'Stok & Obat', href: '/obat', icon: Layers, roles: ['PERAWAT'] },
   { label: 'Kasir & Pembayaran', href: '/pembayaran', icon: CreditCard, roles: ['PERAWAT'] },
   { label: 'Laporan', href: '/laporan', icon: BarChart2, roles: ['DOKTER', 'PERAWAT'] },
 ]
+
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)

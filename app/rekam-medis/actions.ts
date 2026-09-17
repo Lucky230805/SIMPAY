@@ -152,8 +152,8 @@ export async function getMedicalRecords(
   if (diagnosisFilter && diagnosisFilter !== 'all') {
     andConditions.push({
       OR: [
-        { diagnosis: { contains: diagnosisFilter } },
-        { icd10Code: { contains: diagnosisFilter } },
+        { diagnosis: { contains: diagnosisFilter, mode: 'insensitive' } },
+        { icd10Code: { contains: diagnosisFilter, mode: 'insensitive' } },
       ],
     })
   }
@@ -162,10 +162,10 @@ export async function getMedicalRecords(
   if (search) {
     const rmId = parseNoRM(search)
     const orConditions: any[] = [
-      { patient: { name: { contains: search } } },
-      { diagnosis: { contains: search } },
-      { icd10Code: { contains: search } },
-      { complaint: { contains: search } },
+      { patient: { name: { contains: search, mode: 'insensitive' } } },
+      { diagnosis: { contains: search, mode: 'insensitive' } },
+      { icd10Code: { contains: search, mode: 'insensitive' } },
+      { complaint: { contains: search, mode: 'insensitive' } },
     ]
 
     if (rmId !== null) {
@@ -227,6 +227,25 @@ export async function getMedicalRecordById(id: number): Promise<MedicalRecordIte
   } catch (error: any) {
     console.error(`Error fetching medical record ${id}:`, error)
     return null
+  }
+}
+
+export async function getPatientMedicalHistory(patientId: number): Promise<MedicalRecordItem[]> {
+  await requireAuth()
+  try {
+    const records = await prisma.medicalRecord.findMany({
+      where: { patientId },
+      orderBy: { examinationDate: 'desc' },
+      include: {
+        patient: true,
+        doctor: true,
+        prescriptions: true,
+      },
+    })
+    return records.map(enrichMedicalRecord)
+  } catch (error: any) {
+    console.error(`Error fetching medical history for patient ${patientId}:`, error)
+    return []
   }
 }
 

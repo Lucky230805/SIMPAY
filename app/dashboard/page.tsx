@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { getDashboardStats, getRecentPatients } from './actions'
+import { getSessionUserAction } from '@/app/login/actions'
 import { Card } from '@/components/ui/card'
 import {
   Users,
@@ -12,6 +14,8 @@ import {
   Activity,
   TrendingUp,
   Calendar,
+  Tv,
+  ExternalLink,
 } from 'lucide-react'
 
 function StatCard({
@@ -50,12 +54,14 @@ function StatCard({
 }
 
 function QueueStatusBadge({ status }: { status: string }) {
+  const norm = (status || '').trim().toUpperCase()
   const map: Record<string, { label: string; className: string }> = {
     MENUNGGU: { label: 'Menunggu', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
     DALAM_PEMERIKSAAN: { label: 'Dalam Pemeriksaan', className: 'bg-blue-100 text-blue-800 border-blue-200' },
+    MENUNGGU_OBAT_DAN_BAYAR: { label: 'Menunggu Obat & Bayar', className: 'bg-purple-100 text-purple-800 border-purple-200' },
     SELESAI: { label: 'Selesai', className: 'bg-green-100 text-green-800 border-green-200' },
   }
-  const config = map[status] ?? { label: status, className: 'bg-gray-100 text-gray-800' }
+  const config = map[norm] ?? { label: status, className: 'bg-gray-100 text-gray-800 border-gray-200' }
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${config.className}`}
@@ -68,14 +74,22 @@ function QueueStatusBadge({ status }: { status: string }) {
 export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null)
   const [recentPatients, setRecentPatients] = useState<any[]>([])
+  const [userRole, setUserRole] = useState<'DOKTER' | 'PERAWAT'>('PERAWAT')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [s, r] = await Promise.all([getDashboardStats(), getRecentPatients()])
+        const [s, r, user] = await Promise.all([
+          getDashboardStats(),
+          getRecentPatients(),
+          getSessionUserAction(),
+        ])
         setStats(s)
         setRecentPatients(r)
+        if (user?.role === 'DOKTER' || user?.role === 'PERAWAT') {
+          setUserRole(user.role)
+        }
       } catch (err) {
         console.error('Failed to load dashboard stats:', err)
       } finally {
@@ -115,13 +129,28 @@ export default function DashboardPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
-        <div className="flex items-center gap-1.5 mt-1">
-          <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground capitalize">{today}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <div className="flex items-center gap-1.5 mt-1">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground capitalize">{today}</p>
+          </div>
         </div>
+        {userRole === 'PERAWAT' && (
+          <Link
+            href="/antrean/display"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors shadow-sm shrink-0"
+          >
+            <Tv className="w-4 h-4 text-emerald-400" />
+            <span>Layar Antrean TV Publik</span>
+            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+          </Link>
+        )}
       </div>
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -243,6 +272,15 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-sm font-semibold text-foreground">{stats.queueStats.inProgress}</span>
               </div>
+              {stats.queueStats.waitingPharmacy > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+                    <span className="text-sm text-muted-foreground">Menunggu Obat & Bayar</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">{stats.queueStats.waitingPharmacy}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
@@ -259,6 +297,12 @@ export default function DashboardPage() {
                       className="bg-green-500 h-full"
                       style={{
                         width: `${(stats.queueStats.done / stats.queueStats.total) * 100}%`,
+                      }}
+                    />
+                    <div
+                      className="bg-purple-500 h-full"
+                      style={{
+                        width: `${((stats.queueStats.waitingPharmacy || 0) / stats.queueStats.total) * 100}%`,
                       }}
                     />
                     <div

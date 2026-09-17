@@ -38,25 +38,25 @@ const navItems = [
     label: 'Antrean Pemeriksaan',
     href: '/antrean',
     icon: ClipboardList,
-    roles: ['DOKTER', 'PERAWAT'],
+    roles: ['DOKTER'],
   },
   {
     label: 'Rekam Medis',
     href: '/rekam-medis',
     icon: FileText,
-    roles: ['DOKTER', 'PERAWAT'],
+    roles: ['DOKTER'],
   },
   {
     label: 'Resep & Penyerahan',
     href: '/resep',
     icon: Pill,
-    roles: ['DOKTER', 'PERAWAT'],
+    roles: ['PERAWAT'],
   },
   {
     label: 'Stok & Obat',
     href: '/obat',
     icon: Layers,
-    roles: ['DOKTER', 'PERAWAT'],
+    roles: ['PERAWAT'],
   },
   {
     label: 'Kasir & Pembayaran',
@@ -71,6 +71,7 @@ const navItems = [
     roles: ['DOKTER', 'PERAWAT'],
   },
 ]
+
 
 export default function Sidebar() {
   const pathname = usePathname()

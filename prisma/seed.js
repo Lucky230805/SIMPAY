@@ -349,7 +349,7 @@ async function main() {
     data: { patientId: p4.id, queueNumber: 4, status: 'MENUNGGU', polyclinic: 'Poli Umum', date: makeArrival(9, 5) },
   })
   await prisma.queue.create({
-    data: { patientId: p5.id, queueNumber: 1, status: 'MENUNGGU', polyclinic: 'Poli Gigi', date: makeArrival(9, 10) },
+    data: { patientId: p5.id, queueNumber: 5, status: 'MENUNGGU', polyclinic: 'Poli Umum', date: makeArrival(9, 10) },
   })
 
   console.log('✅ Seed data Epic 3 berhasil dimasukkan.')

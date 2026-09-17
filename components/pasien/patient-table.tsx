@@ -17,16 +17,21 @@ import {
   RefreshCw,
   AlertCircle,
   FileText,
+  UserPlus,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { formatNoRM, formatBirthDateAndAge } from '@/lib/patient-utils'
-import { getPatients, PatientRecord, getAllPatientsForExport } from '@/app/pasien/actions'
+import { getPatients, PatientRecord, getAllPatientsForExport, addExistingPatientToQueue } from '@/app/pasien/actions'
+import { getSessionUserAction } from '@/app/login/actions'
 import { PatientFormDialog } from './patient-form-dialog'
 import { PatientDeleteDialog } from './patient-delete-dialog'
 import { PatientSuccessDialog } from './patient-success-dialog'
 import { PatientHistoryDrawer } from './patient-history-drawer'
+import { QueueTicketModal, QueueTicketData } from '@/components/antrean/queue-ticket-modal'
 
 interface PatientTableProps {
   initialData?: {
@@ -49,6 +54,21 @@ export function PatientTable({ initialData }: PatientTableProps) {
   const [genderFilter, setGenderFilter] = useState('ALL')
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null)
+  const [userRole, setUserRole] = useState<'DOKTER' | 'PERAWAT' | null>(null)
+
+  useEffect(() => {
+    let active = true
+    getSessionUserAction().then((u) => {
+      if (active && u) {
+        setUserRole(u.role as 'DOKTER' | 'PERAWAT')
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const isDokter = userRole === 'DOKTER'
 
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -67,6 +87,40 @@ export function PatientTable({ initialData }: PatientTableProps) {
     setHistoryPatientId(pId)
     setIsHistoryOpen(true)
     setActiveMenuId(null)
+  }
+
+  const [ticketModalData, setTicketModalData] = useState<QueueTicketData | null>(null)
+  const [isTicketOpen, setIsTicketOpen] = useState(false)
+  const [isQueueingId, setIsQueueingId] = useState<number | null>(null)
+
+  const handleAddToQueue = async (patient: PatientRecord) => {
+    setActiveMenuId(null)
+    if (patient.todayQueue) {
+      alert(`Pasien ${patient.name} sudah terdaftar di Antrean Pemeriksaan hari ini (No. Antrean #${patient.todayQueue.queueNumber}, Status: ${patient.todayQueue.status === 'MENUNGGU' ? 'Menunggu' : 'Dalam Pemeriksaan'}). Pasien tidak dapat diinputkan lagi ke antrean.`)
+      return
+    }
+
+    setIsQueueingId(patient.id)
+    try {
+      const res = await addExistingPatientToQueue(patient.id, 'Poli Umum')
+      if (res.success && res.queue) {
+        showToast(`Pasien ${res.patientName} berhasil didaftarkan ke Antrean Hari Ini (#${res.queue.queueNumber})`)
+        setTicketModalData({
+          queueNumber: res.queue.queueNumber,
+          patientName: res.patientName,
+          noRM: formatNoRM(patient.id),
+          polyclinic: res.queue.polyclinic || 'Poli Umum',
+        })
+        setIsTicketOpen(true)
+        fetchData(page, search, genderFilter)
+      } else {
+        alert(res.error || 'Gagal mendaftarkan pasien ke antrean')
+      }
+    } catch (err: any) {
+      alert('Terjadi kesalahan: ' + err.message)
+    } finally {
+      setIsQueueingId(null)
+    }
   }
 
   const [isPending, startTransition] = useTransition()
@@ -221,6 +275,12 @@ export function PatientTable({ initialData }: PatientTableProps) {
         patientId={historyPatientId}
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
+      />
+
+      <QueueTicketModal
+        isOpen={isTicketOpen}
+        onClose={() => setIsTicketOpen(false)}
+        queueData={ticketModalData}
       />
 
       {/* Table Toolbar */}
@@ -402,9 +462,11 @@ export function PatientTable({ initialData }: PatientTableProps) {
                         <p className="text-xs text-muted-foreground">
                           Data pasien yang terdaftar akan muncul di sini.
                         </p>
-                        <Button size="sm" onClick={handleOpenAdd} className="mt-3 text-xs">
-                          + Tambah Pasien Baru
-                        </Button>
+                        {!isDokter && (
+                          <Button size="sm" onClick={handleOpenAdd} className="mt-3 text-xs">
+                            + Tambah Pasien Baru
+                          </Button>
+                        )}
                       </div>
                     )}
                   </td>
@@ -455,54 +517,112 @@ export function PatientTable({ initialData }: PatientTableProps) {
 
                       {/* AKSI */}
                       <td className="px-4 py-3.5 text-right whitespace-nowrap relative">
-                        <div className="inline-block relative">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setActiveMenuId(activeMenuId === patient.id ? null : patient.id)
-                            }
-                            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                            title="Aksi"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-
-                          {activeMenuId === patient.id && (
-                            <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-border py-1 z-40 animate-in fade-in-0 zoom-in-95 text-xs text-left">
-                              <Link
-                                href={`/pasien/${patient.id}`}
-                                className="flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors"
-                                onClick={() => setActiveMenuId(null)}
+                        <div className="flex items-center justify-end gap-1.5">
+                          {patient.todayQueue ? (
+                            <Badge
+                              variant="outline"
+                              onClick={() => !isDokter && handleAddToQueue(patient)}
+                              className={`h-7 px-2.5 text-[11px] gap-1 font-semibold bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs ${!isDokter ? 'cursor-pointer hover:bg-emerald-100' : ''}`}
+                              title="Pasien sudah terdaftar di antrean hari ini"
+                            >
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              <span>Antrean #{patient.todayQueue.queueNumber}</span>
+                            </Badge>
+                          ) : (
+                            !isDokter && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAddToQueue(patient)}
+                                disabled={isQueueingId === patient.id}
+                                className="h-7 px-2.5 text-[11px] gap-1 font-semibold border-primary/30 text-primary hover:bg-primary/10 hover:text-primary transition-colors"
+                                title="Daftarkan pasien ini ke antrean hari ini"
                               >
-                                <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span>Lihat Detail</span>
-                              </Link>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenHistory(patient.id)}
-                                className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
-                              >
-                                <FileText className="w-3.5 h-3.5 text-blue-600" />
-                                <span>Riwayat Medis</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEdit(patient)}
-                                className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
-                              >
-                                <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span>Edit Pasien</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenDelete(patient)}
-                                className="w-full flex items-center gap-2 px-3 py-1.5 text-destructive hover:bg-destructive/10 transition-colors text-left"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                <span>Hapus Pasien</span>
-                              </button>
-                            </div>
+                                {isQueueingId === patient.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <UserPlus className="w-3 h-3" />
+                                )}
+                                <span>+ Antrean</span>
+                              </Button>
+                            )
                           )}
+
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setActiveMenuId(activeMenuId === patient.id ? null : patient.id)
+                              }
+                              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              title="Aksi Lainnya"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+
+                            {activeMenuId === patient.id && (
+                              <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-border py-1 z-40 animate-in fade-in-0 zoom-in-95 text-xs text-left">
+                                {!isDokter && (
+                                  patient.todayQueue ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAddToQueue(patient)}
+                                      className="w-full flex items-center gap-2 px-3 py-1.5 font-medium text-emerald-700 hover:bg-emerald-50 transition-colors text-left"
+                                    >
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span>Sudah Antrean #{patient.todayQueue.queueNumber}</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAddToQueue(patient)}
+                                      disabled={isQueueingId === patient.id}
+                                      className="w-full flex items-center gap-2 px-3 py-1.5 font-medium text-primary hover:bg-primary/10 transition-colors text-left"
+                                    >
+                                      <UserPlus className="w-3.5 h-3.5" />
+                                      <span>Daftarkan Antrean</span>
+                                    </button>
+                                  )
+                                )}
+                                <Link
+                                  href={`/pasien/${patient.id}`}
+                                  className="flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors"
+                                  onClick={() => setActiveMenuId(null)}
+                                >
+                                  <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                                  <span>Lihat Detail</span>
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenHistory(patient.id)}
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
+                                >
+                                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+                                  <span>Riwayat Medis</span>
+                                </button>
+                                {!isDokter && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEdit(patient)}
+                                      className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                                      <span>Edit Pasien</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenDelete(patient)}
+                                      className="w-full flex items-center gap-2 px-3 py-1.5 text-destructive hover:bg-destructive/10 transition-colors text-left"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      <span>Hapus Pasien</span>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>

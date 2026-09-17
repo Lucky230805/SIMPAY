@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -27,7 +27,10 @@ import { MedicalRecordDrawer } from '@/components/rekam-medis/medical-record-dra
 import { MedicalRecordEditDialog } from '@/components/rekam-medis/medical-record-edit-dialog'
 import { MedicalRecordCreateDialog } from '@/components/rekam-medis/medical-record-create-dialog'
 import { MedicalRecordItem } from '@/app/rekam-medis/actions'
-import { Eye, Plus } from 'lucide-react'
+import { Eye, Plus, UserPlus, Loader2 } from 'lucide-react'
+import { addExistingPatientToQueue } from '@/app/pasien/actions'
+import { getSessionUserAction } from '@/app/login/actions'
+import { QueueTicketModal, QueueTicketData } from '@/components/antrean/queue-ticket-modal'
 
 interface PatientDetailViewProps {
   patient: any
@@ -39,15 +42,73 @@ export function PatientDetailView({ patient: initialPatient }: PatientDetailView
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [feedbackToast, setFeedbackToast] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<'DOKTER' | 'PERAWAT' | null>(null)
+
+  useEffect(() => {
+    let active = true
+    getSessionUserAction().then((u) => {
+      if (active && u) {
+        setUserRole(u.role as 'DOKTER' | 'PERAWAT')
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const isDokter = userRole === 'DOKTER'
 
   const [selectedMR, setSelectedMR] = useState<MedicalRecordItem | null>(null)
   const [isMRDrawerOpen, setIsMRDrawerOpen] = useState(false)
   const [isMREditOpen, setIsMREditOpen] = useState(false)
   const [isMRCreateOpen, setIsMRCreateOpen] = useState(false)
 
+  const [isQueueing, setIsQueueing] = useState(false)
+  const [ticketModalData, setTicketModalData] = useState<QueueTicketData | null>(null)
+  const [isTicketOpen, setIsTicketOpen] = useState(false)
+
   const showToast = (msg: string) => {
     setFeedbackToast(msg)
     setTimeout(() => setFeedbackToast(null), 3000)
+  }
+
+  const startOfDay = new Date()
+  startOfDay.setHours(0, 0, 0, 0)
+  const activeTodayQueue = patient.queues?.find((q: any) => {
+    const qDate = new Date(q.date)
+    return qDate >= startOfDay && (q.status === 'MENUNGGU' || q.status === 'DALAM_PEMERIKSAAN')
+  })
+
+  const handleAddToQueue = async () => {
+    if (activeTodayQueue) {
+      alert(`Pasien ${patient.name} sudah terdaftar di Antrean Pemeriksaan hari ini (No. Antrean #${activeTodayQueue.queueNumber}, Status: ${activeTodayQueue.status === 'MENUNGGU' ? 'Menunggu' : 'Dalam Pemeriksaan'}). Pasien tidak dapat diinputkan lagi ke antrean.`)
+      return
+    }
+
+    setIsQueueing(true)
+    try {
+      const res = await addExistingPatientToQueue(patient.id, 'Poli Umum')
+      if (res.success && res.queue) {
+        showToast(`Pasien ${res.patientName} berhasil didaftarkan ke Antrean Hari Ini (#${res.queue.queueNumber})`)
+        setPatient({
+          ...patient,
+          queues: [res.queue, ...(patient.queues || [])],
+        })
+        setTicketModalData({
+          queueNumber: res.queue.queueNumber,
+          patientName: res.patientName,
+          noRM: formatNoRM(patient.id),
+          polyclinic: res.queue.polyclinic || 'Poli Umum',
+        })
+        setIsTicketOpen(true)
+      } else {
+        alert(res.error || 'Gagal mendaftarkan pasien ke antrean')
+      }
+    } catch (err: any) {
+      alert('Terjadi kesalahan: ' + err.message)
+    } finally {
+      setIsQueueing(false)
+    }
   }
 
   const handleEditSuccess = (updated: any) => {
@@ -159,6 +220,12 @@ export function PatientDetailView({ patient: initialPatient }: PatientDetailView
         patientName={patient.name}
       />
 
+      <QueueTicketModal
+        isOpen={isTicketOpen}
+        onClose={() => setIsTicketOpen(false)}
+        queueData={ticketModalData}
+      />
+
       {/* Top Breadcrumb & Action Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -186,24 +253,55 @@ export function PatientDetailView({ patient: initialPatient }: PatientDetailView
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEditOpen(true)}
-            className="h-9 text-xs gap-1.5"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            Edit Pasien
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsDeleteOpen(true)}
-            className="h-9 text-xs gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Hapus
-          </Button>
+          {activeTodayQueue ? (
+            <Badge
+              variant="outline"
+              onClick={() => !isDokter && handleAddToQueue()}
+              className={`h-9 px-3 text-xs gap-1.5 font-semibold bg-emerald-50 text-emerald-700 border-emerald-300 border shadow-2xs ${!isDokter ? 'cursor-pointer hover:bg-emerald-100' : ''}`}
+              title="Pasien sudah terdaftar di antrean hari ini"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Sudah Masuk Antrean (#{activeTodayQueue.queueNumber})</span>
+            </Badge>
+          ) : (
+            !isDokter && (
+              <Button
+                size="sm"
+                onClick={handleAddToQueue}
+                disabled={isQueueing}
+                className="h-9 text-xs gap-1.5 font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+              >
+                {isQueueing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <UserPlus className="w-3.5 h-3.5" />
+                )}
+                <span>+ Daftarkan ke Antrean Hari Ini</span>
+              </Button>
+            )
+          )}
+          {!isDokter && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditOpen(true)}
+                className="h-9 text-xs gap-1.5"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                Edit Pasien
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDeleteOpen(true)}
+                className="h-9 text-xs gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Hapus
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

@@ -10,7 +10,7 @@ import { createPatient, updatePatient, PatientInput, PatientRecord } from '@/app
 interface PatientFormDialogProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: (patient: any, isEdit: boolean) => void
+  onSuccess: (patient: any, isEdit: boolean, queue?: any) => void
   initialData?: PatientRecord | null
 }
 
@@ -106,7 +106,7 @@ export function PatientFormDialog({
       } else {
         const res = await createPatient(formData)
         if (res.success && res.patient) {
-          onSuccess(res.patient, false)
+          onSuccess(res.patient, false, res.queue)
         } else {
           if (res.errors) {
             setErrors(res.errors)

@@ -98,38 +98,41 @@ export function setTestUser(user: AuthUser | null) {
  * Get full authenticated user record from session & DB
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
+  // 1. Priority check: Real HTTP cookie session from user's browser
+  const session = await getSession()
+  if (session) {
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { id: true, email: true, name: true, role: true },
+      })
+
+      if (dbUser && (dbUser.role === 'DOKTER' || dbUser.role === 'PERAWAT')) {
+        return {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          role: dbUser.role as AuthRole,
+        }
+      }
+    } catch (error) {
+      return {
+        id: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      }
+    }
+  }
+
+  // 2. Fallback check: Global test user context for CLI test runners (when no HTTP cookie exists)
   if ((globalThis as any).__SIMPAY_TEST_USER__) {
     return (globalThis as any).__SIMPAY_TEST_USER__
   }
 
-  const session = await getSession()
-  if (!session) return null
-
-  try {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { id: true, email: true, name: true, role: true },
-    })
-
-    if (!dbUser) return null
-    if (dbUser.role !== 'DOKTER' && dbUser.role !== 'PERAWAT') return null
-
-    return {
-      id: dbUser.id,
-      email: dbUser.email,
-      name: dbUser.name,
-      role: dbUser.role as AuthRole,
-    }
-  } catch (error) {
-    // If DB read fails, fallback to verified session payload if valid
-    return {
-      id: session.userId,
-      email: session.email,
-      name: session.name,
-      role: session.role,
-    }
-  }
+  return null
 }
+
 
 import { redirect } from 'next/navigation'
 

@@ -3,7 +3,7 @@
 import { useState, useTransition, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { loginAction } from './actions'
-import { Activity, UserCheck, Stethoscope, Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { Activity, Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 function LoginFormContent() {
@@ -36,11 +36,6 @@ function LoginFormContent() {
     })
   }
 
-  const fillPreset = (presetEmail: string, presetPass: string = 'password123') => {
-    setEmail(presetEmail)
-    setPassword(presetPass)
-    setError(null)
-  }
 
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-8 z-10">
@@ -119,43 +114,12 @@ function LoginFormContent() {
             <span>Memproses Login...</span>
           ) : (
             <>
-              <span>Ayoo Kerjaa</span>
+              <span>Masuk</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
         </Button>
       </form>
-
-      {/* Quick Demo Presets */}
-      <div className="mt-8 pt-6 border-t border-slate-100">
-        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center mb-3">
-          Pilih Peran Pengujian (Preset Thesis)
-        </p>
-        <div className="grid grid-cols-2 gap-2.5">
-          <button
-            type="button"
-            onClick={() => fillPreset('dokter@simpay.local')}
-            className="flex flex-col items-center justify-center p-3 rounded-xl border border-blue-100 bg-blue-50/50 hover:bg-blue-50 hover:border-blue-200 transition-all text-left group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center mb-1.5 shadow-sm group-hover:scale-105 transition-transform">
-              <Stethoscope className="w-4 h-4" />
-            </div>
-            <span className="text-xs font-bold text-slate-900">Peran DOKTER</span>
-            <span className="text-[10px] text-slate-500 truncate">dr. Raniisyana R.R.</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillPreset('perawat@simpay.local')}
-            className="flex flex-col items-center justify-center p-3 rounded-xl border border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-200 transition-all text-left group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center mb-1.5 shadow-sm group-hover:scale-105 transition-transform">
-              <UserCheck className="w-4 h-4" />
-            </div>
-            <span className="text-xs font-bold text-slate-900">Peran PERAWAT</span>
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

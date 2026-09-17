@@ -104,7 +104,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
     <div className="p-6 space-y-6 w-full max-w-7xl mx-auto text-xs">
       {/* Alert Banner when processed */}
       {processedAlert && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg flex items-start justify-between shadow-sm">
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg flex items-start justify-between shadow-sm print:hidden">
           <div className="flex items-start gap-3">
             <CheckCircle2 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
             <div>
@@ -123,7 +123,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
 
       {/* Mode Switch: Main Dashboard vs Detail View */}
       {!detailMode ? (
-        <div className="space-y-6">
+        <div className="space-y-6 print:hidden">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -196,7 +196,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                       className={cn(
                         'bg-white border rounded-xl p-4 transition-all cursor-pointer flex items-center justify-between gap-4',
                         isCito ? 'border-red-200 bg-red-50/20' : 'border-border',
-                        isSelected ? 'ring-2 ring-slate-800 shadow-sm' : 'hover:border-gray-300'
+                        isSelected ? 'border-2 border-slate-900 shadow-sm' : 'hover:border-gray-300'
                       )}
                     >
                       <div className="flex items-start gap-3.5">
@@ -371,12 +371,21 @@ export function ResepView({ initialQueues }: ResepViewProps) {
 
                 {/* Submit action */}
                 <div className="pt-3 border-t space-y-2">
+                  {selectedQueue.items.length > 0 && (
+                    <button
+                      onClick={() => window.print()}
+                      className="w-full py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-bold text-xs hover:bg-blue-100 transition text-center flex items-center justify-center gap-1.5"
+                    >
+                      <Printer className="w-3.5 h-3.5" /> Cetak Etiket Obat ({selectedQueue.items.length} Item)
+                    </button>
+                  )}
+
                   {selectedQueue.status !== 'SELESAI' && selectedQueue.items.length > 0 ? (
                     <button
                       onClick={() => handleProsesDanSerahkan(selectedQueue)}
-                      className="w-full py-2.5 bg-slate-800 text-white rounded-lg font-bold text-sm hover:bg-slate-900 transition text-center"
+                      className="w-full py-2.5 bg-slate-800 text-white rounded-lg font-bold text-sm hover:bg-slate-900 transition text-center flex items-center justify-center gap-2"
                     >
-                      Selesai &amp; Serahkan Obat
+                      <CheckCircle2 className="w-4 h-4" /> Selesai &amp; Serahkan Obat
                     </button>
                   ) : selectedQueue.status === 'SELESAI' ? (
                     <button
@@ -409,7 +418,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
         </div>
       ) : (
         /* DETAIL VIEW SCREEN (Matching 2nd Screenshot) */
-        <div className="space-y-6">
+        <div className="space-y-6 print:hidden">
           {/* Header Bar */}
           <div className="flex items-center justify-between border-b pb-4">
             <div>
@@ -564,6 +573,85 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* PRINT-ONLY MEDICINE LABELS (ETIKET OBAT PER ITEM PASIEN) */}
+      {selectedQueue && (
+        <div className="hidden print:block font-sans text-slate-900 p-2">
+          {selectedQueue.items.map((item, index) => (
+            <div
+              key={index}
+              className="border-2 border-slate-900 p-4 mb-6 rounded-xl max-w-sm mx-auto page-break-inside-avoid text-xs bg-white shadow-none"
+            >
+              {/* Kop Surat Klinik */}
+              <div className="text-center border-b-2 border-slate-900 pb-2 mb-3">
+                <h2 className="font-black text-sm uppercase tracking-wide text-slate-900">
+                  KLINIK PRAKTEK DOKTER UMUM
+                </h2>
+                <p className="text-[10px] text-slate-600">
+                  Layanan Resep &amp; Farmasi Pasien
+                </p>
+                <div className="mt-1">
+                  <span className="px-2 py-0.5 bg-slate-900 text-white font-mono font-bold text-[9px] rounded uppercase">
+                    ETIKET ATURAN PAKAI OBAT
+                  </span>
+                </div>
+              </div>
+
+              {/* Patient Identity */}
+              <div className="space-y-1 border-b border-slate-300 pb-2.5 mb-2.5 text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">No. RM / Antrean:</span>
+                  <span className="font-mono font-bold">{selectedQueue.patient.noRM || `RM-${selectedQueue.patient.id}`} ({selectedQueue.code})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Nama Pasien:</span>
+                  <span className="font-bold text-sm">{selectedQueue.patientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Dokter / Poli:</span>
+                  <span className="font-medium">{selectedQueue.doctorName} ({selectedQueue.polyclinic})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Tanggal:</span>
+                  <span>{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                </div>
+              </div>
+
+              {/* Medicine Details & Dosage Instruction */}
+              <div className="space-y-2 py-1 text-center">
+                <div className="bg-slate-100 p-2.5 rounded-lg border border-slate-300">
+                  <span className="text-[10px] text-slate-500 font-semibold block uppercase">NAMA OBAT &amp; JUMLAH:</span>
+                  <h3 className="font-black text-base text-slate-900 leading-tight mt-0.5">
+                    {item.name}
+                  </h3>
+                  <span className="font-mono font-bold text-xs text-slate-700 block mt-1">
+                    JUMLAH: {item.qty} ({item.quantity || 1} Pcs)
+                  </span>
+                </div>
+
+                {/* Highlighted Dosage Instruction */}
+                <div className="bg-emerald-50 border-2 border-emerald-600 p-3 rounded-lg text-emerald-950">
+                  <span className="text-[10px] font-black uppercase tracking-wider block text-emerald-800">
+                    ATURAN MINUM / DOSIS:
+                  </span>
+                  <p className="font-black text-base text-emerald-900 mt-0.5">
+                    {item.dosage}
+                  </p>
+                  {item.notes && (
+                    <p className="text-[10px] text-emerald-800 font-bold mt-1 italic">
+                      Catatan: {item.notes}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-3 pt-2 border-t border-slate-300 text-[9px] text-center text-slate-500 italic font-medium">
+                Semoga Lekas Sembuh • Simpan Obat di Tempat Sejuk &amp; Kering
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

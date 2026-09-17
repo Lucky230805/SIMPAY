@@ -210,10 +210,16 @@ export async function createMedicine(data: {
       return { success: false, error: `Obat dengan nama "${data.name.trim()}" sudah ada` }
     }
 
+    let finalCode = data.code?.trim()
+    if (!finalCode) {
+      const count = await prisma.medicine.count()
+      finalCode = `OBT-${(count + 1).toString().padStart(3, '0')}`
+    }
+
     const medicine = await prisma.medicine.create({
       data: {
         name: data.name.trim(),
-        code: data.code?.trim() || null,
+        code: finalCode,
         unit: data.unit?.trim() || 'Pcs',
         category: data.category?.trim() || 'Obat Bebas',
         unitPrice: data.unitPrice !== undefined ? Number(data.unitPrice) : 0,
@@ -222,6 +228,29 @@ export async function createMedicine(data: {
         isActive: true,
       },
     })
+
+    // If category is a procedure/action or injection, automatically create non-expiring stock batch
+    const categoryLower = (data.category || '').toLowerCase()
+    const isProcedure =
+      categoryLower.includes('tindakan') ||
+      categoryLower.includes('injeksi') ||
+      categoryLower.includes('suntik') ||
+      categoryLower.includes('layanan')
+
+    if (isProcedure) {
+      const tenYearsLater = new Date()
+      tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10)
+      await prisma.medicineBatch.create({
+        data: {
+          medicineId: medicine.id,
+          batchNumber: `PROC-${Date.now()}`,
+          stockQuantity: 9999,
+          initialQuantity: 9999,
+          expiryDate: tenYearsLater,
+          receivedDate: new Date(),
+        },
+      })
+    }
 
     try {
       revalidatePath('/obat')
@@ -234,6 +263,101 @@ export async function createMedicine(data: {
     return { success: false, error: error.message || 'Gagal menambahkan obat' }
   }
 }
+
+/**
+ * Seed default medical actions/procedures if they don't exist yet.
+ */
+export async function seedDefaultMedicalActions() {
+  await requireAuth()
+  const defaultActions = [
+    {
+      name: 'Injeksi / Obat Suntik (Dexamethasone / Neurobion)',
+      code: 'TND-001',
+      unit: 'Kali',
+      category: 'Tindakan / Layanan Medis',
+      unitPrice: 35000,
+      purchasePrice: 10000,
+      minStock: 0,
+    },
+    {
+      name: 'Terapi Nebulizer (Inhalasi / Uap)',
+      code: 'TND-002',
+      unit: 'Kali',
+      category: 'Tindakan / Layanan Medis',
+      unitPrice: 50000,
+      purchasePrice: 15000,
+      minStock: 0,
+    },
+    {
+      name: 'Rawat & Jahit Luka ringan-sedang',
+      code: 'TND-003',
+      unit: 'Tindakan',
+      category: 'Tindakan / Layanan Medis',
+      unitPrice: 75000,
+      purchasePrice: 20000,
+      minStock: 0,
+    },
+    {
+      name: 'Pemasangan Infus & Cairan RL/PZ',
+      code: 'TND-004',
+      unit: 'Paket',
+      category: 'Tindakan / Layanan Medis',
+      unitPrice: 85000,
+      purchasePrice: 30000,
+      minStock: 0,
+    },
+    {
+      name: 'Pemeriksaan EKG / Rekam Jantung',
+      code: 'TND-005',
+      unit: 'Pemeriksaan',
+      category: 'Tindakan / Layanan Medis',
+      unitPrice: 60000,
+      purchasePrice: 10000,
+      minStock: 0,
+    },
+  ]
+
+  const tenYearsLater = new Date()
+  tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10)
+
+  for (const act of defaultActions) {
+    const existing = await prisma.medicine.findFirst({
+      where: { name: act.name },
+    })
+
+    if (!existing) {
+      const created = await prisma.medicine.create({
+        data: {
+          name: act.name,
+          code: act.code,
+          unit: act.unit,
+          category: act.category,
+          unitPrice: act.unitPrice,
+          purchasePrice: act.purchasePrice,
+          minStock: act.minStock,
+          isActive: true,
+        },
+      })
+
+      await prisma.medicineBatch.create({
+        data: {
+          medicineId: created.id,
+          batchNumber: `PROC-${act.code}`,
+          stockQuantity: 9999,
+          initialQuantity: 9999,
+          expiryDate: tenYearsLater,
+          receivedDate: new Date(),
+        },
+      })
+    }
+  }
+
+  try {
+    revalidatePath('/obat')
+    revalidatePath('/antrean')
+  } catch {}
+}
+
 
 /**
  * Update existing medicine details (PERAWAT ONLY).
@@ -378,5 +502,75 @@ export async function getMedicineBatches(medicineId: number) {
   } catch (error: any) {
     console.error('Error fetching medicine batches:', error)
     return []
+  }
+}
+
+/**
+ * Update an existing batch (expiry date or stock quantity) (PERAWAT ONLY).
+ */
+export async function updateMedicineBatch(
+  batchId: number,
+  data: {
+    stockQuantity?: number
+    expiryDate?: string | Date
+    batchNumber?: string
+  }
+) {
+  try {
+    await requireRole('PERAWAT')
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Akses ditolak' }
+  }
+
+  try {
+    const updateData: any = {}
+    if (data.stockQuantity !== undefined) updateData.stockQuantity = Number(data.stockQuantity)
+    if (data.batchNumber !== undefined) updateData.batchNumber = data.batchNumber.trim()
+    if (data.expiryDate) {
+      const expiry = new Date(data.expiryDate)
+      if (!isNaN(expiry.getTime())) updateData.expiryDate = expiry
+    }
+
+    const updated = await prisma.medicineBatch.update({
+      where: { id: Number(batchId) },
+      data: updateData,
+    })
+
+    try {
+      revalidatePath('/obat')
+      revalidatePath('/resep')
+    } catch {}
+
+    return { success: true, batch: updated }
+  } catch (error: any) {
+    console.error('Error updating medicine batch:', error)
+    return { success: false, error: error.message || 'Gagal memperbarui batch stok' }
+  }
+}
+
+/**
+ * Delete a medicine batch (PERAWAT ONLY).
+ */
+export async function deleteMedicineBatch(batchId: number) {
+  try {
+    await requireRole('PERAWAT')
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Akses ditolak' }
+  }
+
+  try {
+    await prisma.medicineBatch.delete({
+      where: { id: Number(batchId) },
+    })
+
+    try {
+      revalidatePath('/obat')
+      revalidatePath('/resep')
+    } catch {}
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error deleting medicine batch:', error)
+    return { success: false, error: error.message || 'Gagal menghapus batch stok' }
   }
 }

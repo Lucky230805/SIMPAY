@@ -35,7 +35,9 @@ interface StatusBadgeProps {
 }
 
 function StatusBadge({ status }: StatusBadgeProps) {
-  if (status === 'SELESAI') {
+  const normalizedStatus = (status || '').trim().toUpperCase()
+
+  if (normalizedStatus === 'SELESAI') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -43,11 +45,19 @@ function StatusBadge({ status }: StatusBadgeProps) {
       </span>
     )
   }
-  if (status === 'DALAM_PEMERIKSAAN') {
+  if (normalizedStatus === 'DALAM_PEMERIKSAAN') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 animate-pulse" />
         Dalam Pemeriksaan
+      </span>
+    )
+  }
+  if (normalizedStatus === 'MENUNGGU_OBAT_DAN_BAYAR') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+        Menunggu Obat & Bayar
       </span>
     )
   }
@@ -136,6 +146,7 @@ export function QueueTable({ queues }: QueueTableProps) {
             const isStarting = startingId === queue.id
             const label = getQueueLabel(queue.polyclinic, queue.queueNumber)
             const arrivalTime = formatArrivalTime(queue.date)
+            const statusKey = (queue.status || '').trim().toUpperCase()
 
             return (
               <tr
@@ -169,7 +180,41 @@ export function QueueTable({ queues }: QueueTableProps) {
 
                 {/* Aksi */}
                 <td className="py-3 px-3 text-right">
-                  {queue.status === 'MENUNGGU' && (
+                  {statusKey === 'DALAM_PEMERIKSAAN' ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1.5 text-blue-600 border-blue-200 hover:bg-blue-50"
+                      onClick={() => handleDetail(queue)}
+                      id={`btn-lanjut-periksa-${queue.id}`}
+                    >
+                      <Play className="w-3 h-3 fill-current" />
+                      Lanjut Periksa
+                    </Button>
+                  ) : statusKey === 'MENUNGGU_OBAT_DAN_BAYAR' ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50"
+                      onClick={() => handleDetail(queue)}
+                      id={`btn-detail-${queue.id}`}
+                    >
+                      <Eye className="w-3 h-3" />
+                      Lihat Rekam Medis
+                    </Button>
+                  ) : statusKey === 'SELESAI' ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                      onClick={() => handleDetail(queue)}
+                      id={`btn-detail-${queue.id}`}
+                    >
+                      <Eye className="w-3 h-3" />
+                      Detail
+                    </Button>
+                  ) : (
+                    /* Default for MENUNGGU or any unhandled status */
                     <Button
                       size="sm"
                       className="h-7 text-xs gap-1.5"
@@ -185,32 +230,6 @@ export function QueueTable({ queues }: QueueTableProps) {
                       {isStarting ? 'Memulai...' : 'Mulai Periksa'}
                     </Button>
                   )}
-
-                  {queue.status === 'DALAM_PEMERIKSAAN' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs gap-1.5 text-blue-600 border-blue-200 hover:bg-blue-50"
-                      onClick={() => handleDetail(queue)}
-                      id={`btn-lanjut-periksa-${queue.id}`}
-                    >
-                      <Play className="w-3 h-3 fill-current" />
-                      Lanjut Periksa
-                    </Button>
-                  )}
-
-                  {queue.status === 'SELESAI' && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-                      onClick={() => handleDetail(queue)}
-                      id={`btn-detail-${queue.id}`}
-                    >
-                      <Eye className="w-3 h-3" />
-                      Detail
-                    </Button>
-                  )}
                 </td>
               </tr>
             )
@@ -220,3 +239,4 @@ export function QueueTable({ queues }: QueueTableProps) {
     </div>
   )
 }
+

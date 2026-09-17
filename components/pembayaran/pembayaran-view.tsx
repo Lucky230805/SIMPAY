@@ -16,6 +16,8 @@ import {
   FileText,
   Search,
   Check,
+  Calendar,
+  Clock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -62,6 +64,7 @@ export function PembayaranView({
   const [paymentSuccess, setPaymentSuccess] = useState<any | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<'SEMUA' | 'BELUM_LUNAS' | 'LUNAS'>('SEMUA')
+  const [dateRangeFilter, setDateRangeFilter] = useState<'TODAY' | 'ALL'>('TODAY')
 
   // Load billing when selected queue ID changes
   useEffect(() => {
@@ -102,12 +105,27 @@ export function PembayaranView({
     }
   }, [selectedQueueId])
 
-  // Filter queues by search & status
+  // Helper to compare dates
+  const isSameDay = (d1: Date | string, d2: Date) => {
+    const date1 = new Date(d1)
+    return (
+      date1.getFullYear() === d2.getFullYear() &&
+      date1.getMonth() === d2.getMonth() &&
+      date1.getDate() === d2.getDate()
+    )
+  }
+
+  // Filter queues by date, search & status
   const filteredQueues = queues.filter((q) => {
+    const matchesDate =
+      dateRangeFilter === 'ALL' || isSameDay(q.visitDate, new Date())
+
     const matchesSearch =
       q.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.patientNoRM.toLowerCase().includes(searchTerm.toLowerCase()) ||
       `antrean-${q.queueNumber}`.includes(searchTerm.toLowerCase())
+
+    if (!matchesDate) return false
 
     if (statusFilter === 'SEMUA') return matchesSearch
     if (statusFilter === 'BELUM_LUNAS')
@@ -239,6 +257,31 @@ export function PembayaranView({
                   {filteredQueues.length} Kunjungan
                 </span>
               </div>
+              {/* Date Filter Tabs */}
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-[10px]">
+                <button
+                  onClick={() => setDateRangeFilter('TODAY')}
+                  className={cn(
+                    'flex-1 py-1 px-2 rounded-md font-bold transition-all flex items-center justify-center gap-1',
+                    dateRangeFilter === 'TODAY'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900'
+                  )}
+                >
+                  <Calendar className="w-3 h-3 text-emerald-600" /> Hari Ini
+                </button>
+                <button
+                  onClick={() => setDateRangeFilter('ALL')}
+                  className={cn(
+                    'flex-1 py-1 px-2 rounded-md font-bold transition-all flex items-center justify-center gap-1',
+                    dateRangeFilter === 'ALL'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                      : 'text-slate-600 hover:text-slate-900'
+                  )}
+                >
+                  <Clock className="w-3 h-3 text-blue-600" /> Semua Riwayat
+                </button>
+              </div>
 
               {/* Search Input */}
               <div className="relative">
@@ -291,7 +334,7 @@ export function PembayaranView({
             </div>
 
             {/* Queue List */}
-            <div className="space-y-2.5 max-h-[650px] overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-[650px] overflow-y-auto p-1 pr-1.5">
               {filteredQueues.length === 0 ? (
                 <div className="bg-white border rounded-xl p-8 text-center text-muted-foreground shadow-sm">
                   Tidak ada data antrean/tagihan ditemukan.
@@ -306,8 +349,8 @@ export function PembayaranView({
                       key={item.queueId}
                       onClick={() => setSelectedQueueId(item.queueId)}
                       className={cn(
-                        'bg-white border rounded-xl p-4 transition-all cursor-pointer flex items-center justify-between gap-3',
-                        isSelected ? 'ring-2 ring-slate-800 shadow-md border-transparent' : 'hover:border-slate-300 border-border',
+                        'bg-white rounded-xl p-4 transition-all cursor-pointer flex items-center justify-between gap-3',
+                        isSelected ? 'border-2 border-slate-900 shadow-md' : 'border border-border hover:border-slate-300',
                         isLunas ? 'bg-slate-50/50' : ''
                       )}
                     >
@@ -429,7 +472,7 @@ export function PembayaranView({
                     <div>
                       <span className="text-muted-foreground block text-[10px]">Status Resep / Obat:</span>
                       <span className="font-bold">
-                        {billing.items.filter((i) => !i.name.includes('Konsultasi') && !i.name.includes('Pendaftaran')).length === 0 ? (
+                        {billing.items.filter((i) => !i.name.includes('Konsultasi') && !i.name.includes('Pendaftaran') && !i.name.startsWith('Tindakan') && !i.name.includes('Injeksi')).length === 0 ? (
                           <span className="text-gray-500">Tidak Ada Resep</span>
                         ) : (
                           <span className="text-slate-700">Ada Resep Obat</span>

@@ -49,6 +49,11 @@ export async function getPrescriptionQueues(): Promise<PrescriptionQueueItem[]> 
     const now = new Date()
     const [medicalRecords, medicines] = await Promise.all([
       prisma.medicalRecord.findMany({
+        where: {
+          prescriptions: {
+            some: {},
+          },
+        },
         orderBy: { examinationDate: 'desc' },
         take: 30,
         include: {

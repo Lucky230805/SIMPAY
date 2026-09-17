@@ -22,6 +22,22 @@ export interface QueueItem {
   }
 }
 
+function getQueueStatusPriority(status: string): number {
+  const norm = (status || '').trim().toUpperCase()
+  switch (norm) {
+    case 'DALAM_PEMERIKSAAN':
+      return 1 // Sedang diperiksa dokter (Paling Atas)
+    case 'MENUNGGU':
+      return 2 // Menunggu giliran periksa (Atas, urut jam mendaftar)
+    case 'MENUNGGU_OBAT_DAN_BAYAR':
+      return 3 // Menunggu obat / pembayaran
+    case 'SELESAI':
+      return 4 // Sudah selesai diperiksa
+    default:
+      return 5
+  }
+}
+
 /**
  * Fetch all queue entries for today, ordered by queueNumber.
  * "Today" is defined as from 00:00:00 to 23:59:59 of the current local day.
@@ -57,7 +73,14 @@ export async function getTodayQueues(): Promise<QueueItem[]> {
       },
     })
 
-    return queues as QueueItem[]
+    const sorted = (queues as QueueItem[]).sort((a, b) => {
+      const pA = getQueueStatusPriority(a.status)
+      const pB = getQueueStatusPriority(b.status)
+      if (pA !== pB) return pA - pB
+      return a.queueNumber - b.queueNumber
+    })
+
+    return sorted
   } catch (error: any) {
     console.error('Error fetching today queues:', error)
     return []
@@ -104,7 +127,14 @@ export async function getPublicQueueDisplay(polyclinic?: string): Promise<Public
       },
     })
 
-    return queues as PublicQueueItem[]
+    const sorted = (queues as PublicQueueItem[]).sort((a, b) => {
+      const pA = getQueueStatusPriority(a.status)
+      const pB = getQueueStatusPriority(b.status)
+      if (pA !== pB) return pA - pB
+      return a.queueNumber - b.queueNumber
+    })
+
+    return sorted
   } catch (error: any) {
     console.error('Error fetching public queue display data:', error)
     return []
@@ -266,6 +296,7 @@ export async function saveMedicalRecordAndComplete(data: {
   secondaryDiagnosis?: string
   actionTreatment?: string
   medicines: { nama: string; dosis: string; jumlah: string }[]
+  actionsList?: { nama: string; tarif: number; jumlah: string }[]
 }) {
   let doctorUser: any
   try {
@@ -291,10 +322,16 @@ export async function saveMedicalRecordAndComplete(data: {
         .map((m) => `- ${m.nama} (${m.dosis || '-'}, Jml: ${m.jumlah || '0'})`)
         .join('\n')
 
+      const actionsText = (data.actionsList || [])
+        .filter((a) => a.nama && a.nama.trim() !== '')
+        .map((a) => `- ${a.nama} (Jml: ${a.jumlah || '1'}, Tarif: Rp ${a.tarif})`)
+        .join('\n')
+
       const historyText = data.pastHistory ? `Riwayat Penyakit: ${data.pastHistory}\n` : ''
       const complaintFull = `${data.complaint || ''}\n${historyText}`.trim()
       const actionText = data.actionTreatment ? `Tindakan & Edukasi:\n${data.actionTreatment}\n\n` : ''
-      const treatmentText = `${actionText}Tanda Vital:\n${vitalInfo}\nCatatan Objektif: ${data.objectiveNotes || '-'}\n\nResep Obat:\n${medInfo || 'Tidak ada resep'}`
+      const actionsFormatted = actionsText ? `Tindakan Medis Ditentukan:\n${actionsText}\n\n` : ''
+      const treatmentText = `${actionText}${actionsFormatted}Tanda Vital:\n${vitalInfo}\nCatatan Objektif: ${data.objectiveNotes || '-'}\n\nResep Obat:\n${medInfo || 'Tidak ada resep'}`
 
       // 1. Cek apakah Rekam Medis untuk antrean ini sudah pernah dibuat sebelumnya
       const existingMR = await tx.medicalRecord.findFirst({
@@ -368,9 +405,18 @@ export async function saveMedicalRecordAndComplete(data: {
         }
       }
 
-      // 3. Buat atau perbarui Billing otomatis untuk kunjungan ini
+      // 3. Hitung Biaya Tindakan Medis (otherFee)
+      let totalActionFee = 0
+      if (data.actionsList && data.actionsList.length > 0) {
+        for (const act of data.actionsList) {
+          const qty = Math.max(1, parseInt(act.jumlah || '1', 10) || 1)
+          totalActionFee += (act.tarif || 0) * qty
+        }
+      }
+
+      // 4. Buat atau perbarui Billing otomatis untuk kunjungan ini
       const consultationFee = 50000
-      const totalAmount = consultationFee + totalMedicineFee
+      const totalAmount = consultationFee + totalMedicineFee + totalActionFee
 
       const existingBilling = await tx.billing.findFirst({
         where: { queueId: Number(data.queueId) },
@@ -382,6 +428,7 @@ export async function saveMedicalRecordAndComplete(data: {
             where: { id: existingBilling.id },
             data: {
               medicineFee: totalMedicineFee,
+              otherFee: totalActionFee,
               totalAmount: totalAmount,
             },
           })
@@ -395,14 +442,14 @@ export async function saveMedicalRecordAndComplete(data: {
             registrationFee: 0,
             consultationFee: consultationFee,
             medicineFee: totalMedicineFee,
-            otherFee: 0,
+            otherFee: totalActionFee,
             totalAmount: totalAmount,
             status: 'BELUM_LUNAS',
           },
         })
       }
 
-      // 4. Ubah status antrean menjadi MENUNGGU_OBAT_DAN_BAYAR (Pasien berlanjut ke Apotik/Kasir)
+      // 5. Ubah status antrean menjadi MENUNGGU_OBAT_DAN_BAYAR (Pasien berlanjut ke Apotik/Kasir)
       await tx.queue.update({
         where: { id: Number(data.queueId) },
         data: { status: 'MENUNGGU_OBAT_DAN_BAYAR' },
@@ -410,6 +457,7 @@ export async function saveMedicalRecordAndComplete(data: {
 
       return createdRecord
     })
+
 
     try {
       revalidatePath('/antrean')
@@ -423,5 +471,55 @@ export async function saveMedicalRecordAndComplete(data: {
   } catch (error: any) {
     console.error('Error saving medical record:', error)
     return { success: false, error: error.message || 'Gagal menyimpan rekam medis' }
+  }
+}
+
+export interface PrescriptionMedicineOption {
+  id: number
+  name: string
+  code: string | null
+  unit: string
+  category: string | null
+  unitPrice: number
+  availableStock: number
+}
+
+/**
+ * Fetch list of active medicines with available non-expired stock for doctor prescribing dropdown.
+ */
+export async function getAvailableMedicinesForPrescription(): Promise<PrescriptionMedicineOption[]> {
+  await requireAuth()
+  try {
+    const now = new Date()
+    const medicines = await prisma.medicine.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: { name: 'asc' },
+      include: {
+        batches: {
+          where: {
+            expiryDate: { gte: now },
+            stockQuantity: { gt: 0 },
+          },
+        },
+      },
+    })
+
+    return medicines.map((med) => {
+      const availableStock = med.batches.reduce((sum, b) => sum + b.stockQuantity, 0)
+      return {
+        id: med.id,
+        name: med.name,
+        code: med.code,
+        unit: med.unit || 'Pcs',
+        category: med.category || 'Obat Bebas',
+        unitPrice: med.unitPrice || 0,
+        availableStock,
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching available medicines for prescription:', error)
+    return []
   }
 }
