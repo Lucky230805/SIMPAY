@@ -18,7 +18,7 @@ async function main() {
   await prisma.patient.deleteMany()
   await prisma.user.deleteMany()
 
-  // Create Users (2 Doctors & 3 Nurses)
+  // Create Users (2 Doctors & 2 Nurses)
   const drRani = await prisma.user.create({
     data: {
       name: 'dr. Raniisyana Romula Rekkers',
@@ -39,26 +39,17 @@ async function main() {
 
   const perawatWindy = await prisma.user.create({
     data: {
-      name: 'Ns. Windy Apriyani (Pendaftaran)',
+      name: 'Ns. Windy Apriyani',
       email: 'perawat@simpay.local',
       password: 'password123',
       role: 'PERAWAT',
     },
   })
 
-  const perawatAndi = await prisma.user.create({
+  const perawatTania = await prisma.user.create({
     data: {
-      name: 'Ns. Andi Wijaya (Farmasi)',
+      name: 'Ns. Tania',
       email: 'perawat2@simpay.local',
-      password: 'password123',
-      role: 'PERAWAT',
-    },
-  })
-
-  const perawatRina = await prisma.user.create({
-    data: {
-      name: 'Ns. Rina Kusuma (Kasir)',
-      email: 'perawat3@simpay.local',
       password: 'password123',
       role: 'PERAWAT',
     },
