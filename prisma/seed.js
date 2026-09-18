@@ -28,9 +28,9 @@ async function main() {
     },
   })
 
-  const drBudi = await prisma.user.create({
+  const drFarisi = await prisma.user.create({
     data: {
-      name: 'dr. Budi Santoso',
+      name: 'dr. Farisi',
       email: 'dokter2@simpay.local',
       password: 'password123',
       role: 'DOKTER',
@@ -374,7 +374,7 @@ async function main() {
     data: { patientId: p3.id, queueNumber: 3, status: 'MENUNGGU', polyclinic: 'Poli Umum 1', date: makeArrival(8, 45) },
   })
 
-  // Antrean untuk Poli Umum 2 (dr. Budi Santoso)
+  // Antrean untuk Poli Umum 2 (dr. Farisi)
   await prisma.queue.create({
     data: { patientId: p4.id, queueNumber: 1, status: 'DALAM_PEMERIKSAAN', polyclinic: 'Poli Umum 2', date: makeArrival(9, 0) },
   })
