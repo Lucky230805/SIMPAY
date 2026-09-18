@@ -18,7 +18,7 @@ async function main() {
   await prisma.patient.deleteMany()
   await prisma.user.deleteMany()
 
-  // Create Users (Doctors / Nurses)
+  // Create Users (2 Doctors & 3 Nurses)
   const drRani = await prisma.user.create({
     data: {
       name: 'dr. Raniisyana Romula Rekkers',
@@ -28,10 +28,37 @@ async function main() {
     },
   })
 
-  await prisma.user.create({
+  const drBudi = await prisma.user.create({
     data: {
-      name: 'Ns. Windy Apriyani',
+      name: 'dr. Budi Santoso, Sp.PD',
+      email: 'dokter2@simpay.local',
+      password: 'password123',
+      role: 'DOKTER',
+    },
+  })
+
+  const perawatWindy = await prisma.user.create({
+    data: {
+      name: 'Ns. Windy Apriyani (Pendaftaran)',
       email: 'perawat@simpay.local',
+      password: 'password123',
+      role: 'PERAWAT',
+    },
+  })
+
+  const perawatAndi = await prisma.user.create({
+    data: {
+      name: 'Ns. Andi Wijaya (Farmasi)',
+      email: 'perawat2@simpay.local',
+      password: 'password123',
+      role: 'PERAWAT',
+    },
+  })
+
+  const perawatRina = await prisma.user.create({
+    data: {
+      name: 'Ns. Rina Kusuma (Kasir)',
+      email: 'perawat3@simpay.local',
       password: 'password123',
       role: 'PERAWAT',
     },
@@ -353,7 +380,7 @@ async function main() {
   })
 
   console.log('✅ Seed data Epic 3 berhasil dimasukkan.')
-  console.log('   Users: 2, Patients: 6, Medical Records: 8, Queues: 5, Prescriptions: 6')
+  console.log(`   Users: ${await prisma.user.count()}, Patients: ${await prisma.patient.count()}, Medical Records: ${await prisma.medicalRecord.count()}, Queues: ${await prisma.queue.count()}, Prescriptions: ${await prisma.prescription.count()}`)
 }
 
 main()
