@@ -25,7 +25,8 @@ export function QueueTicketModal({ isOpen, onClose, queueData }: QueueTicketModa
     window.print()
   }
 
-  const formattedQueueNum = formatQueueLabel(queueData.polyclinic || 'Poli Umum 1', queueData.queueNumber)
+  const polyclinicName = !queueData.polyclinic || queueData.polyclinic.trim() === 'Poli Umum' ? 'Poli Umum 1' : queueData.polyclinic.trim()
+  const formattedQueueNum = formatQueueLabel(polyclinicName, queueData.queueNumber)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0">
@@ -50,10 +51,10 @@ export function QueueTicketModal({ isOpen, onClose, queueData }: QueueTicketModa
               TIKET ANTREAN PASIEN
             </p>
             <div className="my-2.5 inline-block bg-primary text-primary-foreground text-4xl font-extrabold px-6 py-2 rounded-xl shadow-md font-mono tracking-tight">
-              #{formattedQueueNum}
+              {formattedQueueNum}
             </div>
             <p className="text-xs font-semibold text-emerald-600 flex items-center justify-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Terdaftar di {queueData.polyclinic || 'Poli Umum'}
+              <CheckCircle2 className="w-3.5 h-3.5" /> Terdaftar di {polyclinicName}
             </p>
           </div>
 

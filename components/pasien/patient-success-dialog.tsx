@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { CheckCircle2, X, Printer, Ticket } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { formatNoRM } from '@/lib/patient-utils'
+import { formatNoRM, formatQueueLabel } from '@/lib/patient-utils'
 
 interface PatientSuccessDialogProps {
   isOpen: boolean
@@ -27,7 +27,9 @@ export function PatientSuccessDialog({
   }
 
   const queueNum = queue?.queueNumber || patient?.todayQueue?.queueNumber
-  const formattedQueueNum = queueNum ? String(queueNum).padStart(3, '0') : null
+  const rawPolyclinic = queue?.polyclinic || patient?.todayQueue?.polyclinic || 'Poli Umum 1'
+  const polyclinicName = !rawPolyclinic || rawPolyclinic.trim() === 'Poli Umum' ? 'Poli Umum 1' : rawPolyclinic.trim()
+  const formattedQueueNumText = queueNum ? formatQueueLabel(polyclinicName, queueNum) : null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in-0">
@@ -52,17 +54,17 @@ export function PatientSuccessDialog({
         </p>
 
         {/* Ticket Header & Number */}
-        {formattedQueueNum && (
+        {formattedQueueNumText && (
           <div className="my-4 p-4 bg-gradient-to-b from-primary/10 via-primary/5 to-white rounded-xl border border-primary/20 text-center shadow-xs">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-1">
               <Ticket className="w-3.5 h-3.5 text-primary" />
               NOMOR ANTREAN PASIEN
             </p>
             <div className="my-2 inline-block bg-primary text-primary-foreground text-3xl font-extrabold px-6 py-1.5 rounded-xl shadow-md font-mono tracking-tight">
-              #{formattedQueueNum}
+              {formattedQueueNumText}
             </div>
             <p className="text-xs font-semibold text-emerald-600 flex items-center justify-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Terdaftar di {queue?.polyclinic || 'Poli Umum'}
+              <CheckCircle2 className="w-3.5 h-3.5" /> Terdaftar di {polyclinicName}
             </p>
           </div>
         )}
