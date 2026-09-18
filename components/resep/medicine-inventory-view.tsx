@@ -304,7 +304,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-sm text-xs h-9"
               >
                 <Plus className="w-3.5 h-3.5 text-blue-600" />
-                <span>Tambah Master Tindakan / Injeksi</span>
+                <span>Tambah Tindakan / Injeksi</span>
               </Button>
               <Button
                 onClick={openAddModal}
