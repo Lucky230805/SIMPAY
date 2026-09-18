@@ -54,20 +54,19 @@ export function LogoutConfirmDialog({ open, onOpenChange }: LogoutConfirmDialogP
           </Button>
           <Button
             type="button"
-            variant="destructive"
             onClick={handleLogout}
             disabled={isPending}
-            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 font-semibold flex items-center justify-center gap-2"
+            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center gap-2 shadow-sm"
           >
             {isPending ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Memproses...</span>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span className="text-white">Memproses...</span>
               </>
             ) : (
               <>
-                <LogOut className="w-4 h-4" />
-                <span>Ya, Keluar</span>
+                <LogOut className="w-4 h-4 text-white" />
+                <span className="text-white">Ya, Keluar</span>
               </>
             )}
           </Button>
