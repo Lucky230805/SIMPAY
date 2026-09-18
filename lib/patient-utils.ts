@@ -53,3 +53,17 @@ export function formatDateIndo(date: Date | string): string {
     year: 'numeric',
   })
 }
+
+export function formatQueueLabel(polyclinic: string | null, queueNumber: number): string {
+  const numStr = String(queueNumber).padStart(3, '0')
+  if (!polyclinic) return `A-${numStr}`
+  const p = polyclinic.toLowerCase().trim()
+  if (p.includes('2') || p.includes('b')) {
+    return `B-${numStr}`
+  }
+  if (p.includes('1') || p.includes('a')) {
+    return `A-${numStr}`
+  }
+  const prefix = polyclinic.trim().charAt(0).toUpperCase()
+  return `${prefix}-${numStr}`
+}

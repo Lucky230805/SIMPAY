@@ -23,11 +23,10 @@ import {
 } from 'lucide-react'
 import { getPublicQueueDisplay, PublicQueueItem } from '@/app/antrean/actions'
 import { cn } from '@/lib/utils'
+import { formatQueueLabel } from '@/lib/patient-utils'
 
 function getFormattedQueueLabel(polyclinic: string | null, queueNumber: number): string {
-  if (!polyclinic) return String(queueNumber).padStart(3, '0')
-  const prefix = polyclinic.trim().split(/\s+/).pop()?.charAt(0).toUpperCase() ?? 'A'
-  return `${prefix}-${String(queueNumber).padStart(3, '0')}`
+  return formatQueueLabel(polyclinic, queueNumber)
 }
 
 function playChime() {

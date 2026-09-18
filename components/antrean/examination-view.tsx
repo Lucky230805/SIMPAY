@@ -23,7 +23,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { formatNoRM, formatBirthDateAndAge, formatDateIndo, calculateAge } from '@/lib/patient-utils'
+import { formatNoRM, formatBirthDateAndAge, formatDateIndo, calculateAge, formatQueueLabel } from '@/lib/patient-utils'
 import { createMedicalRecord } from '@/app/rekam-medis/actions'
 import { saveMedicalRecordAndComplete } from '@/app/antrean/actions'
 import type { QueueWithPatientDetail, PrescriptionMedicineOption } from '@/app/antrean/actions'
@@ -86,9 +86,7 @@ const ACTION_PRESETS = [
 ]
 
 function getQueueLabel(polyclinic: string | null, queueNumber: number): string {
-  if (!polyclinic) return String(queueNumber).padStart(3, '0')
-  const prefix = polyclinic.trim().split(/\s+/).pop()?.charAt(0).toUpperCase() ?? 'Q'
-  return `${prefix}${String(queueNumber).padStart(2, '0')}`
+  return formatQueueLabel(polyclinic, queueNumber)
 }
 
 function formatArrivalTime(date: Date | string): string {

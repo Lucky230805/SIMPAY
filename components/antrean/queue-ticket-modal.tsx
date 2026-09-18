@@ -3,6 +3,7 @@
 import React from 'react'
 import { CheckCircle2, Printer, X, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatQueueLabel } from '@/lib/patient-utils'
 
 export interface QueueTicketData {
   queueNumber: number
@@ -24,7 +25,7 @@ export function QueueTicketModal({ isOpen, onClose, queueData }: QueueTicketModa
     window.print()
   }
 
-  const formattedQueueNum = String(queueData.queueNumber).padStart(3, '0')
+  const formattedQueueNum = formatQueueLabel(queueData.polyclinic || 'Poli Umum 1', queueData.queueNumber)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0">

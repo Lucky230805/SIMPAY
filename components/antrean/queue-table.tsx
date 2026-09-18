@@ -6,16 +6,15 @@ import { Loader2, Play, Eye, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { startExamination } from '@/app/antrean/actions'
 import type { QueueItem } from '@/app/antrean/actions'
+import { formatQueueLabel } from '@/lib/patient-utils'
 
 interface QueueTableProps {
   queues: QueueItem[]
 }
 
-/** Derive queue-number label from polyclinic prefix + number (e.g. "Poli Umum" + 1 → "A01") */
+/** Derive queue-number label from polyclinic prefix + number (e.g. "Poli Umum 1" → "A-001") */
 function getQueueLabel(polyclinic: string | null, queueNumber: number): string {
-  if (!polyclinic) return String(queueNumber).padStart(3, '0')
-  const prefix = polyclinic.trim().split(/\s+/).pop()?.charAt(0).toUpperCase() ?? 'Q'
-  return `${prefix}${String(queueNumber).padStart(2, '0')}`
+  return formatQueueLabel(polyclinic, queueNumber)
 }
 
 /** Format a Date to "HH:MM WIB" */
