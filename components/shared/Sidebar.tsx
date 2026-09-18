@@ -18,8 +18,9 @@ import {
   Layers,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getSessionUserAction, logoutAction } from '@/app/login/actions'
+import { getSessionUserAction } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
+import { LogoutConfirmDialog } from '@/components/shared/logout-confirm-dialog'
 
 const navItems = [
   {
@@ -76,6 +77,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname()
   const [user, setUser] = useState<{ name: string; role: 'DOKTER' | 'PERAWAT' } | null>(null)
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -167,19 +169,23 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <form action={logoutAction}>
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-              title="Keluar / Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </form>
+          <Button
+            type="button"
+            onClick={() => setIsLogoutConfirmOpen(true)}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+            title="Keluar / Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
       </div>
+
+      <LogoutConfirmDialog
+        open={isLogoutConfirmOpen}
+        onOpenChange={setIsLogoutConfirmOpen}
+      />
     </aside>
   )
 }

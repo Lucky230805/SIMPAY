@@ -19,7 +19,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { getSessionUserAction, logoutAction } from '@/app/login/actions'
+import { getSessionUserAction } from '@/app/login/actions'
+import { LogoutConfirmDialog } from '@/components/shared/logout-confirm-dialog'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['DOKTER', 'PERAWAT'] },
@@ -36,6 +37,7 @@ const navItems = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [user, setUser] = useState<{ name: string; role: 'DOKTER' | 'PERAWAT' } | null>(null)
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -103,18 +105,17 @@ export default function Header() {
           </div>
 
           {user && (
-            <form action={logoutAction}>
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                className="text-slate-500 hover:text-red-600 hover:bg-red-50 text-xs font-medium gap-1.5 px-2.5"
-                title="Keluar / Logout"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Keluar</span>
-              </Button>
-            </form>
+            <Button
+              type="button"
+              onClick={() => setIsLogoutConfirmOpen(true)}
+              variant="ghost"
+              size="sm"
+              className="text-slate-500 hover:text-red-600 hover:bg-red-50 text-xs font-medium gap-1.5 px-2.5"
+              title="Keluar / Logout"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Keluar</span>
+            </Button>
           )}
         </div>
       </header>
@@ -170,6 +171,11 @@ export default function Header() {
           </aside>
         </div>
       )}
+
+      <LogoutConfirmDialog
+        open={isLogoutConfirmOpen}
+        onOpenChange={setIsLogoutConfirmOpen}
+      />
     </>
   )
 }
