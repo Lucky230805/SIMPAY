@@ -363,6 +363,7 @@ async function main() {
     return d
   }
 
+  // Antrean untuk Poli Umum (dr. Raniisyana)
   await prisma.queue.create({
     data: { patientId: p1.id, queueNumber: 1, status: 'SELESAI', polyclinic: 'Poli Umum', date: makeArrival(8, 15) },
   })
@@ -372,11 +373,13 @@ async function main() {
   await prisma.queue.create({
     data: { patientId: p3.id, queueNumber: 3, status: 'MENUNGGU', polyclinic: 'Poli Umum', date: makeArrival(8, 45) },
   })
+
+  // Antrean untuk Poli Penyakit Dalam (dr. Budi Santoso)
   await prisma.queue.create({
-    data: { patientId: p4.id, queueNumber: 4, status: 'MENUNGGU', polyclinic: 'Poli Umum', date: makeArrival(9, 5) },
+    data: { patientId: p4.id, queueNumber: 1, status: 'DALAM_PEMERIKSAAN', polyclinic: 'Poli Penyakit Dalam', date: makeArrival(9, 0) },
   })
   await prisma.queue.create({
-    data: { patientId: p5.id, queueNumber: 5, status: 'MENUNGGU', polyclinic: 'Poli Umum', date: makeArrival(9, 10) },
+    data: { patientId: p5.id, queueNumber: 2, status: 'MENUNGGU', polyclinic: 'Poli Penyakit Dalam', date: makeArrival(9, 15) },
   })
 
   console.log('✅ Seed data Epic 3 berhasil dimasukkan.')
