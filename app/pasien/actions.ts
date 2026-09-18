@@ -255,7 +255,7 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
           patientId: newPatient.id,
           queueNumber: nextQueueNumber,
           status: 'MENUNGGU',
-          polyclinic: data.polyclinic || 'Poli Umum',
+          polyclinic: data.polyclinic || 'Poli Umum 1',
         },
       })
 
@@ -287,7 +287,7 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
   }
 }
 
-export async function addExistingPatientToQueue(patientId: number, polyclinic: string = 'Poli Umum') {
+export async function addExistingPatientToQueue(patientId: number, polyclinic: string = 'Poli Umum 1') {
   try {
     await requireRole('PERAWAT')
   } catch (err: any) {
