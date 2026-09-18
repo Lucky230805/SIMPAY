@@ -1,27 +1,58 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
-import { ClipboardList, Users, CheckCircle2, Clock } from 'lucide-react'
+import { ClipboardList, Users, CheckCircle2, Clock, Building2 } from 'lucide-react'
 import { getTodayQueues } from './actions'
 import { QueueTable } from '@/components/antrean/queue-table'
+import { getSessionUserAction } from '@/app/login/actions'
 
 export default function AntreanPage() {
   const [queues, setQueues] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedPoli, setSelectedPoli] = useState<string>('ALL')
 
   useEffect(() => {
+    let active = true
     async function loadData() {
       try {
-        const q = await getTodayQueues()
-        setQueues(q)
+        const u = await getSessionUserAction()
+        let initialPoli = 'ALL'
+        if (u?.role === 'DOKTER') {
+          if (u.name.toLowerCase().includes('farisi')) {
+            initialPoli = 'Poli Umum 2'
+          } else {
+            initialPoli = 'Poli Umum 1'
+          }
+        }
+        if (active) {
+          setSelectedPoli(initialPoli)
+          const q = await getTodayQueues(initialPoli)
+          setQueues(q)
+        }
       } catch (err) {
         console.error('Failed to load today queues:', err)
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
     loadData()
+    return () => {
+      active = false
+    }
   }, [])
+
+  const handlePoliChange = async (newPoli: string) => {
+    setSelectedPoli(newPoli)
+    setLoading(true)
+    try {
+      const q = await getTodayQueues(newPoli)
+      setQueues(q)
+    } catch (err) {
+      console.error('Failed to filter queues by polyclinic:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const total = queues.length
   const menunggu = queues.filter((q) => q.status === 'MENUNGGU').length
@@ -45,12 +76,29 @@ export default function AntreanPage() {
   return (
     <div className="p-6 space-y-6 w-full">
       {/* Page Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <ClipboardList className="w-5 h-5 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-foreground">Antrean Pemeriksaan</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <ClipboardList className="w-5 h-5 text-primary" />
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Antrean Pemeriksaan</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">Kelola daftar pasien yang menunggu hari ini.</p>
         </div>
-        <p className="text-sm text-muted-foreground">Kelola daftar pasien yang menunggu hari ini.</p>
+
+        {/* Polyclinic Filter */}
+        <div className="flex items-center gap-2 bg-white border border-border px-3 py-1.5 rounded-xl shadow-xs">
+          <Building2 className="w-4 h-4 text-primary" />
+          <span className="text-xs font-semibold text-muted-foreground">Filter Poli:</span>
+          <select
+            value={selectedPoli}
+            onChange={(e) => handlePoliChange(e.target.value)}
+            className="bg-transparent text-xs font-bold text-foreground outline-none cursor-pointer"
+          >
+            <option value="Poli Umum 1">Poli Umum 1 (dr. Raniisyana)</option>
+            <option value="Poli Umum 2">Poli Umum 2 (dr. Farisi)</option>
+            <option value="ALL">Semua Poliklinik</option>
+          </select>
+        </div>
       </div>
 
 

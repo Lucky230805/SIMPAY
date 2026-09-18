@@ -42,7 +42,7 @@ function getQueueStatusPriority(status: string): number {
  * Fetch all queue entries for today, ordered by queueNumber.
  * "Today" is defined as from 00:00:00 to 23:59:59 of the current local day.
  */
-export async function getTodayQueues(): Promise<QueueItem[]> {
+export async function getTodayQueues(polyclinicFilter?: string): Promise<QueueItem[]> {
   await requireAuth()
   const today = new Date()
   const start = new Date(today)
@@ -50,14 +50,20 @@ export async function getTodayQueues(): Promise<QueueItem[]> {
   const end = new Date(today)
   end.setHours(23, 59, 59, 999)
 
+  const whereCondition: any = {
+    date: {
+      gte: start,
+      lte: end,
+    },
+  }
+
+  if (polyclinicFilter && polyclinicFilter !== 'ALL') {
+    whereCondition.polyclinic = polyclinicFilter
+  }
+
   try {
     const queues = await prisma.queue.findMany({
-      where: {
-        date: {
-          gte: start,
-          lte: end,
-        },
-      },
+      where: whereCondition,
       orderBy: [{ polyclinic: 'asc' }, { queueNumber: 'asc' }],
       include: {
         patient: {
