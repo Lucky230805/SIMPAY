@@ -20,6 +20,8 @@ import {
   UserPlus,
   Loader2,
   CheckCircle2,
+  Building2,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -92,26 +94,35 @@ export function PatientTable({ initialData }: PatientTableProps) {
   const [ticketModalData, setTicketModalData] = useState<QueueTicketData | null>(null)
   const [isTicketOpen, setIsTicketOpen] = useState(false)
   const [isQueueingId, setIsQueueingId] = useState<number | null>(null)
+  const [selectedPatientForQueue, setSelectedPatientForQueue] = useState<PatientRecord | null>(null)
+  const [selectedPoliForQueue, setSelectedPoliForQueue] = useState<string>('Poli Umum 1')
 
-  const handleAddToQueue = async (patient: PatientRecord) => {
+  const handleAddToQueue = (patient: PatientRecord) => {
     setActiveMenuId(null)
     if (patient.todayQueue) {
       alert(`Pasien ${patient.name} sudah terdaftar di Antrean Pemeriksaan hari ini (No. Antrean #${patient.todayQueue.queueNumber}, Status: ${patient.todayQueue.status === 'MENUNGGU' ? 'Menunggu' : 'Dalam Pemeriksaan'}). Pasien tidak dapat diinputkan lagi ke antrean.`)
       return
     }
+    setSelectedPatientForQueue(patient)
+    setSelectedPoliForQueue('Poli Umum 1')
+  }
 
+  const confirmAddToQueue = async () => {
+    if (!selectedPatientForQueue) return
+    const patient = selectedPatientForQueue
     setIsQueueingId(patient.id)
     try {
-      const res = await addExistingPatientToQueue(patient.id, 'Poli Umum')
+      const res = await addExistingPatientToQueue(patient.id, selectedPoliForQueue)
       if (res.success && res.queue) {
-        showToast(`Pasien ${res.patientName} berhasil didaftarkan ke Antrean Hari Ini (#${res.queue.queueNumber})`)
+        showToast(`Pasien ${res.patientName} berhasil didaftarkan ke ${selectedPoliForQueue} (#${res.queue.queueNumber})`)
         setTicketModalData({
           queueNumber: res.queue.queueNumber,
           patientName: res.patientName,
           noRM: formatNoRM(patient.id),
-          polyclinic: res.queue.polyclinic || 'Poli Umum',
+          polyclinic: res.queue.polyclinic || selectedPoliForQueue,
         })
         setIsTicketOpen(true)
+        setSelectedPatientForQueue(null)
         fetchData(page, search, genderFilter)
       } else {
         alert(res.error || 'Gagal mendaftarkan pasien ke antrean')
@@ -270,6 +281,68 @@ export function PatientTable({ initialData }: PatientTableProps) {
         onClose={() => setIsSuccessOpen(false)}
         patient={newlyAddedPatient}
       />
+
+      {/* Polyclinic Selection Modal for Enqueuing Existing Patient */}
+      {selectedPatientForQueue && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in-0">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-xl border border-border p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-primary" />
+                Pilih Tujuan Poliklinik
+              </h3>
+              <button
+                onClick={() => setSelectedPatientForQueue(null)}
+                className="text-muted-foreground hover:text-foreground rounded p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">Nama Pasien:</p>
+              <p className="text-sm font-bold text-foreground">
+                {selectedPatientForQueue.name}{' '}
+                <span className="font-mono text-xs text-primary font-normal">
+                  ({formatNoRM(selectedPatientForQueue.id)})
+                </span>
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-foreground">
+                Poliklinik / Dokter Bertugas:
+              </label>
+              <select
+                value={selectedPoliForQueue}
+                onChange={(e) => setSelectedPoliForQueue(e.target.value)}
+                className="h-9 w-full rounded-lg border border-input bg-muted/20 px-2.5 py-1 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+              >
+                <option value="Poli Umum 1">Poli Umum 1 (dr. Raniisyana)</option>
+                <option value="Poli Umum 2">Poli Umum 2 (dr. Farisi)</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedPatientForQueue(null)}
+                disabled={!!isQueueingId}
+              >
+                Batal
+              </Button>
+              <Button size="sm" onClick={confirmAddToQueue} disabled={!!isQueueingId}>
+                {isQueueingId ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    Memproses...
+                  </>
+                ) : (
+                  'Daftarkan ke Antrean'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PatientHistoryDrawer
         patientId={historyPatientId}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { X, User, Phone, MapPin, Calendar, Loader2, AlertCircle } from 'lucide-react'
+import { X, User, Phone, MapPin, Calendar, Loader2, AlertCircle, Building2 } from 'lucide-react'
 import { createPatient, updatePatient, PatientInput, PatientRecord } from '@/app/pasien/actions'
 
 interface PatientFormDialogProps {
@@ -28,6 +28,7 @@ export function PatientFormDialog({
     gender: 'Laki-laki',
     phone: '',
     address: '',
+    polyclinic: 'Poli Umum 1',
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -48,6 +49,7 @@ export function PatientFormDialog({
         gender: initialData.gender || 'Laki-laki',
         phone: initialData.phone || '',
         address: initialData.address || '',
+        polyclinic: 'Poli Umum 1',
       })
     } else {
       setFormData({
@@ -56,6 +58,7 @@ export function PatientFormDialog({
         gender: 'Laki-laki',
         phone: '',
         address: '',
+        polyclinic: 'Poli Umum 1',
       })
     }
     setErrors({})
@@ -300,7 +303,7 @@ export function PatientFormDialog({
               Alamat Lengkap
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={formData.address || ''}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               placeholder="Jalan, RT/RW, Kelurahan, Kecamatan, Kota/Kabupaten"
@@ -308,6 +311,25 @@ export function PatientFormDialog({
               className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 resize-none"
             />
           </div>
+
+          {/* Selection of Polyclinic (for New Patients) */}
+          {!isEdit && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-primary" />
+                Tujuan Poliklinik / Dokter Bertugas <span className="text-destructive">*</span>
+              </label>
+              <select
+                value={formData.polyclinic || 'Poli Umum 1'}
+                onChange={(e) => setFormData({ ...formData, polyclinic: e.target.value })}
+                disabled={isSubmitting}
+                className="h-9 w-full rounded-lg border border-input bg-muted/20 px-2.5 py-1 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 font-semibold text-foreground cursor-pointer"
+              >
+                <option value="Poli Umum 1">Poli Umum 1 (dr. Raniisyana)</option>
+                <option value="Poli Umum 2">Poli Umum 2 (dr. Farisi)</option>
+              </select>
+            </div>
+          )}
 
           {/* Footer Buttons */}
           <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">

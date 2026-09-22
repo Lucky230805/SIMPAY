@@ -175,6 +175,7 @@ export interface PatientInput {
   gender: string
   phone?: string
   address?: string
+  polyclinic?: string
 }
 
 export async function createPatient(data: PatientInput & { polyclinic?: string }) {
@@ -345,7 +346,7 @@ export async function addExistingPatientToQueue(patientId: number, polyclinic: s
         patientId,
         queueNumber: nextQueueNumber,
         status: 'MENUNGGU',
-        polyclinic: polyclinic || 'Poli Umum',
+        polyclinic: polyclinic || 'Poli Umum 1',
       },
     })
 
