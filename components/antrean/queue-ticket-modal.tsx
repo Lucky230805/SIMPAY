@@ -102,13 +102,10 @@ export function QueueTicketModal({ isOpen, onClose, queueData }: QueueTicketModa
         {/* Kop Klinik */}
         <div className="border-b-2 border-black pb-2 mb-3">
           <h2 className="font-black text-base uppercase tracking-wider text-black">
-            SIMPAY CLINIC
+            Klinik Praktek Dokter Umum
           </h2>
-          <p className="text-[11px] font-bold text-black mt-0.5">
-            Klinik Pratama &amp; Layanan Medis Terpadu
-          </p>
           <p className="text-[10px] text-black">
-            Jl. Kesehatan No. 1 • Telp: (021) 555-0123
+            Perumahan Permata Hijau 2, Blok A59, Cinangsi, Kec. Cibogo, Kabupaten Subang, Jawa Barat
           </p>
         </div>
 
@@ -160,7 +157,7 @@ export function QueueTicketModal({ isOpen, onClose, queueData }: QueueTicketModa
             * Mohon menunggu nomor antrean Anda dipanggil di Ruang Tunggu.
           </p>
           <p className="italic text-[9px] mt-2 border-t border-slate-300 pt-1">
-            Terima Kasih Atas Kepercayaan Anda Kepada SIMPAY Clinic
+            Terima Kasih Atas Kepercayaan Anda Kepada Klinik Praktek Dokter Umum
           </p>
         </div>
       </div>
