@@ -25,6 +25,7 @@ async function main() {
       email: 'dokter@simpay.local',
       password: 'password123',
       role: 'DOKTER',
+      sipNumber: 'No. 446.1 /0085/ DPMPTSP / SIP-3 / DUM / VI/ 2020',
     },
   })
 
@@ -34,6 +35,7 @@ async function main() {
       email: 'dokter2@simpay.local',
       password: 'password123',
       role: 'DOKTER',
+      sipNumber: 'No. 446.1 /0086/ DPMPTSP / SIP-3 / DUM / VI/ 2020',
     },
   })
 

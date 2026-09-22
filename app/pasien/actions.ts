@@ -18,6 +18,7 @@ export interface PatientRecord {
   name: string
   dateOfBirth: Date
   gender: string
+  occupation?: string | null
   address: string | null
   phone: string | null
   todayQueue?: {
@@ -173,6 +174,7 @@ export interface PatientInput {
   name: string
   dateOfBirth: string
   gender: string
+  occupation?: string
   phone?: string
   address?: string
   polyclinic?: string
@@ -227,6 +229,7 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
           name: data.name.trim(),
           dateOfBirth: new Date(data.dateOfBirth),
           gender: data.gender,
+          occupation: data.occupation?.trim() || null,
           phone: data.phone?.trim() || null,
           address: data.address?.trim() || null,
         },
@@ -421,6 +424,7 @@ export async function updatePatient(id: number, data: PatientInput) {
         name: data.name.trim(),
         dateOfBirth: new Date(data.dateOfBirth),
         gender: data.gender,
+        occupation: data.occupation?.trim() || null,
         phone: data.phone?.trim() || null,
         address: data.address?.trim() || null,
       },

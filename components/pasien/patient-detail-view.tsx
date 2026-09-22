@@ -401,6 +401,11 @@ export function PatientDetailView({ patient: initialPatient }: PatientDetailView
               </div>
 
               <div>
+                <span className="text-muted-foreground block text-[11px]">Pekerjaan</span>
+                <span className="font-medium text-foreground">{patient.occupation || '—'}</span>
+              </div>
+
+              <div>
                 <span className="text-muted-foreground block text-[11px]">Tanggal Lahir & Umur</span>
                 <span className="font-medium text-foreground">{birthDateAndAge}</span>
               </div>

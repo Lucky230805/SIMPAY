@@ -16,6 +16,7 @@ import {
   Stethoscope,
   UserCheck,
   Layers,
+  FileCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getSessionUserAction } from '@/app/login/actions'
@@ -64,6 +65,12 @@ const navItems = [
     href: '/pembayaran',
     icon: CreditCard,
     roles: ['PERAWAT'],
+  },
+  {
+    label: 'Surat Keterangan',
+    href: '/surat',
+    icon: FileCheck,
+    roles: ['PERAWAT', 'DOKTER'],
   },
   {
     label: 'Laporan',

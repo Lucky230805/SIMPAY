@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { X, User, Phone, MapPin, Calendar, Loader2, AlertCircle, Building2 } from 'lucide-react'
+import { X, User, Phone, MapPin, Calendar, Loader2, AlertCircle, Building2, Briefcase } from 'lucide-react'
 import { createPatient, updatePatient, PatientInput, PatientRecord } from '@/app/pasien/actions'
 
 interface PatientFormDialogProps {
@@ -26,6 +26,7 @@ export function PatientFormDialog({
     name: '',
     dateOfBirth: '',
     gender: 'Laki-laki',
+    occupation: '',
     phone: '',
     address: '',
     polyclinic: 'Poli Umum 1',
@@ -47,6 +48,7 @@ export function PatientFormDialog({
         name: initialData.name || '',
         dateOfBirth: formattedDob,
         gender: initialData.gender || 'Laki-laki',
+        occupation: initialData.occupation || '',
         phone: initialData.phone || '',
         address: initialData.address || '',
         polyclinic: 'Poli Umum 1',
@@ -56,6 +58,7 @@ export function PatientFormDialog({
         name: '',
         dateOfBirth: '',
         gender: 'Laki-laki',
+        occupation: '',
         phone: '',
         address: '',
         polyclinic: 'Poli Umum 1',
@@ -228,6 +231,22 @@ export function PatientFormDialog({
                 <p className="text-[11px] text-destructive">{errors.dateOfBirth}</p>
               )}
             </div>
+          </div>
+
+          {/* Pekerjaan Pasien */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
+              Pekerjaan Pasien (Opsional)
+            </label>
+            <Input
+              type="text"
+              placeholder="Contoh: Karyawan Swasta / Pelajar / PNS / Wiraswasta"
+              value={formData.occupation || ''}
+              onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+              disabled={isSubmitting}
+              className="h-8 text-xs"
+            />
           </div>
 
           {/* Nomor Telepon */}

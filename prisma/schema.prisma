@@ -7,26 +7,31 @@ datasource db {
 }
 
 model User {
-  id                Int             @id @default(autoincrement())
-  name              String
-  email             String          @unique
-  password          String
-  role              String
-  medicalRecords    MedicalRecord[]
-  processedPayments Payment[]
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  email              String               @unique
+  password           String
+  role               String
+  sipNumber          String?
+  medicalRecords     MedicalRecord[]
+  processedPayments  Payment[]
+  issuedCertificates MedicalCertificate[] @relation("IssuedCertificates")
+  doctorCertificates MedicalCertificate[] @relation("DoctorCertificates")
 }
 
 model Patient {
-  id             Int             @id @default(autoincrement())
-  name           String
-  dateOfBirth    DateTime
-  gender         String
-  address        String?
-  phone          String?
-  medicalRecords MedicalRecord[]
-  queues         Queue[]
-  prescriptions  Prescription[]
-  billings       Billing[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  dateOfBirth         DateTime
+  gender              String
+  occupation          String?
+  address             String?
+  phone               String?
+  medicalRecords      MedicalRecord[]
+  queues              Queue[]
+  prescriptions       Prescription[]
+  billings            Billing[]
+  medicalCertificates MedicalCertificate[]
 }
 
 model MedicalRecord {
@@ -150,4 +155,40 @@ model Payment {
 
   billing     Billing @relation(fields: [billingId], references: [id])
   processedBy User?   @relation(fields: [processedById], references: [id])
+}
+
+model MedicalCertificate {
+  id            Int      @id @default(autoincrement())
+  certificateNo String   @unique
+  type          String   // "SAKIT" | "SEHAT"
+  patientId     Int
+  doctorId      Int?
+  doctorName    String?
+  doctorSip     String?
+  issuedById    Int?
+  issuedByName  String
+  date          DateTime @default(now())
+
+  // Fields for Surat Sakit
+  startDate     DateTime?
+  endDate       DateTime?
+  durationDays  Int?
+  diagnosis     String?
+  occupation    String?
+
+  // Fields for Surat Sehat
+  heightCm      Int?
+  weightKg      Int?
+  bloodPressure String?
+  bloodType     String?
+  colorBlind    String? // "Tidak" | "Ya" | "Parsial"
+  purpose       String? // Keperluan
+
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  patient       Patient  @relation(fields: [patientId], references: [id])
+  issuedBy      User?    @relation("IssuedCertificates", fields: [issuedById], references: [id])
+  doctor        User?    @relation("DoctorCertificates", fields: [doctorId], references: [id])
 }
