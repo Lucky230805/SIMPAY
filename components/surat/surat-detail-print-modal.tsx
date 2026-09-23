@@ -211,7 +211,7 @@ function CertificateContent({
 
           <div className="text-center py-2 bg-slate-50 border border-slate-300 rounded-lg">
             <span className="font-extrabold text-base text-black tracking-wide uppercase">
-              SEHAT &amp; LAYAK
+              SEHAT
             </span>
           </div>
 

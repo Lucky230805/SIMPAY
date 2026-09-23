@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   User,
@@ -109,6 +110,7 @@ function formatCurrency(amount: number): string {
 }
 
 export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewProps) {
+  const router = useRouter()
   const { patient } = queue
   const noRM = formatNoRM(patient.id)
   const birthDateAndAge = formatBirthDateAndAge(patient.dateOfBirth)
@@ -353,6 +355,8 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
       }
 
       setShowSuccess(true)
+      router.push('/antrean')
+      router.refresh()
     } catch (err: any) {
       setGeneralError(err.message || 'Terjadi kesalahan sistem saat menyimpan rekam medis')
     } finally {

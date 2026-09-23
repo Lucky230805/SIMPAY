@@ -47,6 +47,53 @@ interface ResepViewProps {
   initialQueues: PrescriptionQueueItem[]
 }
 
+export function getMedicineKegunaan(medicineName: string, notes?: string): string {
+  const notesLower = (notes || '').toLowerCase()
+  const nameLower = (medicineName || '').toLowerCase()
+
+  // 1. Check notes first if user/doctor provided explicit indication
+  if (notesLower.includes('lambung') || notesLower.includes('maag') || notesLower.includes('asam lambung')) return 'OBAT LAMBUNG / MAAG'
+  if (notesLower.includes('demam') || notesLower.includes('pusing') || notesLower.includes('nyeri') || notesLower.includes('sakit kepala')) return 'OBAT DEMAM & ANTI NYERI'
+  if (notesLower.includes('batuk') || notesLower.includes('flu') || notesLower.includes('pilek')) return 'OBAT BATUK & PILEK'
+  if (notesLower.includes('alergi') || notesLower.includes('gatal')) return 'OBAT ALERGI & GATAL'
+  if (notesLower.includes('tensi') || notesLower.includes('darah tinggi') || notesLower.includes('hipertensi')) return 'OBAT DARAH TINGGI'
+  if (notesLower.includes('gula') || notesLower.includes('diabetes')) return 'OBAT PENURUN GULA DARAH'
+  if (notesLower.includes('antibiotik') || notesLower.includes('infeksi')) return 'OBAT ANTIBIOTIK / INFEKSI'
+  if (notesLower.includes('vitamin') || notesLower.includes('suplemen') || notesLower.includes('daya tahan')) return 'VITAMIN & SUPLEMEN'
+
+  // 2. Map standard medicine names to patient-friendly Kegunaan (Khasiat)
+  if (nameLower.includes('antasida') || nameLower.includes('ranitidin') || nameLower.includes('omeprazol') || nameLower.includes('sucralfate') || nameLower.includes('lansoprazol') || nameLower.includes('promag') || nameLower.includes('polysilane') || nameLower.includes('mag')) {
+    return 'OBAT LAMBUNG / MAAG'
+  }
+  if (nameLower.includes('paracetamol') || nameLower.includes('pct') || nameLower.includes('ibuprofen') || nameLower.includes('sanmol') || nameLower.includes('pamol') || nameLower.includes('asidrin') || nameLower.includes('mefenamat') || nameLower.includes('mefenamic') || nameLower.includes('bodrex') || nameLower.includes('panadol')) {
+    return 'OBAT DEMAM & ANTI NYERI'
+  }
+  if (nameLower.includes('amoxicillin') || nameLower.includes('amox') || nameLower.includes('cefadroxil') || nameLower.includes('cotrimoxazole') || nameLower.includes('azithromycin') || nameLower.includes('ciprofloxacin')) {
+    return 'OBAT ANTIBIOTIK / INFEKSI'
+  }
+  if (nameLower.includes('ctm') || nameLower.includes('cetirizine') || nameLower.includes('loratadine') || nameLower.includes('dexamethasone') || nameLower.includes('incidal')) {
+    return 'OBAT ALERGI & GATAL'
+  }
+  if (nameLower.includes('ambroxol') || nameLower.includes('obh') || nameLower.includes('dextromethorphan') || nameLower.includes('gg') || nameLower.includes('glyceryl') || nameLower.includes('siladex') || nameLower.includes('komix') || nameLower.includes('silex')) {
+    return 'OBAT BATUK & PILEK'
+  }
+  if (nameLower.includes('amlodipine') || nameLower.includes('captopril') || nameLower.includes('nifedipine') || nameLower.includes('candesartan')) {
+    return 'OBAT DARAH TINGGI (HIPERTENSI)'
+  }
+  if (nameLower.includes('metformin') || nameLower.includes('glibenclamide') || nameLower.includes('glimepiride')) {
+    return 'OBAT PENURUN GULA DARAH'
+  }
+  if (nameLower.includes('simvastatin') || nameLower.includes('atorvastatin')) {
+    return 'OBAT PENURUN KOLESTEROL'
+  }
+  if (nameLower.includes('vitamin') || nameLower.includes('vit') || nameLower.includes('suplemen') || nameLower.includes('curcuma') || nameLower.includes('becom-zet') || nameLower.includes('neurobion')) {
+    return 'VITAMIN & SUPLEMEN KESEHATAN'
+  }
+
+  // Fallback if no direct match
+  return `OBAT ${medicineName.split(' ')[0].toUpperCase()}`
+}
+
 export function ResepView({ initialQueues }: ResepViewProps) {
   const router = useRouter()
   const [queues, setQueues] = useState(initialQueues)
@@ -622,9 +669,9 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               {/* Medicine Details & Dosage Instruction */}
               <div className="space-y-2 py-1 text-center">
                 <div className="bg-slate-100 p-2.5 rounded-lg border border-slate-300">
-                  <span className="text-[10px] text-slate-500 font-semibold block uppercase">NAMA OBAT &amp; JUMLAH:</span>
-                  <h3 className="font-black text-base text-slate-900 leading-tight mt-0.5">
-                    {item.name}
+                  <span className="text-[10px] text-slate-500 font-semibold block uppercase">KEGUNAAN OBAT &amp; JUMLAH:</span>
+                  <h3 className="font-black text-lg text-slate-900 leading-tight mt-0.5">
+                    {getMedicineKegunaan(item.name, item.notes)}
                   </h3>
                   <span className="font-mono font-bold text-xs text-slate-700 block mt-1">
                     JUMLAH: {item.qty} ({item.quantity || 1} Pcs)

@@ -28,6 +28,7 @@ import {
 import { CreateSuratSakitModal } from '@/components/surat/create-surat-sakit-modal'
 import { CreateSuratSehatModal } from '@/components/surat/create-surat-sehat-modal'
 import { SuratDetailPrintModal } from '@/components/surat/surat-detail-print-modal'
+import { SuratDeleteDialog } from '@/components/surat/surat-delete-dialog'
 
 interface PatientOption {
   id: number
@@ -59,7 +60,9 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
   const [isSakitModalOpen, setIsSakitModalOpen] = useState(false)
   const [isSehatModalOpen, setIsSehatModalOpen] = useState(false)
   const [selectedSuratForPrint, setSelectedSuratForPrint] = useState<SuratItem | null>(null)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [suratToDelete, setSuratToDelete] = useState<SuratItem | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   // Filtered List
   const filteredList = suratList.filter((item) => {
@@ -179,15 +182,24 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
     return { success: false, error: res.error }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus catatan surat ini?')) return
-    setDeletingId(id)
-    const res = await deleteSuratAction(id)
-    setDeletingId(null)
+  const handleOpenDelete = (item: SuratItem) => {
+    setSuratToDelete(item)
+    setDeleteError(null)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!suratToDelete) return
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    const res = await deleteSuratAction(suratToDelete.id)
+    setIsDeleting(false)
+
     if (res.success) {
-      setSuratList((prev) => prev.filter((item) => item.id !== id))
+      setSuratList((prev) => prev.filter((item) => item.id !== suratToDelete.id))
+      setSuratToDelete(null)
     } else {
-      alert(res.error || 'Gagal menghapus surat.')
+      setDeleteError(res.error || 'Gagal menghapus catatan surat.')
     }
   }
 
@@ -403,8 +415,8 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deletingId === item.id}
+                          onClick={() => handleOpenDelete(item)}
+                          disabled={isDeleting && suratToDelete?.id === item.id}
                           className="text-xs h-8 px-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -440,6 +452,15 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
         surat={selectedSuratForPrint}
         isOpen={!!selectedSuratForPrint}
         onClose={() => setSelectedSuratForPrint(null)}
+      />
+
+      <SuratDeleteDialog
+        isOpen={!!suratToDelete}
+        onClose={() => setSuratToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        surat={suratToDelete}
+        isDeleting={isDeleting}
+        errorMessage={deleteError}
       />
     </div>
   )

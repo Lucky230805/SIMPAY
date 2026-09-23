@@ -467,8 +467,8 @@ export function PatientTable({ initialData }: PatientTableProps) {
       )}
 
       {/* Main Table Card */}
-      <div className="bg-white rounded-lg border border-border overflow-hidden shadow-xs">
-        <div className="overflow-x-auto min-h-[300px]">
+      <div className="bg-white rounded-lg border border-border shadow-xs">
+        <div className="overflow-x-auto min-h-[360px] pb-2">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/40 font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
@@ -546,9 +546,10 @@ export function PatientTable({ initialData }: PatientTableProps) {
                 </tr>
               ) : (
                 // Patient rows
-                patients.map((patient) => {
+                patients.map((patient, index) => {
                   const noRM = formatNoRM(patient.id)
                   const birthDateAndAge = formatBirthDateAndAge(patient.dateOfBirth)
+                  const isBottomRows = index >= Math.max(2, patients.length - 2)
 
                   return (
                     <tr
@@ -634,66 +635,91 @@ export function PatientTable({ initialData }: PatientTableProps) {
                             </button>
 
                             {activeMenuId === patient.id && (
-                              <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-border py-1 z-40 animate-in fade-in-0 zoom-in-95 text-xs text-left">
-                                {!isDokter && (
-                                  patient.todayQueue ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAddToQueue(patient)}
-                                      className="w-full flex items-center gap-2 px-3 py-1.5 font-medium text-emerald-700 hover:bg-emerald-50 transition-colors text-left"
-                                    >
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                      <span>Sudah Antrean #{patient.todayQueue.queueNumber}</span>
-                                    </button>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAddToQueue(patient)}
-                                      disabled={isQueueingId === patient.id}
-                                      className="w-full flex items-center gap-2 px-3 py-1.5 font-medium text-primary hover:bg-primary/10 transition-colors text-left"
-                                    >
-                                      <UserPlus className="w-3.5 h-3.5" />
-                                      <span>Daftarkan Antrean</span>
-                                    </button>
-                                  )
-                                )}
-                                <Link
-                                  href={`/pasien/${patient.id}`}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors"
+                              <>
+                                <div
+                                  className="fixed inset-0 z-30"
                                   onClick={() => setActiveMenuId(null)}
+                                />
+                                <div
+                                  className={`absolute right-0 ${
+                                    isBottomRows ? 'bottom-full mb-1' : 'top-full mt-1'
+                                  } w-44 bg-white rounded-lg shadow-xl border border-border py-1 z-40 animate-in fade-in-0 zoom-in-95 text-xs text-left`}
                                 >
-                                  <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                                  <span>Lihat Detail</span>
-                                </Link>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenHistory(patient.id)}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
-                                >
-                                  <FileText className="w-3.5 h-3.5 text-blue-600" />
-                                  <span>Riwayat Medis</span>
-                                </button>
-                                {!isDokter && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleOpenEdit(patient)}
-                                      className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
-                                    >
-                                      <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
-                                      <span>Edit Pasien</span>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleOpenDelete(patient)}
-                                      className="w-full flex items-center gap-2 px-3 py-1.5 text-destructive hover:bg-destructive/10 transition-colors text-left"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                      <span>Hapus Pasien</span>
-                                    </button>
-                                  </>
-                                )}
-                              </div>
+                                  {!isDokter && (
+                                    patient.todayQueue ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveMenuId(null)
+                                          handleAddToQueue(patient)
+                                        }}
+                                        className="w-full flex items-center gap-2 px-3 py-1.5 font-medium text-emerald-700 hover:bg-emerald-50 transition-colors text-left"
+                                      >
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                        <span>Sudah Antrean #{patient.todayQueue.queueNumber}</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveMenuId(null)
+                                          handleAddToQueue(patient)
+                                        }}
+                                        disabled={isQueueingId === patient.id}
+                                        className="w-full flex items-center gap-2 px-3 py-1.5 font-medium text-primary hover:bg-primary/10 transition-colors text-left"
+                                      >
+                                        <UserPlus className="w-3.5 h-3.5" />
+                                        <span>Daftarkan Antrean</span>
+                                      </button>
+                                    )
+                                  )}
+                                  <Link
+                                    href={`/pasien/${patient.id}`}
+                                    className="flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors"
+                                    onClick={() => setActiveMenuId(null)}
+                                  >
+                                    <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                                    <span>Lihat Detail</span>
+                                  </Link>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveMenuId(null)
+                                      handleOpenHistory(patient.id)
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
+                                  >
+                                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                                    <span>Riwayat Medis</span>
+                                  </button>
+                                  {!isDokter && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveMenuId(null)
+                                          handleOpenEdit(patient)
+                                        }}
+                                        className="w-full flex items-center gap-2 px-3 py-1.5 text-foreground hover:bg-muted transition-colors text-left"
+                                      >
+                                        <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                                        <span>Edit Pasien</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveMenuId(null)
+                                          handleOpenDelete(patient)
+                                        }}
+                                        className="w-full flex items-center gap-2 px-3 py-1.5 text-destructive hover:bg-destructive/10 transition-colors text-left"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <span>Hapus Pasien</span>
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </>
                             )}
                           </div>
                         </div>
