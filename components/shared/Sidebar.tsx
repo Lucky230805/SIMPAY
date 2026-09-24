@@ -70,7 +70,7 @@ const navItems = [
     label: 'Surat Keterangan',
     href: '/surat',
     icon: FileCheck,
-    roles: ['PERAWAT', 'DOKTER'],
+    roles: ['PERAWAT'],
   },
   {
     label: 'Laporan',
