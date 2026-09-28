@@ -299,7 +299,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                               handleSelectQueue(item.id)
                               setDetailMode(true)
                             }}
-                            className="px-3 py-1.5 bg-slate-800 text-white rounded-md text-xs font-semibold hover:bg-slate-900 transition"
+                            className="px-3.5 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700 transition shadow-2xs"
                           >
                             Proses Resep
                           </button>
@@ -430,7 +430,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                   {selectedQueue.status !== 'SELESAI' && selectedQueue.items.length > 0 ? (
                     <button
                       onClick={() => handleProsesDanSerahkan(selectedQueue)}
-                      className="w-full py-2.5 bg-slate-800 text-white rounded-lg font-bold text-sm hover:bg-slate-900 transition text-center flex items-center justify-center gap-2"
+                      className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition text-center flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
                     >
                       <CheckCircle2 className="w-4 h-4" /> Selesai &amp; Serahkan Obat
                     </button>
@@ -613,7 +613,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                 </p>
                 <button
                   onClick={() => setDetailMode(false)}
-                  className="mt-2 px-4 py-2 bg-slate-800 text-white font-bold rounded-lg text-xs hover:bg-slate-900 transition"
+                  className="mt-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition shadow-md shadow-emerald-600/20"
                 >
                   Lihat Antrean Berikutnya
                 </button>

@@ -302,7 +302,7 @@ export function PembayaranView({
                   className={cn(
                     'px-2.5 py-1 rounded-md font-bold text-[10px] border transition-colors',
                     statusFilter === 'SEMUA'
-                      ? 'bg-slate-800 text-white border-slate-800'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
                       : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
                   )}
                 >
@@ -558,7 +558,7 @@ export function PembayaranView({
                       </div>
                       <button
                         onClick={() => window.print()}
-                        className="px-3.5 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                        className="px-3.5 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 flex items-center gap-2 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
                       >
                         <Printer className="w-4 h-4" /> Cetak Struk Kuitansi
                       </button>
@@ -616,7 +616,7 @@ export function PembayaranView({
                           className={cn(
                             'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all',
                             paymentMethod === 'TUNAI'
-                              ? 'border-slate-800 bg-slate-900 text-white font-bold shadow-sm'
+                              ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
                               : 'border-gray-200 bg-white text-slate-700 hover:bg-gray-50'
                           )}
                         >
@@ -633,7 +633,7 @@ export function PembayaranView({
                           className={cn(
                             'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all',
                             paymentMethod === 'QRIS'
-                              ? 'border-slate-800 bg-slate-900 text-white font-bold shadow-sm'
+                              ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
                               : 'border-gray-200 bg-white text-slate-700 hover:bg-gray-50'
                           )}
                         >
@@ -650,7 +650,7 @@ export function PembayaranView({
                           className={cn(
                             'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all',
                             paymentMethod === 'TRANSFER'
-                              ? 'border-slate-800 bg-slate-900 text-white font-bold shadow-sm'
+                              ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
                               : 'border-gray-200 bg-white text-slate-700 hover:bg-gray-50'
                           )}
                         >

@@ -43,9 +43,9 @@ export function QueueTicketModal({ isOpen, onClose, queueData }: QueueTicketModa
 
           {/* Interactive Screen Ticket Card */}
           <div className="p-5 bg-gradient-to-b from-primary/5 via-white to-primary/5 rounded-xl border border-primary/20 space-y-3">
-            <div className="flex items-center justify-center gap-2 text-primary font-bold text-sm uppercase tracking-wider border-b border-dashed border-primary/20 pb-3">
-              <Building2 className="w-4 h-4" />
-              <span>SIMPAY CLINIC</span>
+            <div className="flex flex-col items-center justify-center gap-1.5 border-b border-dashed border-primary/20 pb-3">
+              <img src="/logo.png" alt="SIMPAY Logo" className="w-10 h-10 object-contain" />
+              <span className="text-primary font-bold text-sm uppercase tracking-wider">SIMPAY CLINIC</span>
             </div>
 
             <div>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getDashboardStats, getRecentPatients } from './actions'
 import { getSessionUserAction } from '@/app/login/actions'
 import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import {
   Users,
   ClipboardList,
@@ -23,30 +24,33 @@ function StatCard({
   value,
   description,
   icon: Icon,
-  accent,
+  accentBg,
+  iconColor,
 }: {
   title: string
   value: string | number
   description?: string
   icon: React.ElementType
-  accent?: string
+  accentBg?: string
+  iconColor?: string
 }) {
   return (
-    <Card className="p-5">
-      <div className="flex items-start justify-between">
+    <Card className="p-5 hover:shadow-md transition-all duration-200 border-border/80 bg-card relative overflow-hidden group">
+      <div className="flex items-start justify-between relative z-10">
         <div className="space-y-1">
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{title}</p>
+          <p className="text-3xl font-extrabold tracking-tight text-foreground">{value}</p>
           {description && (
-            <p className="text-xs text-muted-foreground">{description}</p>
+            <p className="text-xs text-muted-foreground/80 font-medium">{description}</p>
           )}
         </div>
         <div
-          className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-            accent || 'bg-primary/10'
-          }`}
+          className={cn(
+            'flex items-center justify-center w-11 h-11 rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-xs',
+            accentBg || 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+          )}
         >
-          <Icon className={`w-5 h-5 ${accent ? 'text-white' : 'text-primary'}`} />
+          <Icon className={cn('w-5 h-5', iconColor || 'text-emerald-600 dark:text-emerald-400')} />
         </div>
       </div>
     </Card>
@@ -55,17 +59,41 @@ function StatCard({
 
 function QueueStatusBadge({ status }: { status: string }) {
   const norm = (status || '').trim().toUpperCase()
-  const map: Record<string, { label: string; className: string }> = {
-    MENUNGGU: { label: 'Menunggu', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-    DALAM_PEMERIKSAAN: { label: 'Dalam Pemeriksaan', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-    MENUNGGU_OBAT_DAN_BAYAR: { label: 'Menunggu Obat & Bayar', className: 'bg-purple-100 text-purple-800 border-purple-200' },
-    SELESAI: { label: 'Selesai', className: 'bg-green-100 text-green-800 border-green-200' },
+  const map: Record<string, { label: string; className: string; dotColor: string }> = {
+    MENUNGGU: {
+      label: 'Menunggu',
+      className: 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50',
+      dotColor: 'bg-amber-500',
+    },
+    DALAM_PEMERIKSAAN: {
+      label: 'Dalam Pemeriksaan',
+      className: 'bg-sky-50 text-sky-700 border-sky-200/80 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/50',
+      dotColor: 'bg-sky-500 animate-ping',
+    },
+    MENUNGGU_OBAT_DAN_BAYAR: {
+      label: 'Menunggu Obat & Bayar',
+      className: 'bg-purple-50 text-purple-700 border-purple-200/80 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/50',
+      dotColor: 'bg-purple-500',
+    },
+    SELESAI: {
+      label: 'Selesai',
+      className: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50',
+      dotColor: 'bg-emerald-500',
+    },
   }
-  const config = map[norm] ?? { label: status, className: 'bg-gray-100 text-gray-800 border-gray-200' }
+  const config = map[norm] ?? {
+    label: status,
+    className: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300',
+    dotColor: 'bg-slate-400',
+  }
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${config.className}`}
+      className={cn(
+        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border shadow-2xs',
+        config.className
+      )}
     >
+      <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', config.dotColor)} />
       {config.label}
     </span>
   )
@@ -159,26 +187,32 @@ export default function DashboardPage() {
           value={stats.totalPatients}
           description="Pasien terdaftar"
           icon={Users}
+          accentBg="bg-teal-500/10 dark:bg-teal-500/20"
+          iconColor="text-teal-600 dark:text-teal-400"
         />
         <StatCard
           title="Antrean Hari Ini"
           value={stats.queueStats.total}
           description="Pasien terjadwal"
           icon={ClipboardList}
+          accentBg="bg-sky-500/10 dark:bg-sky-500/20"
+          iconColor="text-sky-600 dark:text-sky-400"
         />
         <StatCard
           title="Menunggu"
           value={stats.queueStats.waiting}
           description="Pasien belum diperiksa"
           icon={Clock}
-          accent="bg-yellow-500"
+          accentBg="bg-amber-500/10 dark:bg-amber-500/20"
+          iconColor="text-amber-600 dark:text-amber-400"
         />
         <StatCard
           title="Selesai"
           value={stats.queueStats.done}
           description="Pemeriksaan selesai"
           icon={CheckCircle2}
-          accent="bg-green-500"
+          accentBg="bg-emerald-500/10 dark:bg-emerald-500/20"
+          iconColor="text-emerald-600 dark:text-emerald-400"
         />
       </div>
 

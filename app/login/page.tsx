@@ -53,16 +53,18 @@ function LoginFormContent() {
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-emerald-100 p-8 z-10 relative">
       {/* Brand Header */}
-      <div className="flex flex-col items-center text-center mb-8">
-        <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-700/20 mb-3">
-          <Activity className="w-7 h-7 text-white" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">SIMPAY</h1>
-        <p className="text-xs font-medium text-slate-500 mt-1">
+      <div className="flex flex-col items-center text-center mb-6">
+        <img
+          src="/logo.png"
+          alt="SIMPAY Logo"
+          className="h-28 w-auto object-contain mb-3 drop-shadow-md transition-transform hover:scale-105"
+        />
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">SIMPAY</h1>
+        <p className="text-xs font-medium text-slate-500 mt-1 max-w-xs leading-relaxed">
           Sistem Informasi Manajemen Pelayanan, Antrean, dan Layanan Medis
         </p>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[11px] font-semibold text-emerald-700 mt-3">
-          <span>Otentikasi Peran (DOKTER or PERAWAT)</span>
+          <span>Otentikasi Peran (DOKTER atau PERAWAT)</span>
         </div>
       </div>
 

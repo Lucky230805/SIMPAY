@@ -165,7 +165,7 @@ export function PatientHistoryDrawer({ patientId, isOpen, onClose }: PatientHist
             <button
               onClick={handlePrint}
               disabled={isPending || !data?.success}
-              className="px-3 py-1.5 bg-slate-800 text-white font-semibold rounded-lg text-xs hover:bg-slate-900 transition flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+              className="px-3.5 py-1.5 bg-emerald-600 text-white font-semibold rounded-lg text-xs hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20 disabled:opacity-50"
             >
               <Printer className="w-3.5 h-3.5" /> Cetak Riwayat
             </button>
@@ -321,7 +321,7 @@ export function PatientHistoryDrawer({ patientId, isOpen, onClose }: PatientHist
                 <button
                   onClick={handleApplyFilter}
                   disabled={isPending}
-                  className="w-full py-1.5 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-900 transition text-xs flex items-center justify-center"
+                  className="w-full py-1.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition text-xs flex items-center justify-center shadow-2xs"
                 >
                   {isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Cari'}
                 </button>
@@ -346,7 +346,7 @@ export function PatientHistoryDrawer({ patientId, isOpen, onClose }: PatientHist
               {isFiltered && (
                 <button
                   onClick={handleResetFilter}
-                  className="mt-3 px-3 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-900"
+                  className="mt-3 px-3.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 shadow-2xs"
                 >
                   Tampilkan Semua Riwayat
                 </button>

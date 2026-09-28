@@ -65,7 +65,7 @@ export default function Header() {
   return (
     <>
       {/* Top Header — mobile + page title */}
-      <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-white px-4 lg:px-6 print:hidden">
+      <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border/80 bg-background/80 backdrop-blur-md px-4 lg:px-6 print:hidden shadow-xs">
         {/* Mobile hamburger */}
         <Button
           variant="ghost"
@@ -74,30 +74,28 @@ export default function Header() {
           onClick={() => setMobileOpen(true)}
           aria-label="Buka navigasi"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5 text-foreground" />
         </Button>
 
         {/* Mobile logo (only visible on mobile) */}
-        <div className="flex items-center gap-2 lg:hidden">
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary">
-            <Activity className="w-3.5 h-3.5 text-primary-foreground" />
-          </div>
-          <span className="text-sm font-semibold">SIMPAY</span>
+        <div className="flex items-center gap-2.5 lg:hidden">
+          <img src="/logo.png" alt="SIMPAY Logo" className="w-8 h-8 object-contain shrink-0 drop-shadow-xs" />
+          <span className="text-sm font-bold tracking-tight text-foreground">SIMPAY</span>
         </div>
 
         {/* Right side user badge & logout */}
         <div className="ml-auto flex items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <div
               className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
-                isDokter ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+                'w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ring-2 ring-background shadow-xs',
+                isDokter ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
               )}
             >
               {roleInitials}
             </div>
             <div className="hidden sm:flex flex-col text-left">
-              <span className="text-sm font-medium text-foreground leading-tight">
+              <span className="text-sm font-bold text-foreground leading-tight">
                 {user ? user.name : 'Memuat...'}
               </span>
               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
@@ -112,7 +110,7 @@ export default function Header() {
               onClick={() => setIsLogoutConfirmOpen(true)}
               variant="ghost"
               size="sm"
-              className="text-slate-500 hover:text-red-600 hover:bg-red-50 text-xs font-medium gap-1.5 px-2.5"
+              className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-medium gap-1.5 px-2.5 rounded-lg"
               title="Keluar / Logout"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -127,24 +125,22 @@ export default function Header() {
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/50 backdrop-blur-xs"
             onClick={() => setMobileOpen(false)}
           />
           {/* Drawer */}
-          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl flex flex-col">
+          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-card shadow-2xl flex flex-col border-r border-border">
             <div className="flex items-center justify-between px-5 h-16 border-b border-border">
               <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-                  <Activity className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <span className="text-sm font-semibold">SIMPAY</span>
+                <img src="/logo.png" alt="SIMPAY Logo" className="w-9 h-9 object-contain shrink-0" />
+                <span className="text-base font-bold tracking-tight text-foreground">SIMPAY</span>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
             <nav className="flex-1 overflow-y-auto py-4 px-3">
-              <ul className="space-y-0.5">
+              <ul className="space-y-1">
                 {filteredNavItems.map((item) => {
                   const isActive =
                     item.href === '/dashboard'
@@ -156,17 +152,17 @@ export default function Header() {
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
                         className={cn(
-                          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                          'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
                           isActive
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25 font-semibold'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30'
                         )}
                       >
                         <item.icon className="w-4 h-4 shrink-0" />
                         {item.label}
                       </Link>
                     </li>
-                  )
+                  );
                 })}
               </ul>
             </nav>

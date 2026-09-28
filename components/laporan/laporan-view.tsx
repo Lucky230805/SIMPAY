@@ -141,7 +141,7 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
           <div className="flex items-center gap-2 shrink-0 print:hidden">
             <button
               onClick={handlePrint}
-              className="px-3 py-2 bg-slate-800 text-white rounded-lg font-semibold text-xs hover:bg-slate-900 transition flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-2 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20"
             >
               <Printer className="w-3.5 h-3.5" />
               Cetak Laporan
@@ -189,7 +189,7 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
                   className={cn(
                     'px-3 py-1.5 rounded-md font-semibold transition text-xs border',
                     preset === p.id
-                      ? 'bg-slate-800 text-white border-slate-800'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
                       : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                   )}
                 >
@@ -222,7 +222,7 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
                 <button
                   onClick={handleCustomDateApply}
                   disabled={isPending}
-                  className="px-3 py-1 bg-slate-800 text-white font-semibold rounded hover:bg-slate-900 text-xs transition"
+                  className="px-3 py-1 bg-emerald-600 text-white font-semibold rounded hover:bg-emerald-700 text-xs transition shadow-2xs"
                 >
                   Terapkan
                 </button>

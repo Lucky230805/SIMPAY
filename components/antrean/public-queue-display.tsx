@@ -572,16 +572,14 @@ export function PublicQueueDisplay() {
         className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 border-b-4 border-emerald-800 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 shadow-2xl relative"
         onMouseEnter={() => setShowAdminControls(true)}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-white text-emerald-600 flex items-center justify-center font-black text-xl shadow-md shrink-0 border border-emerald-100">
-            <HeartPulse className="w-7 h-7 text-emerald-600 animate-pulse" />
-          </div>
+        <div className="flex items-center gap-3.5">
+          <img src="/logo.png" alt="SIMPAY Logo" className="h-12 w-auto object-contain shrink-0 drop-shadow-md bg-white/90 p-1.5 rounded-xl" />
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-              KLINIK PRAKTEK DOKTER UMUM
+              Klinik Praktek Dokter Umum
             </h1>
-            <p className="text-xs text-emerald-100 italic font-medium">
-              Layanan Informasi Panggilan Antrean Pasien Real Time
+            <p className="text-xs text-emerald-100 font-medium">
+              Layanan Informasi Panggilan Antrian Pasien Real-time
             </p>
           </div>
         </div>
@@ -665,10 +663,16 @@ export function PublicQueueDisplay() {
             </div>
           </div>
 
-          {/* Date & Time Badge (Always Visible to Patients) */}
-          <div className="bg-emerald-800/80 border border-emerald-400/50 px-4 py-1.5 rounded-xl text-emerald-100 font-mono font-black text-xs flex items-center gap-2 shadow-lg">
-            <Clock className="w-3.5 h-3.5 text-emerald-300" />
-            <span>{currentDateStr} | {currentTime}</span>
+          {/* Date & Time Badge (White Background & Emerald Text) */}
+          <div className="bg-white border-2 border-emerald-100 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-emerald-800 font-mono shadow-xl flex items-center gap-3 shrink-0">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 animate-pulse shrink-0" />
+            <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base md:text-lg lg:text-xl font-black tracking-tight">
+              <span className="text-emerald-900 font-extrabold">{currentDateStr}</span>
+              <span className="text-emerald-300 font-bold">|</span>
+              <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-xl border border-emerald-200/80 tracking-wider font-black shadow-xs">
+                {currentTime}
+              </span>
+            </div>
           </div>
 
           {/* Toggle Control Button (Discreet Gear Icon for Staff) */}
