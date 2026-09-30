@@ -11,7 +11,9 @@ export async function getDashboardStats() {
   tomorrow.setDate(today.getDate() + 1)
 
   try {
-    const [totalPatients, todayQueues, patientsByGender] = await Promise.all([
+    const sixtyDaysFromNow = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000)
+
+    const [totalPatients, todayQueues, patientsByGender, medicines] = await Promise.all([
       prisma.patient.count(),
       prisma.queue.findMany({
         where: {
@@ -30,6 +32,14 @@ export async function getDashboardStats() {
       prisma.patient.groupBy({
         by: ['gender'],
         _count: { gender: true },
+      }),
+      prisma.medicine.findMany({
+        where: { isActive: true },
+        include: {
+          batches: {
+            orderBy: { expiryDate: 'asc' },
+          },
+        },
       }),
     ])
 
@@ -53,6 +63,51 @@ export async function getDashboardStats() {
       return a.queueNumber - b.queueNumber
     })
 
+    // Compute Low Stock & Expiring Batches
+    const lowStockList: { id: number; name: string; unit: string; availableStock: number; minStock: number; category: string | null }[] = []
+    const expiringBatchesList: { id: number; medicineName: string; batchNumber: string; stockQuantity: number; expiryDate: Date; daysUntilExpiry: number; isExpired: boolean }[] = []
+
+    medicines.forEach((med) => {
+      let activeStock = 0
+      med.batches.forEach((b) => {
+        const expiry = new Date(b.expiryDate)
+        const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+        if (expiry >= today) {
+          activeStock += b.stockQuantity
+        }
+
+        // Expiring within 60 days or already expired with remaining stock
+        if (b.stockQuantity > 0 && (expiry <= sixtyDaysFromNow)) {
+          expiringBatchesList.push({
+            id: b.id,
+            medicineName: med.name,
+            batchNumber: b.batchNumber,
+            stockQuantity: b.stockQuantity,
+            expiryDate: b.expiryDate,
+            daysUntilExpiry,
+            isExpired: expiry < today,
+          })
+        }
+      })
+
+      if (activeStock <= med.minStock) {
+        lowStockList.push({
+          id: med.id,
+          name: med.name,
+          unit: med.unit,
+          availableStock: activeStock,
+          minStock: med.minStock,
+          category: med.category,
+        })
+      }
+    })
+
+    // Sort low stock by stock count ascending
+    lowStockList.sort((a, b) => a.availableStock - b.availableStock)
+    // Sort expiring batches by expiry date ascending
+    expiringBatchesList.sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
+
     return {
       totalPatients,
       todayQueues,
@@ -64,6 +119,12 @@ export async function getDashboardStats() {
         done: doneCount,
       },
       patientsByGender,
+      medicineStats: {
+        lowStockCount: lowStockList.length,
+        lowStockList: lowStockList.slice(0, 5),
+        expiringCount: expiringBatchesList.length,
+        expiringList: expiringBatchesList.slice(0, 5),
+      },
     }
   } catch (error) {
     console.error('Database query error in getDashboardStats:', error)
@@ -78,6 +139,12 @@ export async function getDashboardStats() {
         done: 0,
       },
       patientsByGender: [],
+      medicineStats: {
+        lowStockCount: 0,
+        lowStockList: [],
+        expiringCount: 0,
+        expiringList: [],
+      },
     }
   }
 }

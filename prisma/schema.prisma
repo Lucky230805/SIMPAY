@@ -17,6 +17,7 @@ model User {
   processedPayments  Payment[]
   issuedCertificates MedicalCertificate[] @relation("IssuedCertificates")
   doctorCertificates MedicalCertificate[] @relation("DoctorCertificates")
+  stockMovements     StockMovement[]
 }
 
 model Patient {
@@ -51,6 +52,7 @@ model MedicalRecord {
   heartRate          String?
   respiratoryRate    String?
   allergy            String?
+  nextControlDate    DateTime?
   status             String?        @default("ANTRE")
 
   patient       Patient        @relation(fields: [patientId], references: [id])
@@ -104,8 +106,9 @@ model Medicine {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
-  batches       MedicineBatch[]
-  prescriptions Prescription[]
+  batches        MedicineBatch[]
+  prescriptions  Prescription[]
+  stockMovements StockMovement[]
 }
 
 model MedicineBatch {
@@ -119,7 +122,27 @@ model MedicineBatch {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  medicine       Medicine        @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  stockMovements StockMovement[]
+}
+
+model StockMovement {
+  id            Int      @id @default(autoincrement())
+  medicineId    Int
+  batchId       Int?
+  type          String   // "IN" | "OUT" | "DISPENSE" | "ADJUSTMENT" | "EXPIRED_DISPOSAL"
+  quantity      Int      // e.g. +100 or -10
+  previousStock Int      @default(0)
+  currentStock  Int      @default(0)
+  notes         String?
+  referenceNo   String?
+  createdById   Int?
+  createdByName String   @default("Sistem")
+  createdAt     DateTime @default(now())
+
+  medicine  Medicine       @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  batch     MedicineBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  createdBy User?          @relation(fields: [createdById], references: [id])
 }
 
 model Billing {

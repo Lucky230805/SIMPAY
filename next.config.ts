@@ -6,4 +6,5 @@ const nextConfig: NextConfig = {
   },
 };
 
+// Refreshed Prisma client bindings
 export default nextConfig;

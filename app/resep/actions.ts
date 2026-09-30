@@ -229,10 +229,27 @@ export async function processPrescriptionQueue(recordId: number) {
           for (const batch of validBatches) {
             if (remaining <= 0) break
             const deduct = Math.min(batch.stockQuantity, remaining)
+            const prevQty = batch.stockQuantity
+            const currQty = prevQty - deduct
+
             await tx.medicineBatch.update({
               where: { id: batch.id },
-              data: { stockQuantity: batch.stockQuantity - deduct },
+              data: { stockQuantity: currQty },
             })
+
+            await (tx as any).stockMovement.create({
+              data: {
+                medicineId: medicine.id,
+                batchId: batch.id,
+                type: 'DISPENSE',
+                quantity: -deduct,
+                previousStock: prevQty,
+                currentStock: currQty,
+                notes: `Penyerahan Resep Obat: ${p.medicineName} (${deduct} ${medicine.unit})`,
+                referenceNo: `RSP-MR-${recordId}`,
+              },
+            })
+
             remaining -= deduct
           }
         }
@@ -243,7 +260,7 @@ export async function processPrescriptionQueue(recordId: number) {
           data: { status: 'SELESAI' },
         })
       }
-    })
+    }, { maxWait: 15000, timeout: 30000 })
 
     // Check if visit (Queue) can now transition to SELESAI
     if (mr?.queueId) {

@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Info,
   Trash2,
+  History,
 } from 'lucide-react'
 import {
   MedicineItem,
@@ -26,6 +27,7 @@ import {
 } from '@/app/obat/actions'
 import { Button } from '@/components/ui/button'
 import { MedicineCategoryBadge } from '@/components/ui/medicine-category-badge'
+import { StockMovementModal } from '@/components/resep/stock-movement-modal'
 
 interface MedicineInventoryViewProps {
   initialInventory: MedicineItem[]
@@ -44,6 +46,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
   const [selectedMedForBatch, setSelectedMedForBatch] = useState<MedicineItem | null>(null)
   const [isViewBatchesOpen, setIsViewBatchesOpen] = useState(false)
   const [selectedMedViewBatches, setSelectedMedViewBatches] = useState<MedicineItem | null>(null)
+  const [isLedgerModalOpen, setIsLedgerModalOpen] = useState(false)
 
   // Form inputs
   const [medName, setMedName] = useState('')
@@ -79,6 +82,8 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
   // Summary counts
   const totalActive = inventory.filter((m) => m.isActive).length
   const expiredCount = inventory.filter((m) => m.expiredStock > 0).length
+  const nearExpiry30Count = inventory.filter((m) => m.nearExpiry30BatchesCount > 0).length
+  const nearExpiry60Count = inventory.filter((m) => m.nearExpiry60BatchesCount > 0).length
   const nearExpiryCount = inventory.filter((m) => m.nearExpiryBatchesCount > 0).length
   const lowStockCount = inventory.filter((m) => m.availableStock <= m.minStock && m.availableStock > 0).length
   const outOfStockCount = inventory.filter((m) => m.availableStock === 0).length
@@ -95,6 +100,8 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
     if (filterStatus === 'LOW_STOCK') return med.availableStock <= med.minStock && med.availableStock > 0
     if (filterStatus === 'OUT_OF_STOCK') return med.availableStock === 0
     if (filterStatus === 'EXPIRED') return med.expiredStock > 0
+    if (filterStatus === 'NEAR_EXPIRY_30') return med.nearExpiry30BatchesCount > 0
+    if (filterStatus === 'NEAR_EXPIRY_60') return med.nearExpiry60BatchesCount > 0
     if (filterStatus === 'NEAR_EXPIRY') return med.nearExpiryBatchesCount > 0
 
     return true
@@ -288,35 +295,44 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {!isNurse && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
-              <Info className="w-4 h-4" />
-              <span>Akses Baca Saja (Peran DOKTER)</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsLedgerModalOpen(true)}
+              className="border-slate-300 text-slate-800 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9"
+              title="Lihat riwayat alur mutasi stok obat (Stock Ledger)"
+            >
+              <History className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Audit Log Mutasi Stok</span>
+            </Button>
 
-          {isNurse && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={openAddActionModal}
-                className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-sm text-xs h-9"
-              >
-                <Plus className="w-3.5 h-3.5 text-blue-600" />
-                <span>Tambah Tindakan / Injeksi</span>
-              </Button>
-              <Button
-                onClick={openAddModal}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-1.5 shadow-sm text-xs h-9"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Tambah Obat Baru</span>
-              </Button>
-            </div>
-          )}
+            {!isNurse && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
+                <Info className="w-4 h-4" />
+                <span>Akses Baca Saja (Peran DOKTER)</span>
+              </div>
+            )}
 
-        </div>
+            {isNurse && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={openAddActionModal}
+                  className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9"
+                >
+                  <Plus className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Tambah Tindakan / Injeksi</span>
+                </Button>
+                <Button
+                  onClick={openAddModal}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Tambah Obat Baru</span>
+                </Button>
+              </div>
+            )}
+          </div>
       </div>
 
       {/* Alert Notifications */}
@@ -329,96 +345,161 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
         </div>
       )}
 
+      {/* Widget Banner Peringatan Expiry H-30 & H-60 */}
+      {(nearExpiry30Count > 0 || nearExpiry60Count > 0 || expiredCount > 0) && (
+        <div className="p-4 rounded-xl border border-amber-200 bg-linear-to-r from-amber-50 via-orange-50 to-red-50 text-slate-900 shadow-xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-orange-500 text-white shrink-0 mt-0.5">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <span>Peringatan Masa Kadaluarsa Batch (Sistem FEFO)</span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase bg-orange-600 text-white rounded-full">
+                    Sistem Kontrol H-30 &amp; H-60
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Terdapat batch obat yang perlu perhatian operasional untuk diprioritaskan keluar (FEFO), dikarantina, atau diretur ke distributor.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {nearExpiry30Count > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('NEAR_EXPIRY_30')}
+                  className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>{nearExpiry30Count} Batch Kritis H-30</span>
+                </button>
+              )}
+              {nearExpiry60Count > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('NEAR_EXPIRY_60')}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{nearExpiry60Count} Batch Waspada H-60</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Summary Alert Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Total Active */}
         <button
           type="button"
           onClick={() => setFilterStatus('ALL')}
-          className={`p-4 rounded-xl border text-left transition-all ${
+          className={`p-3.5 rounded-xl border text-left transition-all ${
             filterStatus === 'ALL'
               ? 'bg-slate-900 text-white border-slate-900 shadow-md'
               : 'bg-white text-slate-900 border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Total Master</span>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Total Master</span>
             <Pill className="w-4 h-4" />
           </div>
-          <div className="text-2xl font-extrabold">{totalActive}</div>
-          <p className="text-[10px] mt-1 opacity-70">Obat terdaftar</p>
+          <div className="text-xl font-extrabold">{totalActive}</div>
+          <p className="text-[10px] mt-0.5 opacity-70">Obat terdaftar</p>
         </button>
 
         {/* Low Stock */}
         <button
           type="button"
           onClick={() => setFilterStatus('LOW_STOCK')}
-          className={`p-4 rounded-xl border text-left transition-all ${
+          className={`p-3.5 rounded-xl border text-left transition-all ${
             filterStatus === 'LOW_STOCK'
               ? 'bg-amber-500 text-white border-amber-500 shadow-md'
               : 'bg-amber-50 text-amber-900 border-amber-200 hover:border-amber-300'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Stok Menipis</span>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Stok Menipis</span>
             <AlertTriangle className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-2xl font-extrabold">{lowStockCount}</div>
-          <p className="text-[10px] mt-1 opacity-70">≤ Min. Stok</p>
+          <div className="text-xl font-extrabold">{lowStockCount}</div>
+          <p className="text-[10px] mt-0.5 opacity-70">≤ Min. Stok</p>
         </button>
 
         {/* Out of Stock */}
         <button
           type="button"
           onClick={() => setFilterStatus('OUT_OF_STOCK')}
-          className={`p-4 rounded-xl border text-left transition-all ${
+          className={`p-3.5 rounded-xl border text-left transition-all ${
             filterStatus === 'OUT_OF_STOCK'
               ? 'bg-red-600 text-white border-red-600 shadow-md'
               : 'bg-red-50 text-red-900 border-red-200 hover:border-red-300'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Stok Habis</span>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Stok Habis</span>
             <PackageX className="w-4 h-4 text-red-600" />
           </div>
-          <div className="text-2xl font-extrabold">{outOfStockCount}</div>
-          <p className="text-[10px] mt-1 opacity-70">0 Pcs tersedia</p>
+          <div className="text-xl font-extrabold">{outOfStockCount}</div>
+          <p className="text-[10px] mt-0.5 opacity-70">0 Pcs tersedia</p>
         </button>
 
-        {/* Near Expiry */}
+        {/* Kritis H-30 */}
         <button
           type="button"
-          onClick={() => setFilterStatus('NEAR_EXPIRY')}
-          className={`p-4 rounded-xl border text-left transition-all ${
-            filterStatus === 'NEAR_EXPIRY'
-              ? 'bg-orange-500 text-white border-orange-500 shadow-md'
-              : 'bg-orange-50 text-orange-900 border-orange-200 hover:border-orange-300'
+          onClick={() => setFilterStatus('NEAR_EXPIRY_30')}
+          className={`p-3.5 rounded-xl border text-left transition-all ${
+            filterStatus === 'NEAR_EXPIRY_30'
+              ? 'bg-orange-600 text-white border-orange-600 shadow-md'
+              : 'bg-orange-50 text-orange-950 border-orange-300 hover:border-orange-400'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Mendekati Kedaluwarsa</span>
-            <Clock className="w-4 h-4 text-orange-600" />
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Kritis H-30</span>
+            <AlertTriangle className="w-4 h-4 text-orange-600" />
           </div>
-          <div className="text-2xl font-extrabold">{nearExpiryCount}</div>
-          <p className="text-[10px] mt-1 opacity-70">≤ 30 Hari lagi</p>
+          <div className="text-xl font-extrabold">{nearExpiry30Count}</div>
+          <p className="text-[10px] mt-0.5 opacity-80 font-medium">≤ 30 Hari ED</p>
+        </button>
+
+        {/* Waspada H-60 */}
+        <button
+          type="button"
+          onClick={() => setFilterStatus('NEAR_EXPIRY_60')}
+          className={`p-3.5 rounded-xl border text-left transition-all ${
+            filterStatus === 'NEAR_EXPIRY_60'
+              ? 'bg-amber-500 text-white border-amber-500 shadow-md'
+              : 'bg-amber-50/80 text-amber-950 border-amber-300 hover:border-amber-400'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Waspada H-60</span>
+            <Clock className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="text-xl font-extrabold">{nearExpiry60Count}</div>
+          <p className="text-[10px] mt-0.5 opacity-80 font-medium">31–60 Hari ED</p>
         </button>
 
         {/* Expired */}
         <button
           type="button"
           onClick={() => setFilterStatus('EXPIRED')}
-          className={`p-4 rounded-xl border text-left transition-all ${
+          className={`p-3.5 rounded-xl border text-left transition-all ${
             filterStatus === 'EXPIRED'
               ? 'bg-purple-600 text-white border-purple-600 shadow-md'
               : 'bg-purple-50 text-purple-900 border-purple-200 hover:border-purple-300'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Kedaluwarsa</span>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Kedaluwarsa</span>
             <Calendar className="w-4 h-4 text-purple-600" />
           </div>
-          <div className="text-2xl font-extrabold">{expiredCount}</div>
-          <p className="text-[10px] mt-1 opacity-70">Stok kedaluwarsa</p>
+          <div className="text-xl font-extrabold">{expiredCount}</div>
+          <p className="text-[10px] mt-0.5 opacity-70">Stok kedaluwarsa</p>
         </button>
       </div>
 
@@ -436,22 +517,25 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-          <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Status:</span>
-          {['ALL', 'LOW_STOCK', 'OUT_OF_STOCK', 'NEAR_EXPIRY', 'EXPIRED'].map((st) => (
+          <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Filter Status:</span>
+          {[
+            { id: 'ALL', label: 'Semua' },
+            { id: 'LOW_STOCK', label: 'Stok Menipis' },
+            { id: 'OUT_OF_STOCK', label: 'Stok Habis' },
+            { id: 'NEAR_EXPIRY_30', label: 'Kritis H-30' },
+            { id: 'NEAR_EXPIRY_60', label: 'Waspada H-60' },
+            { id: 'EXPIRED', label: 'Kedaluwarsa' },
+          ].map((st) => (
             <button
-              key={st}
-              onClick={() => setFilterStatus(st)}
+              key={st.id}
+              onClick={() => setFilterStatus(st.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-                filterStatus === st
+                filterStatus === st.id
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {st === 'ALL' && 'Semua'}
-              {st === 'LOW_STOCK' && 'Stok Menipis'}
-              {st === 'OUT_OF_STOCK' && 'Stok Habis'}
-              {st === 'NEAR_EXPIRY' && 'Mendekati Kedaluwarsa'}
-              {st === 'EXPIRED' && 'Kedaluwarsa'}
+              {st.label}
             </button>
           ))}
         </div>
@@ -877,16 +961,23 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                           </td>
                           <td className="px-3 py-2 text-center">
                             {b.isExpired ? (
-                              <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold text-[10px]">
-                                Kedaluwarsa
+                              <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold text-[10px] inline-flex items-center gap-1">
+                                <span>Kedaluwarsa</span>
+                                <span className="opacity-80">({Math.abs(b.daysUntilExpiry)} hr lalu)</span>
                               </span>
-                            ) : b.isNearExpiry ? (
-                              <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 font-bold text-[10px]">
-                                Mendekati Kedaluwarsa
+                            ) : b.isNearExpiry30 ? (
+                              <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-800 font-extrabold text-[10px] inline-flex items-center gap-1">
+                                <span>🚨 Kritis H-30</span>
+                                <span>({b.daysUntilExpiry} hr lagi)</span>
+                              </span>
+                            ) : b.isNearExpiry60 ? (
+                              <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px] inline-flex items-center gap-1">
+                                <span>🟡 Waspada H-60</span>
+                                <span>({b.daysUntilExpiry} hr lagi)</span>
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">
-                                Aman
+                                Aman (&gt;60 hr)
                               </span>
                             )}
                           </td>
@@ -1031,6 +1122,13 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
           </div>
         </div>
       )}
+      {/* Modal 4: Stock Movement Audit Log Modal */}
+      <StockMovementModal
+        isOpen={isLedgerModalOpen}
+        onClose={() => setIsLedgerModalOpen(false)}
+        medicines={inventory}
+        isNurse={isNurse}
+      />
     </div>
   )
 }

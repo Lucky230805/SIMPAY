@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { requireAuth, requireRole } from '@/lib/auth'
 
+// Recompiled for Prisma schema update
+
 
 export interface QueueItem {
   id: number
@@ -161,6 +163,8 @@ export interface QueueWithPatientDetail {
     gender: string
     address: string | null
     phone: string | null
+    allergy?: string | null
+    allergyNotes?: string | null
     medicalRecords: {
       id: number
       examinationDate: Date
@@ -301,6 +305,7 @@ export async function saveMedicalRecordAndComplete(data: {
   icd10Code?: string
   secondaryDiagnosis?: string
   actionTreatment?: string
+  nextControlDate?: string | Date
   medicines: { nama: string; dosis: string; jumlah: string }[]
   actionsList?: { nama: string; tarif: number; jumlah: string }[]
 }) {
@@ -359,6 +364,7 @@ export async function saveMedicalRecordAndComplete(data: {
         heartRate: data.pulse ? `${data.pulse} x/m` : null,
         respiratoryRate: data.respiratoryRate ? `${data.respiratoryRate} x/m` : null,
         allergy: data.allergy ? String(data.allergy) : null,
+        nextControlDate: data.nextControlDate ? new Date(data.nextControlDate) : null,
         notes: data.objectiveNotes ? String(data.objectiveNotes) : null,
         status: 'SELESAI',
       }
@@ -462,7 +468,7 @@ export async function saveMedicalRecordAndComplete(data: {
       })
 
       return createdRecord
-    })
+    }, { maxWait: 15000, timeout: 30000 })
 
 
     try {

@@ -17,6 +17,11 @@ import {
   Calendar,
   Tv,
   ExternalLink,
+  AlertTriangle,
+  Hourglass,
+  Pill,
+  ArrowRight,
+  ShieldAlert,
 } from 'lucide-react'
 
 function StatCard({
@@ -179,6 +184,86 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* 🚨 High-Priority Top Pharmacy Alert Banner */}
+      {((stats.medicineStats?.lowStockCount || 0) > 0 || (stats.medicineStats?.expiringCount || 0) > 0) && (
+        <div className="space-y-2.5">
+          {/* Banner 1: Stok Kritis */}
+          {(stats.medicineStats?.lowStockCount || 0) > 0 && (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-rose-500/5 border border-rose-300 dark:border-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm animate-pulse">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-rose-950 dark:text-rose-200 uppercase tracking-wide">
+                      🚨 PERINGATAN STOK OBAT KRITIS ({stats.medicineStats.lowStockCount} OBAT)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span className="text-xs text-rose-900 dark:text-rose-300 font-medium">
+                      Obat berikut butuh restock segera:
+                    </span>
+                    {stats.medicineStats.lowStockList.map((m: any) => (
+                      <span
+                        key={m.id}
+                        className="px-2 py-0.5 rounded bg-rose-200/80 text-rose-900 font-bold text-[11px] border border-rose-300 dark:bg-rose-950 dark:text-rose-200"
+                      >
+                        {m.name} ({m.availableStock <= 0 ? 'HABIS' : `Sisa ${m.availableStock} ${m.unit}`})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Link
+                href="/obat"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors shrink-0 shadow-xs"
+              >
+                <span>Kelola & Restock Obat</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
+
+          {/* Banner 2: Kedaluwarsa ED */}
+          {(stats.medicineStats?.expiringCount || 0) > 0 && (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-500/15 via-orange-500/10 to-orange-500/5 border border-orange-300 dark:border-orange-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Hourglass className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-orange-950 dark:text-orange-200 uppercase tracking-wide">
+                      ⏳ PERINGATAN BATCH OBAT KEDALUWARSA ({stats.medicineStats.expiringCount} BATCH)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span className="text-xs text-orange-900 dark:text-orange-300 font-medium">
+                      Batch mendekati ED dalam 60 hari:
+                    </span>
+                    {stats.medicineStats.expiringList.map((b: any) => (
+                      <span
+                        key={b.id}
+                        className="px-2 py-0.5 rounded bg-orange-200/80 text-orange-950 font-bold text-[11px] border border-orange-300 dark:bg-orange-950 dark:text-orange-200"
+                      >
+                        {b.medicineName} (#{b.batchNumber} - {b.isExpired ? 'ED!' : `${b.daysUntilExpiry} hr lagi`})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Link
+                href="/obat"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-semibold text-xs transition-colors shrink-0 shadow-xs"
+              >
+                <span>Buka Inventaris ED</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

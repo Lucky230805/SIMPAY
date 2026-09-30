@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { requireAuth, requireRole } from '@/lib/auth'
+import { requireAuth, requireRole, getCurrentUser } from '@/lib/auth'
 
 export interface MedicineItem {
   id: number
@@ -17,7 +17,9 @@ export interface MedicineItem {
   availableStock: number
   expiredStock: number
   nearExpiryBatchesCount: number
-  alertStatus: 'NORMAL' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'NEAR_EXPIRY' | 'EXPIRED'
+  nearExpiry30BatchesCount: number
+  nearExpiry60BatchesCount: number
+  alertStatus: 'NORMAL' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'NEAR_EXPIRY' | 'NEAR_EXPIRY_30' | 'NEAR_EXPIRY_60' | 'EXPIRED'
   createdAt: Date
   updatedAt: Date
   batches?: {
@@ -29,12 +31,18 @@ export interface MedicineItem {
     receivedDate: Date
     isExpired: boolean
     isNearExpiry: boolean
+    isNearExpiry30: boolean
+    isNearExpiry60: boolean
+    daysUntilExpiry: number
+    alertLevel: 'EXPIRED' | 'CRITICAL_30' | 'WARNING_60' | 'SAFE'
   }[]
 }
 
 export interface MedicineAlertSummary {
   expiredCount: number
   nearExpiryCount: number
+  nearExpiry30Count: number
+  nearExpiry60Count: number
   lowStockCount: number
   outOfStockCount: number
 }
@@ -57,16 +65,23 @@ export async function getMedicineInventory(): Promise<MedicineItem[]> {
 
     const now = new Date()
     const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    const sixtyDaysFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000)
 
     return medicines.map((med) => {
       let availableStock = 0
       let expiredStock = 0
-      let nearExpiryBatchesCount = 0
+      let nearExpiry30BatchesCount = 0
+      let nearExpiry60BatchesCount = 0
 
       const mappedBatches = med.batches.map((b) => {
         const expiry = new Date(b.expiryDate)
+        const diffMs = expiry.getTime() - now.getTime()
+        const daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
         const isExpired = expiry < now && b.stockQuantity > 0
-        const isNearExpiry = expiry >= now && expiry <= thirtyDaysFromNow && b.stockQuantity > 0
+        const isNearExpiry30 = expiry >= now && expiry <= thirtyDaysFromNow && b.stockQuantity > 0
+        const isNearExpiry60 = expiry > thirtyDaysFromNow && expiry <= sixtyDaysFromNow && b.stockQuantity > 0
+        const isNearExpiry = isNearExpiry30 || isNearExpiry60
 
         if (expiry >= now) {
           availableStock += b.stockQuantity
@@ -74,9 +89,17 @@ export async function getMedicineInventory(): Promise<MedicineItem[]> {
           expiredStock += b.stockQuantity
         }
 
-        if (isNearExpiry) {
-          nearExpiryBatchesCount += 1
+        if (isNearExpiry30) {
+          nearExpiry30BatchesCount += 1
         }
+        if (isNearExpiry60) {
+          nearExpiry60BatchesCount += 1
+        }
+
+        let alertLevel: 'EXPIRED' | 'CRITICAL_30' | 'WARNING_60' | 'SAFE' = 'SAFE'
+        if (isExpired) alertLevel = 'EXPIRED'
+        else if (isNearExpiry30) alertLevel = 'CRITICAL_30'
+        else if (isNearExpiry60) alertLevel = 'WARNING_60'
 
         return {
           id: b.id,
@@ -87,8 +110,14 @@ export async function getMedicineInventory(): Promise<MedicineItem[]> {
           receivedDate: b.receivedDate,
           isExpired,
           isNearExpiry,
+          isNearExpiry30,
+          isNearExpiry60,
+          daysUntilExpiry,
+          alertLevel,
         }
       })
+
+      const nearExpiryBatchesCount = nearExpiry30BatchesCount + nearExpiry60BatchesCount
 
       // Determine primary alert status
       let alertStatus: MedicineItem['alertStatus'] = 'NORMAL'
@@ -98,6 +127,10 @@ export async function getMedicineInventory(): Promise<MedicineItem[]> {
         alertStatus = 'EXPIRED'
       } else if (availableStock <= med.minStock) {
         alertStatus = 'LOW_STOCK'
+      } else if (nearExpiry30BatchesCount > 0) {
+        alertStatus = 'NEAR_EXPIRY_30'
+      } else if (nearExpiry60BatchesCount > 0) {
+        alertStatus = 'NEAR_EXPIRY_60'
       } else if (nearExpiryBatchesCount > 0) {
         alertStatus = 'NEAR_EXPIRY'
       }
@@ -115,6 +148,8 @@ export async function getMedicineInventory(): Promise<MedicineItem[]> {
         availableStock,
         expiredStock,
         nearExpiryBatchesCount,
+        nearExpiry30BatchesCount,
+        nearExpiry60BatchesCount,
         alertStatus,
         createdAt: med.createdAt,
         updatedAt: med.updatedAt,
@@ -137,6 +172,8 @@ export async function getMedicineAlerts(): Promise<MedicineAlertSummary> {
     const inventory = await getMedicineInventory()
     let expiredCount = 0
     let nearExpiryCount = 0
+    let nearExpiry30Count = 0
+    let nearExpiry60Count = 0
     let lowStockCount = 0
     let outOfStockCount = 0
 
@@ -149,6 +186,12 @@ export async function getMedicineAlerts(): Promise<MedicineAlertSummary> {
       if (med.expiredStock > 0) {
         expiredCount++
       }
+      if (med.nearExpiry30BatchesCount > 0) {
+        nearExpiry30Count++
+      }
+      if (med.nearExpiry60BatchesCount > 0) {
+        nearExpiry60Count++
+      }
       if (med.nearExpiryBatchesCount > 0) {
         nearExpiryCount++
       }
@@ -157,6 +200,8 @@ export async function getMedicineAlerts(): Promise<MedicineAlertSummary> {
     return {
       expiredCount,
       nearExpiryCount,
+      nearExpiry30Count,
+      nearExpiry60Count,
       lowStockCount,
       outOfStockCount,
     }
@@ -165,6 +210,8 @@ export async function getMedicineAlerts(): Promise<MedicineAlertSummary> {
     return {
       expiredCount: 0,
       nearExpiryCount: 0,
+      nearExpiry30Count: 0,
+      nearExpiry60Count: 0,
       lowStockCount: 0,
       outOfStockCount: 0,
     }
@@ -453,6 +500,11 @@ export async function addMedicineBatch(data: {
   }
 
   try {
+    const existingBatches = await prisma.medicineBatch.findMany({
+      where: { medicineId: Number(data.medicineId) },
+    })
+    const prevStock = existingBatches.reduce((sum, b) => sum + (new Date(b.expiryDate) >= new Date() ? b.stockQuantity : 0), 0)
+
     const batch = await prisma.medicineBatch.create({
       data: {
         medicineId: Number(data.medicineId),
@@ -461,6 +513,22 @@ export async function addMedicineBatch(data: {
         initialQuantity: Number(data.stockQuantity),
         expiryDate: expiry,
         receivedDate: new Date(),
+      },
+    })
+
+    const user = await getCurrentUser()
+    await (prisma as any).stockMovement.create({
+      data: {
+        medicineId: Number(data.medicineId),
+        batchId: batch.id,
+        type: 'IN',
+        quantity: Number(data.stockQuantity),
+        previousStock: prevStock,
+        currentStock: prevStock + Number(data.stockQuantity),
+        notes: 'Penerimaan Stok Batch Baru',
+        referenceNo: data.batchNumber.trim(),
+        createdById: user?.id || null,
+        createdByName: user?.name || 'Staf Perawat',
       },
     })
 
@@ -559,6 +627,40 @@ export async function deleteMedicineBatch(batchId: number) {
   }
 
   try {
+    const batch = await prisma.medicineBatch.findUnique({
+      where: { id: Number(batchId) },
+    })
+
+    if (batch) {
+      const now = new Date()
+      const sixtyDaysFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000)
+      const expiry = new Date(batch.expiryDate)
+
+      const isExp = expiry < now
+      const isNearExp = expiry >= now && expiry <= sixtyDaysFromNow
+      const isDisposal = isExp || isNearExp
+
+      const user = await getCurrentUser()
+      await (prisma as any).stockMovement.create({
+        data: {
+          medicineId: batch.medicineId,
+          batchId: null,
+          type: isDisposal ? 'EXPIRED_DISPOSAL' : 'OUT',
+          quantity: -batch.stockQuantity,
+          previousStock: batch.stockQuantity,
+          currentStock: 0,
+          notes: isExp
+            ? `Pemusnahan Batch Kadaluarsa (${batch.batchNumber})`
+            : isNearExp
+            ? `Pemusnahan Batch Mendekati ED (${batch.batchNumber})`
+            : `Penghapusan Batch Stok (${batch.batchNumber})`,
+          referenceNo: batch.batchNumber,
+          createdById: user?.id || null,
+          createdByName: user?.name || 'Staf Perawat',
+        },
+      })
+    }
+
     await prisma.medicineBatch.delete({
       where: { id: Number(batchId) },
     })
@@ -572,5 +674,123 @@ export async function deleteMedicineBatch(batchId: number) {
   } catch (error: any) {
     console.error('Error deleting medicine batch:', error)
     return { success: false, error: error.message || 'Gagal menghapus batch stok' }
+  }
+}
+
+export interface StockMovementLogItem {
+  id: number
+  medicineId: number
+  medicineName: string
+  medicineCode: string | null
+  batchId: number | null
+  batchNumber: string | null
+  type: 'IN' | 'OUT' | 'DISPENSE' | 'ADJUSTMENT' | 'EXPIRED_DISPOSAL'
+  quantity: number
+  previousStock: number
+  currentStock: number
+  notes: string | null
+  referenceNo: string | null
+  createdByName: string
+  createdAt: Date
+}
+
+/**
+ * Fetch all stock movement logs across medicines or for a specific medicine.
+ */
+export async function getStockMovements(medicineId?: number): Promise<StockMovementLogItem[]> {
+  await requireAuth()
+
+  try {
+    const movements = await (prisma as any).stockMovement.findMany({
+      where: medicineId ? { medicineId: Number(medicineId) } : undefined,
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        medicine: { select: { name: true, code: true } },
+        batch: { select: { batchNumber: true } },
+      },
+    })
+
+    return movements.map((m: any) => ({
+      id: m.id,
+      medicineId: m.medicineId,
+      medicineName: m.medicine?.name || 'Obat',
+      medicineCode: m.medicine?.code || null,
+      batchId: m.batchId,
+      batchNumber: m.batch?.batchNumber || null,
+      type: m.type as any,
+      quantity: m.quantity,
+      previousStock: m.previousStock,
+      currentStock: m.currentStock,
+      notes: m.notes,
+      referenceNo: m.referenceNo,
+      createdByName: m.createdByName,
+      createdAt: m.createdAt,
+    }))
+  } catch (error) {
+    console.error('Error fetching stock movements:', error)
+    return []
+  }
+}
+
+/**
+ * Create a manual stock adjustment or disposal log (PERAWAT ONLY)
+ */
+export async function createManualStockAdjustment(data: {
+  medicineId: number
+  batchId?: number
+  type: 'ADJUSTMENT' | 'EXPIRED_DISPOSAL' | 'IN' | 'OUT'
+  quantity: number
+  notes: string
+}) {
+  const user = await requireRole('PERAWAT')
+  if (!data.medicineId) return { success: false, error: 'Obat wajib dipilih' }
+  if (!data.quantity || data.quantity === 0) return { success: false, error: 'Jumlah stok mutasi harus diisi' }
+
+  try {
+    let prevStock = 0
+    let currStock = 0
+
+    if (data.batchId) {
+      const batch = await prisma.medicineBatch.findUnique({ where: { id: Number(data.batchId) } })
+      if (!batch) return { success: false, error: 'Batch stok tidak ditemukan' }
+
+      prevStock = batch.stockQuantity
+      currStock = Math.max(0, prevStock + data.quantity)
+
+      await prisma.medicineBatch.update({
+        where: { id: batch.id },
+        data: { stockQuantity: currStock },
+      })
+    } else {
+      const medBatches = await prisma.medicineBatch.findMany({ where: { medicineId: Number(data.medicineId) } })
+      prevStock = medBatches.reduce((acc, b) => acc + b.stockQuantity, 0)
+      currStock = Math.max(0, prevStock + data.quantity)
+    }
+
+    await (prisma as any).stockMovement.create({
+      data: {
+        medicineId: Number(data.medicineId),
+        batchId: data.batchId ? Number(data.batchId) : null,
+        type: data.type,
+        quantity: Number(data.quantity),
+        previousStock: prevStock,
+        currentStock: currStock,
+        notes: data.notes || 'Penyesuaian Stok Manual',
+        referenceNo: `MANUAL-${Date.now().toString().slice(-6)}`,
+        createdById: user.id,
+        createdByName: user.name,
+      },
+    })
+
+    try {
+      revalidatePath('/obat')
+      revalidatePath('/resep')
+    } catch {}
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error creating stock adjustment:', error)
+    return { success: false, error: error.message || 'Gagal menyimpan penyesuaian stok' }
   }
 }

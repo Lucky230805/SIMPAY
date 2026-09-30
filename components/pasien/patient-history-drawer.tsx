@@ -503,6 +503,14 @@ export function PatientHistoryDrawer({ patientId, isOpen, onClose }: PatientHist
                                 Catatan Terapi: {rec.treatment}
                               </p>
                             )}
+
+                            {/* Next Control Date Schedule */}
+                            {(rec as any).nextControlDate && (
+                              <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-950 font-semibold text-xs flex items-center gap-2 mt-2">
+                                <Calendar className="w-4 h-4 text-emerald-600 shrink-0" />
+                                <span>Jadwal Kontrol Ulang: <strong className="text-emerald-700 font-bold">{new Date((rec as any).nextControlDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}

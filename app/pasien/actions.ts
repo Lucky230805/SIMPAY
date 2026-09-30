@@ -267,7 +267,7 @@ export async function createPatient(data: PatientInput & { polyclinic?: string }
         patient: newPatient,
         queue: newQueue,
       }
-    })
+    }, { maxWait: 15000, timeout: 30000 })
 
     try {
       revalidatePath('/pasien')
@@ -469,7 +469,7 @@ export async function deletePatient(id: number) {
       await tx.medicalRecord.deleteMany({ where: { patientId: id } })
       // 4. Delete patient
       await tx.patient.delete({ where: { id } })
-    })
+    }, { maxWait: 15000, timeout: 30000 })
 
     try {
       revalidatePath('/pasien')
@@ -681,6 +681,7 @@ export async function getPatientMedicalHistory(
       heartRate: r.heartRate,
       respiratoryRate: r.respiratoryRate,
       allergy: r.allergy,
+      nextControlDate: r.nextControlDate,
       doctorName: r.doctor?.name || null,
       polyclinic: r.queue?.polyclinic || null,
       queueNumber: r.queue?.queueNumber || null,

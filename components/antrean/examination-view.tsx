@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -20,6 +20,9 @@ import {
   Trash2,
   ShoppingBag,
   Syringe,
+  AlertTriangle,
+  Search,
+  X,
 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +34,7 @@ import type { QueueWithPatientDetail, PrescriptionMedicineOption } from '@/app/a
 import { ExaminationSuccessNotification } from './examination-success-notification'
 import { MedicineCategoryBadge } from '@/components/ui/medicine-category-badge'
 import { PatientHistoryDrawer } from '@/components/pasien/patient-history-drawer'
+import { POPULAR_ICD10_CODES, searchICD10, ICD10Item } from '@/lib/icd10-data'
 
 interface PrescribedMedicineItem {
   id: string
@@ -129,6 +133,31 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
   const [secondaryDiagnosis, setSecondaryDiagnosis] = useState('')
   const [treatment, setTreatment] = useState('')
   const [notes, setNotes] = useState('')
+  const [nextControlDate, setNextControlDate] = useState('')
+
+  // ICD-10 Autocomplete state
+  const [icdSearch, setIcdSearch] = useState('')
+  const [isIcdOpen, setIsIcdOpen] = useState(false)
+  const icdRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (icdRef.current && !icdRef.current.contains(event.target as Node)) {
+        setIsIcdOpen(false)
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsIcdOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   // Prescribed medicines state
   const [prescriptions, setPrescriptions] = useState<PrescribedMedicineItem[]>([])
@@ -336,6 +365,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
         icd10Code: icd10Code.trim(),
         secondaryDiagnosis: secondaryDiagnosis.trim(),
         actionTreatment: treatment.trim(),
+        nextControlDate: nextControlDate || undefined,
         medicines: prescriptions.map((p) => ({
           nama: p.nama,
           dosis: p.dosis,
@@ -634,12 +664,92 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                 </div>
               </div>
 
-              {/* ── A: Assessment (Diagnosis) ── */}
-              <div className="space-y-3 p-4 rounded-lg border border-border bg-muted/10">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-foreground uppercase tracking-wide">
-                  <Stethoscope className="w-3.5 h-3.5 text-primary" />
-                  <span>Diagnosis (Assessment)</span>
+              {/* ── A: Assessment (Diagnosis & ICD-10 Autocomplete) ── */}
+              <div className="space-y-3 p-4 rounded-lg border border-border bg-muted/10 relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-foreground uppercase tracking-wide">
+                    <Stethoscope className="w-3.5 h-3.5 text-primary" />
+                    <span>Diagnosis (Assessment)</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">
+                    Tersedia autokomplet kode ICD-10 resmi
+                  </span>
                 </div>
+
+                {/* ICD-10 Autocomplete Search Box */}
+                {!isCompleted && (
+                  <div ref={icdRef} className="relative">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2.5" />
+                      <Input
+                        value={icdSearch}
+                        onChange={(e) => {
+                          setIcdSearch(e.target.value)
+                          setIsIcdOpen(true)
+                        }}
+                        onFocus={() => setIsIcdOpen(true)}
+                        placeholder="Cari kode atau nama penyakit ICD-10 (cth: ISPA, Hipertensi, Gastritis, I10, A09)..."
+                        className="pl-8 pr-8 text-xs h-8 bg-white"
+                      />
+                      {(icdSearch || isIcdOpen) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIcdSearch('')
+                            setIsIcdOpen(false)
+                          }}
+                          className="absolute right-2 top-2 text-muted-foreground hover:text-foreground p-0.5 rounded-full hover:bg-slate-100 transition-colors"
+                          title="Tutup / Bersihkan pencarian"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {isIcdOpen && (
+                      <div className="absolute left-0 right-0 top-9 bg-white rounded-lg border border-border shadow-xl z-30 max-h-64 overflow-y-auto divide-y divide-border/60">
+                        {(() => {
+                          const results = searchICD10(icdSearch, 12)
+                          if (results.length === 0) {
+                            return (
+                              <div className="p-4 text-center text-xs text-muted-foreground">
+                                Tidak ada kode / nama diagnosis ICD-10 yang cocok dengan &ldquo;{icdSearch}&rdquo;.
+                                <br />
+                                <span className="text-[10px] text-slate-400">Anda dapat langsung mengisi kolom Diagnosis Utama secara manual di bawah.</span>
+                              </div>
+                            )
+                          }
+                          return results.map((item) => (
+                            <button
+                              key={item.code}
+                              type="button"
+                              onClick={() => {
+                                setDiagnosis(item.nameIndo)
+                                setIcd10Code(item.code)
+                                setIcdSearch('')
+                                setIsIcdOpen(false)
+                              }}
+                              className="w-full text-left p-2.5 hover:bg-emerald-50/80 transition-colors flex items-center justify-between gap-2 group"
+                            >
+                              <div>
+                                <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] group-hover:bg-emerald-200">
+                                    {item.code}
+                                  </span>
+                                  <span>{item.nameIndo}</span>
+                                </div>
+                                <p className="text-[10px] text-slate-500 italic mt-0.5">{item.nameEng}</p>
+                              </div>
+                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0 font-medium">
+                                {item.category}
+                              </span>
+                            </button>
+                          ))
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2 space-y-1">
@@ -652,7 +762,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                       placeholder="Contoh: Infeksi Saluran Pernapasan Akut"
                       disabled={isSubmitting || isCompleted}
                       className={cn(
-                        'text-xs h-8',
+                        'text-xs h-8 bg-white',
                         errors.diagnosis ? 'border-destructive ring-destructive/20' : ''
                       )}
                     />
@@ -667,7 +777,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                       onChange={(e) => setIcd10Code(e.target.value)}
                       placeholder="Contoh: J06.9"
                       disabled={isSubmitting || isCompleted}
-                      className="text-xs h-8"
+                      className="text-xs h-8 bg-white font-mono font-bold"
                     />
                   </div>
                 </div>
@@ -681,7 +791,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                     onChange={(e) => setSecondaryDiagnosis(e.target.value)}
                     placeholder="Contoh: Cephalea / Sakit Kepala"
                     disabled={isSubmitting || isCompleted}
-                    className="text-xs h-8"
+                    className="text-xs h-8 bg-white"
                   />
                 </div>
               </div>
@@ -923,6 +1033,37 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                             )
                           })}
                         </select>
+
+                        {/* Alert Kontraindikasi Alergi Obat */}
+                        {selectedMedObject && (allergy || patient.allergy) && (
+                          (() => {
+                            const allergyStr = (allergy || patient.allergy || '').toLowerCase()
+                            const medNameLower = selectedMedObject.name.toLowerCase()
+                            const hasAllergyMatch =
+                              (allergyStr.includes('amoxicillin') && medNameLower.includes('amoxicillin')) ||
+                              (allergyStr.includes('penicillin') && (medNameLower.includes('penicillin') || medNameLower.includes('amox'))) ||
+                              (allergyStr.includes('paracetamol') && medNameLower.includes('paracetamol')) ||
+                              (allergyStr.includes('ibuprofen') && medNameLower.includes('ibuprofen')) ||
+                              (allergyStr.includes('mefenamat') && medNameLower.includes('mefenamat')) ||
+                              (allergyStr.includes('aspirin') && medNameLower.includes('aspirin')) ||
+                              (allergyStr.length >= 3 && medNameLower.includes(allergyStr.slice(0, 4)))
+
+                            if (hasAllergyMatch) {
+                              return (
+                                <div className="p-2.5 rounded-lg bg-red-100 border border-red-300 text-red-900 text-xs font-bold flex items-start gap-2 animate-pulse mt-1.5">
+                                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                                  <div>
+                                    <span className="uppercase text-[10px] text-red-700 block">🚨 Peringatan Kontraindikasi Alergi</span>
+                                    <span>
+                                      Pasien memiliki riwayat alergi (&ldquo;{allergy || patient.allergy}&rdquo;) yang berpotensi memicu reaksi alergi dengan obat &ldquo;{selectedMedObject.name}&rdquo;!
+                                    </span>
+                                  </div>
+                                </div>
+                              )
+                            }
+                            return null
+                          })()
+                        )}
                       </div>
 
                       {/* Input Dosis / Aturan Pakai */}
@@ -1144,6 +1285,51 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                     disabled={isSubmitting || isCompleted}
                     className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 resize-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
+                </div>
+
+                {/* Jadwal Kontrol Ulang (Follow-up Visit) */}
+                <div className="space-y-2 pt-3 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-primary" />
+                      Jadwal Kontrol Ulang Pasien (Next Appointment)
+                    </label>
+                    <span className="text-[10px] text-muted-foreground">Opsional</span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <input
+                      type="date"
+                      value={nextControlDate}
+                      onChange={(e) => setNextControlDate(e.target.value)}
+                      disabled={isSubmitting || isCompleted}
+                      className="w-full sm:w-48 px-3 py-1.5 rounded-md border border-input bg-white text-xs text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                    />
+
+                    {!isCompleted && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {[
+                          { days: 3, label: '+3 Hari' },
+                          { days: 7, label: '+7 Hari (1 Mgg)' },
+                          { days: 14, label: '+14 Hari (2 Mgg)' },
+                          { days: 30, label: '+30 Hari (1 Bln)' },
+                        ].map((preset) => (
+                          <button
+                            key={preset.days}
+                            type="button"
+                            onClick={() => {
+                              const d = new Date()
+                              d.setDate(d.getDate() + preset.days)
+                              setNextControlDate(d.toISOString().slice(0, 10))
+                            }}
+                            className="text-[10px] px-2.5 py-1 rounded border border-border bg-white hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300 font-semibold transition text-foreground"
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

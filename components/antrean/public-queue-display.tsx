@@ -121,7 +121,7 @@ function formatQueueNumberForSpeech(queueNumberLabel: string, rawQueueNumber?: n
 function extractYouTubeId(urlOrId: string): string {
   if (!urlOrId) return ''
   const trimmed = urlOrId.trim()
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|live\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/
   const match = trimmed.match(regExp)
   if (match && match[2] && match[2].length === 11) {
     return match[2]
@@ -909,7 +909,7 @@ export function PublicQueueDisplay() {
                     type="text"
                     value={url}
                     onChange={(e) => handleUpdateVideoInput(idx, e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    placeholder="https://www.youtube.com/watch?v=... atau https://www.youtube.com/live/..."
                     className="flex-1 bg-emerald-900/80 border border-emerald-700 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-emerald-400 font-mono"
                   />
                   {inputVideoList.length > 1 && (

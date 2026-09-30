@@ -128,7 +128,7 @@ export async function getOrCreateBillingForVisit(queueId: number) {
             },
           },
         })
-      })
+      }, { maxWait: 15000, timeout: 30000 })
     } else if (billingRecord.status === 'BELUM_LUNAS') {
       // Synchronize / Recalculate medicine fee for UNPAID billings if prescriptions changed
       let currentMedicineFee = 0
@@ -254,15 +254,15 @@ export async function getOrCreateBillingForVisit(queueId: number) {
       items,
       payment: billingRecord.payment
         ? {
-            id: billingRecord.payment.id,
-            paymentNumber: billingRecord.payment.paymentNumber,
-            paymentMethod: billingRecord.payment.paymentMethod,
-            totalAmount: billingRecord.payment.totalAmount,
-            amountPaid: billingRecord.payment.amountPaid,
-            changeAmount: billingRecord.payment.changeAmount,
-            paymentDate: billingRecord.payment.paymentDate,
-            processedByName: billingRecord.payment.processedBy?.name || (billingRecord.payment.processedById ? `User #${billingRecord.payment.processedById}` : 'Perawat'),
-          }
+          id: billingRecord.payment.id,
+          paymentNumber: billingRecord.payment.paymentNumber,
+          paymentMethod: billingRecord.payment.paymentMethod,
+          totalAmount: billingRecord.payment.totalAmount,
+          amountPaid: billingRecord.payment.amountPaid,
+          changeAmount: billingRecord.payment.changeAmount,
+          paymentDate: billingRecord.payment.paymentDate,
+          processedByName: billingRecord.payment.processedBy?.name || (billingRecord.payment.processedById ? `User #${billingRecord.payment.processedById}` : 'Perawat'),
+        }
         : null,
     }
 
@@ -275,7 +275,7 @@ export async function getOrCreateBillingForVisit(queueId: number) {
 
 /**
  * Server action to process payment.
- * Strict Server-Side Role Authorization: ONLY PERAWAT can process payments.
+ * Strict   Server-Side Role Authorization: ONLY PERAWAT can process payments.
  * Atomic Prisma Transaction: Creates Payment & updates Billing status to LUNAS simultaneously.
  */
 export async function processPayment(input: ProcessPaymentInput) {
@@ -382,7 +382,7 @@ export async function processPayment(input: ProcessPaymentInput) {
       })
 
       return paymentRecord
-    })
+    }, { maxWait: 15000, timeout: 30000 })
 
     // Evaluate if the Queue can now transition to SELESAI
     if (billing.queueId) {

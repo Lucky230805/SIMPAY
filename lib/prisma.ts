@@ -35,20 +35,31 @@ const globalForPrisma = globalThis as unknown as {
 const isClientUpToDate = (client: any) => {
   if (!client) return false
   if (!('medicalCertificate' in client)) return false
+  if (!('stockMovement' in client)) return false
   try {
-    const fields = client._runtimeDataModel?.models?.Patient?.fields
-    if (fields && Array.isArray(fields) && !fields.some((f: any) => f.name === 'occupation')) {
+    const fields = (client as any)?._runtimeDataModel?.models?.MedicalRecord?.fields
+    if (Array.isArray(fields) && !fields.some((f: any) => f.name === 'nextControlDate')) {
       return false
     }
-  } catch {
-    return false
-  }
+  } catch (e) {}
   return true
 }
 
-if (!globalForPrisma.prisma || !isClientUpToDate(globalForPrisma.prisma)) {
-  globalForPrisma.prisma = getFreshPrismaClient()
+function getPrisma(): DefaultPrismaClient {
+  if (!globalForPrisma.prisma || !isClientUpToDate(globalForPrisma.prisma)) {
+    globalForPrisma.prisma = getFreshPrismaClient()
+  }
+  return globalForPrisma.prisma
 }
 
-export const prisma: DefaultPrismaClient = globalForPrisma.prisma
+export const prisma: DefaultPrismaClient = new Proxy({} as any, {
+  get(_target, prop) {
+    const client = getPrisma()
+    const value = (client as any)[prop]
+    if (typeof value === 'function') {
+      return value.bind(client)
+    }
+    return value
+  },
+})
 

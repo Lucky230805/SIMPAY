@@ -22,9 +22,13 @@ import {
   CreditCard,
   DollarSign,
   TrendingUp,
+  Download,
+  FileSpreadsheet,
+  FileCode,
 } from 'lucide-react'
 import { getReportData, ReportData } from '@/app/laporan/actions'
 import { cn } from '@/lib/utils'
+import { exportReportToCSV, exportReportToExcel } from '@/lib/export-utils'
 
 export type DatePreset = 'HARI_INI' | 'LAST_7' | 'LAST_30' | 'THIS_MONTH' | 'CUSTOM'
 
@@ -120,6 +124,18 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
     window.print()
   }
 
+  const handleExportCSV = () => {
+    if (report) {
+      exportReportToCSV(report)
+    }
+  }
+
+  const handleExportExcel = () => {
+    if (report) {
+      exportReportToExcel(report)
+    }
+  }
+
   return (
     <div className="p-6 w-full max-w-7xl mx-auto text-xs">
       {/* SCREEN-ONLY APPLICATION UI */}
@@ -138,13 +154,33 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 print:hidden">
+          <div className="flex flex-wrap items-center gap-2 shrink-0 print:hidden">
+            <button
+              onClick={handleExportExcel}
+              disabled={!report || isPending}
+              className="px-3.5 py-2 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-700 disabled:opacity-50 transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20"
+              title="Unduh laporan dalam format Excel (.xls)"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              Export Excel
+            </button>
+            <button
+              onClick={handleExportCSV}
+              disabled={!report || isPending}
+              className="px-3.5 py-2 bg-blue-600 text-white rounded-lg font-semibold text-xs hover:bg-blue-700 disabled:opacity-50 transition flex items-center gap-1.5 shadow-md shadow-blue-600/20"
+              title="Unduh data laporan mentah dalam format CSV"
+            >
+              <FileCode className="w-3.5 h-3.5" />
+              Export CSV
+            </button>
             <button
               onClick={handlePrint}
-              className="px-3.5 py-2 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20"
+              disabled={!report || isPending}
+              className="px-3.5 py-2 bg-slate-800 text-white rounded-lg font-semibold text-xs hover:bg-slate-900 disabled:opacity-50 transition flex items-center gap-1.5 shadow-md shadow-slate-800/20"
+              title="Cetak atau simpan sebagai PDF"
             >
               <Printer className="w-3.5 h-3.5" />
-              Cetak Laporan
+              Cetak / PDF
             </button>
           </div>
         </div>
