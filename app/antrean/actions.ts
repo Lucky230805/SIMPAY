@@ -22,6 +22,17 @@ export interface QueueItem {
     address: string | null
     phone: string | null
   }
+  medicalRecord?: {
+    id: number
+    bloodPressure: string | null
+    temperature: string | null
+    heartRate: string | null
+    respiratoryRate: string | null
+    allergy: string | null
+    complaint: string | null
+    notes: string | null
+    status: string | null
+  } | null
 }
 
 function getQueueStatusPriority(status: string): number {
@@ -76,6 +87,19 @@ export async function getTodayQueues(polyclinicFilter?: string): Promise<QueueIt
             gender: true,
             address: true,
             phone: true,
+          },
+        },
+        medicalRecord: {
+          select: {
+            id: true,
+            bloodPressure: true,
+            temperature: true,
+            heartRate: true,
+            respiratoryRate: true,
+            allergy: true,
+            complaint: true,
+            notes: true,
+            status: true,
           },
         },
       },
@@ -253,7 +277,7 @@ export async function startExamination(queueId: number) {
 }
 
 /**
- * Fetch single queue by ID with patient details and medical records history.
+ * Fetch single queue by ID with patient details, active medical record, and medical records history.
  */
 export async function getQueueById(id: number) {
   await requireAuth()
@@ -263,6 +287,7 @@ export async function getQueueById(id: number) {
         id: id
       },
       include: {
+        medicalRecord: true,
         patient: {
           include: {
             medicalRecords: {
@@ -281,6 +306,122 @@ export async function getQueueById(id: number) {
   } catch (error) {
     console.error("Gagal mengambil detail antrean:", error);
     return null;
+  }
+}
+
+export interface NurseScreeningInput {
+  queueId: number
+  patientId: number
+  bloodPressure?: string
+  temperature?: string
+  heartRate?: string
+  respiratoryRate?: string
+  weight?: string
+  height?: string
+  complaint?: string
+  allergy?: string
+  notes?: string
+}
+
+/**
+ * Save screening / triage vital signs by Nurse (or Doctor).
+ */
+export async function saveNurseScreening(data: NurseScreeningInput) {
+  try {
+    await requireRole(['PERAWAT', 'DOKTER'])
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Akses ditolak. Hanya Perawat atau Dokter yang dapat melakukan skrining.' }
+  }
+
+  try {
+    const queue = await prisma.queue.findUnique({
+      where: { id: Number(data.queueId) },
+    })
+
+    if (!queue) {
+      return { success: false, error: 'Antrean tidak ditemukan' }
+    }
+
+    const existingMR = await prisma.medicalRecord.findFirst({
+      where: { queueId: Number(data.queueId) },
+    })
+
+    // Prepare physical observations (BB, TB, IMT)
+    const physicalParts: string[] = []
+    if (data.weight) physicalParts.push(`BB: ${data.weight.trim()} kg`)
+    if (data.height) physicalParts.push(`TB: ${data.height.trim()} cm`)
+    if (data.weight && data.height) {
+      const w = parseFloat(data.weight)
+      const h = parseFloat(data.height) / 100
+      if (w > 0 && h > 0) {
+        const bmi = (w / (h * h)).toFixed(1)
+        physicalParts.push(`IMT: ${bmi}`)
+      }
+    }
+
+    let notesText = data.notes?.trim() || ''
+    if (physicalParts.length > 0) {
+      const physicalSummary = `[Antropometri: ${physicalParts.join(', ')}]`
+      if (!notesText.includes('[Antropometri:')) {
+        notesText = notesText ? `${physicalSummary} ${notesText}` : physicalSummary
+      }
+    }
+
+    const bpVal = data.bloodPressure ? (data.bloodPressure.includes('mmHg') ? data.bloodPressure.trim() : `${data.bloodPressure.trim()} mmHg`) : null
+    const tempVal = data.temperature ? (data.temperature.includes('°C') ? data.temperature.trim() : `${data.temperature.trim()} °C`) : null
+    const hrVal = data.heartRate ? (data.heartRate.includes('x/m') ? data.heartRate.trim() : `${data.heartRate.trim()} x/m`) : null
+    const rrVal = data.respiratoryRate ? (data.respiratoryRate.includes('x/m') ? data.respiratoryRate.trim() : `${data.respiratoryRate.trim()} x/m`) : null
+
+    const recordPayload = {
+      bloodPressure: bpVal,
+      temperature: tempVal,
+      heartRate: hrVal,
+      respiratoryRate: rrVal,
+      allergy: data.allergy?.trim() || null,
+      complaint: data.complaint?.trim() || null,
+      notes: notesText || null,
+    }
+
+    if (existingMR) {
+      await prisma.medicalRecord.update({
+        where: { id: existingMR.id },
+        data: {
+          bloodPressure: recordPayload.bloodPressure ?? existingMR.bloodPressure,
+          temperature: recordPayload.temperature ?? existingMR.temperature,
+          heartRate: recordPayload.heartRate ?? existingMR.heartRate,
+          respiratoryRate: recordPayload.respiratoryRate ?? existingMR.respiratoryRate,
+          allergy: recordPayload.allergy ?? existingMR.allergy,
+          complaint: recordPayload.complaint ?? existingMR.complaint,
+          notes: recordPayload.notes ?? existingMR.notes,
+        },
+      })
+    } else {
+      await prisma.medicalRecord.create({
+        data: {
+          patientId: Number(data.patientId),
+          queueId: Number(data.queueId),
+          examinationDate: new Date(),
+          ...recordPayload,
+          status: 'ANTRE',
+        },
+      })
+    }
+
+    try {
+      revalidatePath('/antrean')
+      revalidatePath(`/antrean/${data.queueId}`)
+      revalidatePath('/dashboard')
+    } catch {
+      // Ignored outside request context
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error saving nurse screening:', error)
+    return {
+      success: false,
+      error: 'Gagal menyimpan hasil skrining: ' + (error.message || 'Kesalahan server'),
+    }
   }
 }
 

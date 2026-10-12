@@ -10,6 +10,16 @@ export default function AntreanPage() {
   const [queues, setQueues] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPoli, setSelectedPoli] = useState<string>('ALL')
+  const [currentUserRole, setCurrentUserRole] = useState<'DOKTER' | 'PERAWAT' | null>(null)
+
+  const refreshData = async () => {
+    try {
+      const q = await getTodayQueues(selectedPoli)
+      setQueues(q)
+    } catch (err) {
+      console.error('Failed to refresh queues:', err)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -17,6 +27,9 @@ export default function AntreanPage() {
       try {
         const u = await getSessionUserAction()
         let initialPoli = 'ALL'
+        if (u?.role) {
+          setCurrentUserRole(u.role)
+        }
         if (u?.role === 'DOKTER') {
           if (u.name.toLowerCase().includes('farisi')) {
             initialPoli = 'Poli Umum 2'
@@ -58,6 +71,7 @@ export default function AntreanPage() {
   const menunggu = queues.filter((q) => q.status === 'MENUNGGU').length
   const dalamPemeriksaan = queues.filter((q) => q.status === 'DALAM_PEMERIKSAAN').length
   const selesai = queues.filter((q) => q.status === 'SELESAI').length
+  const sudahDiskrining = queues.filter((q) => !!q.medicalRecord?.bloodPressure).length
 
   if (loading) {
     return (
@@ -103,7 +117,7 @@ export default function AntreanPage() {
 
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {/* Total Antrean */}
         <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-4">
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -117,6 +131,22 @@ export default function AntreanPage() {
           </div>
         </div>
 
+        {/* Skrining TTV Selesai */}
+        <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 text-teal-600" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+              TTV Diskrining
+            </p>
+            <p className="text-2xl font-bold text-foreground leading-none mt-0.5">{sudahDiskrining}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {total > 0 ? `${Math.round((sudahDiskrining / total) * 100)}% dari total antrean` : 'Belum ada antrean'}
+            </p>
+          </div>
+        </div>
+
         {/* Menunggu */}
         <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-4">
           <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -124,7 +154,7 @@ export default function AntreanPage() {
           </div>
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Menunggu
+              Menunggu Dokter
             </p>
             <p className="text-2xl font-bold text-foreground leading-none mt-0.5">
               {menunggu + dalamPemeriksaan}
@@ -157,12 +187,12 @@ export default function AntreanPage() {
           <h2 className="text-sm font-semibold text-foreground">Daftar Antrean Hari Ini</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
             {total > 0
-              ? `${total} pasien terdaftar · ${selesai} selesai · ${menunggu} menunggu`
+              ? `${total} pasien terdaftar · ${sudahDiskrining} sudah skrining TTV · ${selesai} selesai diperiksa`
               : 'Belum ada pasien yang terdaftar hari ini'}
           </p>
         </div>
         <div className="p-2">
-          <QueueTable queues={queues} />
+          <QueueTable queues={queues} userRole={currentUserRole} onRefresh={refreshData} />
         </div>
       </div>
     </div>

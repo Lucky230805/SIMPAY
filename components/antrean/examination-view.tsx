@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   Search,
   X,
+  CheckCircle2,
 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -121,19 +122,33 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
   const queueLabel = getQueueLabel(queue.polyclinic, queue.queueNumber)
   const arrivalTime = formatArrivalTime(queue.date)
 
-  // SOAP form state
-  const [complaint, setComplaint] = useState('')
-  const [bloodPressure, setBloodPressure] = useState('')
-  const [temperature, setTemperature] = useState('')
-  const [heartRate, setHeartRate] = useState('')
-  const [respiratoryRate, setRespiratoryRate] = useState('')
-  const [allergy, setAllergy] = useState('')
-  const [diagnosis, setDiagnosis] = useState('')
-  const [icd10Code, setIcd10Code] = useState('')
-  const [secondaryDiagnosis, setSecondaryDiagnosis] = useState('')
-  const [treatment, setTreatment] = useState('')
-  const [notes, setNotes] = useState('')
-  const [nextControlDate, setNextControlDate] = useState('')
+  const existingMR = (queue as any)?.medicalRecord
+
+  // SOAP form state - automatically pre-fill from nurse screening if present
+  const [complaint, setComplaint] = useState(existingMR?.complaint || '')
+  const [bloodPressure, setBloodPressure] = useState(
+    existingMR?.bloodPressure ? existingMR.bloodPressure.replace(/\s*mmHg/i, '') : ''
+  )
+  const [temperature, setTemperature] = useState(
+    existingMR?.temperature ? existingMR.temperature.replace(/\s*°?C/i, '') : ''
+  )
+  const [heartRate, setHeartRate] = useState(
+    existingMR?.heartRate ? existingMR.heartRate.replace(/\s*x\/m(enit)?/i, '') : ''
+  )
+  const [respiratoryRate, setRespiratoryRate] = useState(
+    existingMR?.respiratoryRate ? existingMR.respiratoryRate.replace(/\s*x\/m(enit)?/i, '') : ''
+  )
+  const [allergy, setAllergy] = useState(existingMR?.allergy || (patient as any)?.allergy || '')
+  const [diagnosis, setDiagnosis] = useState(existingMR?.diagnosis || '')
+  const [icd10Code, setIcd10Code] = useState(existingMR?.icd10Code || '')
+  const [secondaryDiagnosis, setSecondaryDiagnosis] = useState(existingMR?.secondaryDiagnosis || '')
+  const [treatment, setTreatment] = useState(existingMR?.treatment || '')
+  const [notes, setNotes] = useState(existingMR?.notes || '')
+  const [nextControlDate, setNextControlDate] = useState(
+    existingMR?.nextControlDate
+      ? new Date(existingMR.nextControlDate).toISOString().split('T')[0]
+      : ''
+  )
 
   // ICD-10 Autocomplete state
   const [icdSearch, setIcdSearch] = useState('')
@@ -597,6 +612,15 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                   <Activity className="w-3.5 h-3.5 text-primary" />
                   <span>Tanda Vital (Objektif)</span>
                 </div>
+
+                {existingMR?.bloodPressure && (
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-800 text-xs">
+                    <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+                    <span>
+                      <strong>Tanda vital terisi dari skrining awal perawat:</strong> Nilai TD: {existingMR.bloodPressure}{existingMR.temperature ? `, Suhu: ${existingMR.temperature}` : ''}{existingMR.heartRate ? `, Nadi: ${existingMR.heartRate}` : ''}. Dokter dapat menyesuaikan jika diperlukan.
+                    </span>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="space-y-1">

@@ -1,0 +1,41 @@
+name: SIMPAY Continuous Integration
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  validate:
+    name: Code Quality & Build Validation
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/simpay_ci?sslmode=disable"
+      NODE_ENV: "production"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: TypeScript Type Checking
+        run: npx tsc --noEmit
+
+      - name: ESLint Code Quality Check
+        run: npm run lint
+
+      - name: Next.js Production Build Validation
+        run: npm run build

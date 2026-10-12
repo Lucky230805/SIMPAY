@@ -40,7 +40,7 @@ const navItems = [
     label: 'Antrean Pemeriksaan',
     href: '/antrean',
     icon: ClipboardList,
-    roles: ['DOKTER'],
+    roles: ['DOKTER', 'PERAWAT'],
   },
   {
     label: 'Rekam Medis',

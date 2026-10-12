@@ -26,7 +26,7 @@ import { LogoutConfirmDialog } from '@/components/shared/logout-confirm-dialog'
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Data Pasien', href: '/pasien', icon: Users, roles: ['DOKTER', 'PERAWAT'] },
-  { label: 'Antrean Pemeriksaan', href: '/antrean', icon: ClipboardList, roles: ['DOKTER'] },
+  { label: 'Antrean Pemeriksaan', href: '/antrean', icon: ClipboardList, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Rekam Medis', href: '/rekam-medis', icon: FileText, roles: ['DOKTER'] },
   { label: 'Resep & Penyerahan', href: '/resep', icon: Pill, roles: ['PERAWAT'] },
   { label: 'Stok & Obat', href: '/obat', icon: Layers, roles: ['PERAWAT'] },

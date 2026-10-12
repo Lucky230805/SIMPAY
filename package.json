@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx -r dotenv/config tests/run-all.ts",
+    "test:auth": "tsx -r dotenv/config tests/auth-authorization.test.ts",
+    "test:screening": "tsx -r dotenv/config tests/nurse-screening.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
