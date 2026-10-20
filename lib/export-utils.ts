@@ -23,11 +23,15 @@ function escapeCSV(val: string | number | undefined | null): string {
 /**
  * Export report data as a structured UTF-8 CSV file
  */
-export function exportReportToCSV(report: ReportData) {
+export function generateReportCSVString(report: ReportData): string {
   const lines: string[] = []
 
   // Header & Title
-  lines.push(`"LAPORAN OPERASIONAL & KEUANGAN SIMPAY"`)
+  lines.push(
+    report.financial
+      ? `"LAPORAN OPERASIONAL & KEUANGAN SIMPAY"`
+      : `"LAPORAN PELAYANAN & OPERASIONAL SIMPAY"`
+  )
   lines.push(`"Periode Laporan",${escapeCSV(report.startDate)} s/d ${escapeCSV(report.endDate)}`)
   lines.push(`"Tanggal Unduh",${escapeCSV(new Date().toLocaleString('id-ID'))}`)
   lines.push('')
@@ -39,11 +43,14 @@ export function exportReportToCSV(report: ReportData) {
   lines.push(`"Pasien Baru Terdaftar",${report.summary.newPatients}`)
   lines.push(`"Resep Obat Selesai",${report.summary.completedPrescriptions}`)
   lines.push(`"Total Antrean Registered",${report.summary.totalQueues}`)
-  lines.push(`"Total Pendapatan (Lunas)",${escapeCSV(formatIDR(report.financial.totalRevenue))}`)
+  if (report.financial) {
+    lines.push(`"Total Pendapatan (Lunas)",${escapeCSV(formatIDR(report.financial.totalRevenue))}`)
+  }
   lines.push('')
 
-  // 2. KEUANGAN & PEMBAYARAN
-  lines.push(`"=== LAPORAN KEUANGAN & PEMBAYARAN ==="`)
+  // 2. KEUANGAN & PEMBAYARAN (Hanya untuk Dokter/Pemilik)
+  if (report.financial) {
+    lines.push(`"=== LAPORAN KEUANGAN & PEMBAYARAN ==="`)
   lines.push(`"Metrik Keuangan","Nilai (IDR)"`)
   lines.push(`"Total Pendapatan (Lunas)",${report.financial.totalRevenue}`)
   lines.push(`"Total Tagihan Belum Lunas",${report.financial.totalUnpaidAmount}`)
@@ -64,6 +71,7 @@ export function exportReportToCSV(report: ReportData) {
     lines.push(`${escapeCSV(m.method)},${m.count},${m.totalAmount},${m.percentage}%`)
   })
   lines.push('')
+  }
 
   // 3. STATISTIK DIAGNOSIS & ICD-10
   lines.push(`"=== STATISTIK DIAGNOSIS & KODE ICD-10 ==="`)
@@ -127,7 +135,18 @@ export function exportReportToCSV(report: ReportData) {
   })
 
   // UTF-8 BOM byte sequence to ensure correct encoding in Excel
-  const csvContent = '\uFEFF' + lines.join('\r\n')
+  return '\uFEFF' + lines.join('\r\n')
+}
+
+/**
+ * Trigger download of report as CSV in browser
+ */
+export function exportReportToCSV(report: ReportData) {
+  const csvContent = generateReportCSVString(report)
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return
+  }
+
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
 
@@ -143,7 +162,7 @@ export function exportReportToCSV(report: ReportData) {
 /**
  * Export report data as an HTML Spreadsheet (.xls) compatible with Excel
  */
-export function exportReportToExcel(report: ReportData) {
+export function generateReportExcelHTML(report: ReportData): string {
   const html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
     <head>
@@ -176,7 +195,7 @@ export function exportReportToExcel(report: ReportData) {
       </style>
     </head>
     <body>
-      <div class="title">SIMPAY &mdash; LAPORAN OPERASIONAL &amp; KEUANGAN KLINIK</div>
+      <div class="title">SIMPAY &mdash; ${report.financial ? 'LAPORAN OPERASIONAL &amp; KEUANGAN KLINIK' : 'LAPORAN PELAYANAN &amp; OPERASIONAL KLINIK'}</div>
       <div class="subtitle">Periode Laporan: <strong>${report.startDate}</strong> s/d <strong>${report.endDate}</strong> | Diunduh pada: ${new Date().toLocaleString('id-ID')}</div>
 
       <!-- RINGKASAN METRIK -->
@@ -187,10 +206,19 @@ export function exportReportToExcel(report: ReportData) {
         <tr><td>Pasien Baru Terdaftar</td><td class="number"><strong>${report.summary.newPatients}</strong></td></tr>
         <tr><td>Resep Obat Diselesaikan (Farmasi)</td><td class="number"><strong>${report.summary.completedPrescriptions}</strong></td></tr>
         <tr><td>Total Antrean Pelayanan</td><td class="number"><strong>${report.summary.totalQueues}</strong></td></tr>
-        <tr class="total-row"><td>Total Pendapatan Kasir (Lunas)</td><td class="number">${formatIDR(report.financial.totalRevenue)}</td></tr>
+        ${
+          report.financial
+            ? `<tr class="total-row"><td>Total Pendapatan Kasir (Lunas)</td><td class="number">${formatIDR(
+                report.financial.totalRevenue
+              )}</td></tr>`
+            : ''
+        }
       </table>
 
-      <!-- KEUANGAN -->
+      <!-- KEUANGAN (Hanya untuk Dokter / Pemilik) -->
+      ${
+        report.financial
+          ? `
       <table>
         <tr><td colspan="4" class="section-header">2. LAPORAN KEUANGAN &amp; RINGKASAN KASIR</td></tr>
         <tr><th>Indikator Keuangan</th><th colspan="3" class="number">Nominal (IDR)</th></tr>
@@ -219,6 +247,9 @@ export function exportReportToExcel(report: ReportData) {
           )
           .join('')}
       </table>
+      `
+          : ''
+      }
 
       <!-- ICD-10 & DIAGNOSIS -->
       <table>
@@ -291,6 +322,17 @@ export function exportReportToExcel(report: ReportData) {
     </body>
     </html>
   `
+  return html
+}
+
+/**
+ * Trigger download of report as Excel HTML spreadsheet in browser
+ */
+export function exportReportToExcel(report: ReportData) {
+  const html = generateReportExcelHTML(report)
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return
+  }
 
   const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' })
   const url = URL.createObjectURL(blob)

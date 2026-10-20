@@ -1,4 +1,5 @@
 import { getQueueById, getAvailableMedicinesForPrescription } from '../actions'
+import { getActiveProceduresForDoctor } from '@/app/tindakan/actions'
 import { ExaminationView } from '@/components/antrean/examination-view'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -28,9 +29,10 @@ export default async function DoctorExamPage({ params }: PageProps) {
     )
   }
 
-  const [queue, medicinesList] = await Promise.all([
+  const [queue, medicinesList, proceduresList] = await Promise.all([
     getQueueById(queueId),
     getAvailableMedicinesForPrescription(),
+    getActiveProceduresForDoctor(),
   ])
 
   if (!queue || !queue.patient) {
@@ -46,5 +48,11 @@ export default async function DoctorExamPage({ params }: PageProps) {
     )
   }
 
-  return <ExaminationView queue={queue as any} medicinesList={medicinesList} />
+  return (
+    <ExaminationView
+      queue={queue as any}
+      medicinesList={medicinesList}
+      proceduresList={proceduresList}
+    />
+  )
 }

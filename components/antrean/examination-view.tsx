@@ -36,6 +36,7 @@ import { ExaminationSuccessNotification } from './examination-success-notificati
 import { MedicineCategoryBadge } from '@/components/ui/medicine-category-badge'
 import { PatientHistoryDrawer } from '@/components/pasien/patient-history-drawer'
 import { POPULAR_ICD10_CODES, searchICD10, ICD10Item } from '@/lib/icd10-data'
+import type { ProcedureItem } from '@/app/tindakan/actions'
 
 interface PrescribedMedicineItem {
   id: string
@@ -58,6 +59,7 @@ interface PrescribedActionItem {
 interface ExaminationViewProps {
   queue: QueueWithPatientDetail
   medicinesList?: PrescriptionMedicineOption[]
+  proceduresList?: ProcedureItem[]
 }
 
 const FREQUENCY_PRESETS = [
@@ -114,7 +116,11 @@ function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewProps) {
+export function ExaminationView({
+  queue,
+  medicinesList = [],
+  proceduresList = [],
+}: ExaminationViewProps) {
   const router = useRouter()
   const { patient } = queue
   const noRM = formatNoRM(patient.id)
@@ -197,7 +203,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
   const isCompleted = queue.status === 'SELESAI' || showSuccess
 
   const selectedMedObject = medicinesList.find((m) => m.id.toString() === selectedMedId)
-  const selectedActionObject = medicinesList.find((m) => m.id.toString() === selectedActionId)
+  const selectedActionObject = proceduresList.find((m) => m.id.toString() === selectedActionId)
 
   // Separate medicine options vs action options
   const medicineOptions = medicinesList.filter(
@@ -207,13 +213,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
         m.category?.toLowerCase().includes('layanan')
       )
   )
-  const procedureOptions = medicinesList.filter(
-    (m) =>
-      m.category?.toLowerCase().includes('tindakan') ||
-      m.category?.toLowerCase().includes('injeksi') ||
-      m.category?.toLowerCase().includes('suntik') ||
-      m.category?.toLowerCase().includes('layanan')
-  )
+  const procedureOptions = proceduresList
 
   const handleAddMedicine = () => {
     setPrescError(null)
@@ -310,7 +310,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
 
   const handleSelectActionPreset = (preset: { nama: string; tarif: number }) => {
     setActionError(null)
-    const matchingInStock = medicinesList.find((m) =>
+    const matchingInCatalog = proceduresList.find((m) =>
       m.name.toLowerCase().includes(preset.nama.toLowerCase().slice(0, 10))
     )
 
@@ -324,7 +324,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
         ...prev,
         {
           id: `act-${Date.now()}`,
-          actionId: matchingInStock?.id,
+          actionId: matchingInCatalog?.id,
           nama: preset.nama,
           tarif: preset.tarif,
           jumlah: '1',
@@ -387,6 +387,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
           jumlah: p.jumlah,
         })),
         actionsList: actionsList.map((a) => ({
+          procedureId: a.actionId,
           nama: a.nama,
           tarif: a.tarif,
           jumlah: a.jumlah,
@@ -852,9 +853,9 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                           value={selectedActionId}
                           onChange={(e) => {
                             setSelectedActionId(e.target.value)
-                            const obj = medicinesList.find((m) => m.id.toString() === e.target.value)
+                            const obj = procedureOptions.find((m) => m.id.toString() === e.target.value)
                             if (obj) {
-                              setInputActionTarif(obj.unitPrice.toString())
+                              setInputActionTarif(obj.tariff.toString())
                             }
                             setActionError(null)
                           }}
@@ -864,7 +865,7 @@ export function ExaminationView({ queue, medicinesList = [] }: ExaminationViewPr
                           <option value="">-- Pilih Tindakan Medis / Injeksi --</option>
                           {procedureOptions.map((act) => (
                             <option key={act.id} value={act.id}>
-                              {act.name} ({formatCurrency(act.unitPrice)})
+                              {act.code ? `[${act.code}] ` : ''}{act.name} ({formatCurrency(act.tariff)})
                             </option>
                           ))}
                         </select>

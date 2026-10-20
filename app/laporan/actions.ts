@@ -104,12 +104,13 @@ export interface FinancialReport {
 export interface ReportData {
   startDate: string
   endDate: string
+  userRole?: string
   summary: ReportSummary
   examinations: ExaminationReport
   demographics: PatientDemographicsReport
   prescriptions: PrescriptionReport
   queues: QueueReport
-  financial: FinancialReport
+  financial?: FinancialReport | null
 }
 
 export interface ReportResponse {
@@ -138,7 +139,8 @@ export async function getReportData(
   startDateInput?: string | Date,
   endDateInput?: string | Date
 ): Promise<ReportResponse> {
-  await requireAuth()
+  const authUser = await requireAuth()
+  const isDoctor = authUser.role === 'DOKTER'
   try {
     // Default: last 30 days if not provided
     const now = new Date()
@@ -415,94 +417,99 @@ export async function getReportData(
       byStatus: queueStatusStats,
     }
 
-    // --- F. FINANCIAL & REVENUE ---
-    const payments = await prisma.payment.findMany({
-      where: {
-        paymentDate: {
-          gte: start,
-          lte: end,
+    // --- F. FINANCIAL & REVENUE (Hanya untuk DOKTER / Pemilik Klinik) ---
+    // PERAWAT (Staf operasional) dibatasi dari melihat data sensitif keuangan & omset klinik
+    let financial: FinancialReport | null = null
+
+    if (isDoctor) {
+      const payments = await prisma.payment.findMany({
+        where: {
+          paymentDate: {
+            gte: start,
+            lte: end,
+          },
         },
-      },
-    })
+      })
 
-    const billings = await prisma.billing.findMany({
-      where: {
-        createdAt: {
-          gte: start,
-          lte: end,
+      const billings = await prisma.billing.findMany({
+        where: {
+          createdAt: {
+            gte: start,
+            lte: end,
+          },
         },
-      },
-    })
+      })
 
-    let totalRevenue = 0
-    const methodCounts: Record<'TUNAI' | 'QRIS' | 'TRANSFER', { count: number; totalAmount: number }> = {
-      TUNAI: { count: 0, totalAmount: 0 },
-      QRIS: { count: 0, totalAmount: 0 },
-      TRANSFER: { count: 0, totalAmount: 0 },
-    }
-
-    payments.forEach((p) => {
-      totalRevenue += p.totalAmount
-      const method = (p.paymentMethod as 'TUNAI' | 'QRIS' | 'TRANSFER') || 'TUNAI'
-      if (methodCounts[method]) {
-        methodCounts[method].count++
-        methodCounts[method].totalAmount += p.totalAmount
+      let totalRevenue = 0
+      const methodCounts: Record<'TUNAI' | 'QRIS' | 'TRANSFER', { count: number; totalAmount: number }> = {
+        TUNAI: { count: 0, totalAmount: 0 },
+        QRIS: { count: 0, totalAmount: 0 },
+        TRANSFER: { count: 0, totalAmount: 0 },
       }
-    })
 
-    const paymentMethods: PaymentMethodStat[] = (['TUNAI', 'QRIS', 'TRANSFER'] as const).map((method) => {
-      const stat = methodCounts[method]
-      const percentage = totalRevenue > 0 ? Math.round((stat.totalAmount / totalRevenue) * 100) : 0
-      return {
-        method,
-        count: stat.count,
-        totalAmount: stat.totalAmount,
-        percentage,
+      payments.forEach((p) => {
+        totalRevenue += p.totalAmount
+        const method = (p.paymentMethod as 'TUNAI' | 'QRIS' | 'TRANSFER') || 'TUNAI'
+        if (methodCounts[method]) {
+          methodCounts[method].count++
+          methodCounts[method].totalAmount += p.totalAmount
+        }
+      })
+
+      const paymentMethods: PaymentMethodStat[] = (['TUNAI', 'QRIS', 'TRANSFER'] as const).map((method) => {
+        const stat = methodCounts[method]
+        const percentage = totalRevenue > 0 ? Math.round((stat.totalAmount / totalRevenue) * 100) : 0
+        return {
+          method,
+          count: stat.count,
+          totalAmount: stat.totalAmount,
+          percentage,
+        }
+      })
+
+      let totalPaidAmount = 0
+      let paidCount = 0
+      let totalUnpaidAmount = 0
+      let unpaidCount = 0
+
+      let registrationFee = 0
+      let consultationFee = 0
+      let medicineFee = 0
+      let otherFee = 0
+
+      billings.forEach((b) => {
+        registrationFee += b.registrationFee || 0
+        consultationFee += b.consultationFee || 0
+        medicineFee += b.medicineFee || 0
+        otherFee += b.otherFee || 0
+
+        if (b.status === 'LUNAS') {
+          paidCount++
+          totalPaidAmount += b.totalAmount
+        } else if (b.status === 'BELUM_LUNAS') {
+          unpaidCount++
+          totalUnpaidAmount += b.totalAmount
+        }
+      })
+
+      const totalCompletedPayments = payments.length
+      const averageTransaction = totalCompletedPayments > 0 ? Math.round(totalRevenue / totalCompletedPayments) : 0
+
+      financial = {
+        totalRevenue,
+        totalPaidAmount,
+        totalUnpaidAmount,
+        paidCount,
+        unpaidCount,
+        averageTransaction,
+        paymentMethods,
+        feeBreakdown: {
+          registrationFee,
+          consultationFee,
+          medicineFee,
+          otherFee,
+        },
       }
-    })
-
-    let totalPaidAmount = 0
-    let paidCount = 0
-    let totalUnpaidAmount = 0
-    let unpaidCount = 0
-
-    let registrationFee = 0
-    let consultationFee = 0
-    let medicineFee = 0
-    let otherFee = 0
-
-    billings.forEach((b) => {
-      registrationFee += b.registrationFee || 0
-      consultationFee += b.consultationFee || 0
-      medicineFee += b.medicineFee || 0
-      otherFee += b.otherFee || 0
-
-      if (b.status === 'LUNAS') {
-        paidCount++
-        totalPaidAmount += b.totalAmount
-      } else if (b.status === 'BELUM_LUNAS') {
-        unpaidCount++
-        totalUnpaidAmount += b.totalAmount
-      }
-    })
-
-    const totalCompletedPayments = payments.length
-    const averageTransaction = totalCompletedPayments > 0 ? Math.round(totalRevenue / totalCompletedPayments) : 0
-
-    const financial: FinancialReport = {
-      totalRevenue,
-      totalPaidAmount,
-      totalUnpaidAmount,
-      paidCount,
-      unpaidCount,
-      averageTransaction,
-      paymentMethods,
-      feeBreakdown: {
-        registrationFee,
-        consultationFee,
-        medicineFee,
-        otherFee,
-      },
     }
 
     return {
@@ -510,6 +517,7 @@ export async function getReportData(
       data: {
         startDate: start.toISOString().slice(0, 10),
         endDate: end.toISOString().slice(0, 10),
+        userRole: authUser.role,
         summary,
         examinations,
         demographics,

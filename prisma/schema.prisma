@@ -55,11 +55,41 @@ model MedicalRecord {
   nextControlDate    DateTime?
   status             String?        @default("ANTRE")
 
-  patient       Patient        @relation(fields: [patientId], references: [id])
-  doctor        User?          @relation(fields: [doctorId], references: [id])
-  queue         Queue?         @relation(fields: [queueId], references: [id])
+  patient       Patient            @relation(fields: [patientId], references: [id])
+  doctor        User?              @relation(fields: [doctorId], references: [id])
+  queue         Queue?             @relation(fields: [queueId], references: [id])
   prescriptions Prescription[]
+  procedures    PatientProcedure[]
   billing       Billing?
+}
+
+model Procedure {
+  id          Int                @id @default(autoincrement())
+  code        String?
+  name        String
+  tariff      Float              @default(0)
+  category    String?            @default("Tindakan Umum")
+  description String?
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  patientProcedures PatientProcedure[]
+}
+
+model PatientProcedure {
+  id              Int           @id @default(autoincrement())
+  medicalRecordId Int
+  procedureId     Int?
+  procedureName   String
+  tariff          Float         @default(0)
+  quantity        Int           @default(1)
+  performer       String?       @default("DOKTER")
+  notes           String?
+  createdAt       DateTime      @default(now())
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  procedure     Procedure?    @relation(fields: [procedureId], references: [id], onDelete: SetNull)
 }
 
 model Queue {

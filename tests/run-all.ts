@@ -9,6 +9,8 @@ const testFiles = [
   'medicine-stock.test.ts',
   'billing-payment.test.ts',
   'surat-medical.test.ts',
+  'procedure-separation.test.ts',
+  'financial-report-rbac.test.ts',
 ]
 
 console.log('====================================================')

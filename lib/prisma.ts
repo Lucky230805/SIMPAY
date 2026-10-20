@@ -36,6 +36,8 @@ const isClientUpToDate = (client: any) => {
   if (!client) return false
   if (!('medicalCertificate' in client)) return false
   if (!('stockMovement' in client)) return false
+  if (!('procedure' in client)) return false
+  if (!('patientProcedure' in client)) return false
   try {
     const fields = (client as any)?._runtimeDataModel?.models?.MedicalRecord?.fields
     if (Array.isArray(fields) && !fields.some((f: any) => f.name === 'nextControlDate')) {

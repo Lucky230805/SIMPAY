@@ -17,6 +17,7 @@ import {
   UserCheck,
   Layers,
   FileCheck,
+  Syringe,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getSessionUserAction } from '@/app/login/actions'
@@ -55,10 +56,16 @@ const navItems = [
     roles: ['PERAWAT'],
   },
   {
-    label: 'Stok & Obat',
+    label: 'Stok Obat',
     href: '/obat',
     icon: Layers,
     roles: ['PERAWAT'],
+  },
+  {
+    label: 'Tindakan Medis',
+    href: '/tindakan',
+    icon: Syringe,
+    roles: ['DOKTER', 'PERAWAT'],
   },
   {
     label: 'Kasir & Pembayaran',

@@ -64,6 +64,7 @@ export async function getOrCreateBillingForVisit(queueId: number) {
           include: {
             doctor: true,
             prescriptions: true,
+            procedures: true,
           },
         },
         billing: {
@@ -201,7 +202,18 @@ export async function getOrCreateBillingForVisit(queueId: number) {
       })
     }
 
-    if (billingRecord.otherFee > 0) {
+    if (mr && (mr as any).procedures && (mr as any).procedures.length > 0) {
+      (mr as any).procedures.forEach((proc: any) => {
+        const qty = proc.quantity || 1
+        const unitPrice = proc.tariff || 0
+        items.push({
+          name: `Tindakan: ${proc.procedureName}`,
+          quantity: qty,
+          unitPrice,
+          totalPrice: qty * unitPrice,
+        })
+      })
+    } else if (billingRecord.otherFee > 0) {
       let addedActions = false
       if (mr?.treatment && mr.treatment.includes('Tindakan Medis Ditentukan:')) {
         const section = mr.treatment.split('Tindakan Medis Ditentukan:')[1]?.split('\n\n')[0]

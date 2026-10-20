@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import {
   Pill,
   Plus,
@@ -16,6 +17,7 @@ import {
   Info,
   Trash2,
   History,
+  Syringe,
 } from 'lucide-react'
 import {
   MedicineItem,
@@ -315,14 +317,13 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
             {isNurse && (
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={openAddActionModal}
-                  className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9"
+                <Link
+                  href="/tindakan"
+                  className="border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9 px-3 rounded-lg transition-colors"
                 >
-                  <Plus className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Tambah Tindakan / Injeksi</span>
-                </Button>
+                  <Syringe className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Katalog Tindakan Medis</span>
+                </Link>
                 <Button
                   onClick={openAddModal}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9"
@@ -717,7 +718,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                     <option value="Obat Bebas">Obat Bebas (Lingkaran Hijau Tepi Hitam)</option>
                     <option value="Obat Bebas Terbatas">Obat Bebas Terbatas (Lingkaran Biru Tepi Hitam)</option>
                     <option value="Obat Keras">Obat Keras & Psikotropika (Huruf K Merah Tepi Hitam)</option>
-                    <option value="Tindakan / Layanan Medis">Tindakan / Layanan Medis</option>
+                    <option value="Alat Kesehatan / BMHP">Alat Kesehatan / BMHP (Bahan Medis Habis Pakai)</option>
                   </select>
                 </div>
               </div>

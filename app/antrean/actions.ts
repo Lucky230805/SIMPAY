@@ -287,7 +287,12 @@ export async function getQueueById(id: number) {
         id: id
       },
       include: {
-        medicalRecord: true,
+        medicalRecord: {
+          include: {
+            procedures: true,
+            prescriptions: true,
+          },
+        },
         patient: {
           include: {
             medicalRecords: {
@@ -295,11 +300,12 @@ export async function getQueueById(id: number) {
               take: 5,
               include: {
                 prescriptions: true,
+                procedures: true,
               },
             },
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     return queue;
@@ -448,7 +454,14 @@ export async function saveMedicalRecordAndComplete(data: {
   actionTreatment?: string
   nextControlDate?: string | Date
   medicines: { nama: string; dosis: string; jumlah: string }[]
-  actionsList?: { nama: string; tarif: number; jumlah: string }[]
+  actionsList?: {
+    procedureId?: number
+    nama: string
+    tarif: number
+    jumlah: string
+    performer?: string
+    notes?: string
+  }[]
 }) {
   let doctorUser: any
   try {
@@ -558,12 +571,40 @@ export async function saveMedicalRecordAndComplete(data: {
         }
       }
 
-      // 3. Hitung Biaya Tindakan Medis (otherFee)
+      // 3. Simpan dan Hitung Biaya Tindakan Medis (PatientProcedure & otherFee)
+      if (existingMR) {
+        await tx.patientProcedure.deleteMany({
+          where: { medicalRecordId: existingMR.id },
+        })
+      }
+
       let totalActionFee = 0
       if (data.actionsList && data.actionsList.length > 0) {
         for (const act of data.actionsList) {
+          if (!act.nama || act.nama.trim() === '') continue
           const qty = Math.max(1, parseInt(act.jumlah || '1', 10) || 1)
-          totalActionFee += (act.tarif || 0) * qty
+          const fee = (act.tarif || 0) * qty
+          totalActionFee += fee
+
+          let procId = act.procedureId || null
+          if (!procId) {
+            const matchedProc = await tx.procedure.findFirst({
+              where: { name: act.nama.trim() },
+            })
+            if (matchedProc) procId = matchedProc.id
+          }
+
+          await tx.patientProcedure.create({
+            data: {
+              medicalRecordId: createdRecord.id,
+              procedureId: procId,
+              procedureName: act.nama.trim(),
+              tariff: act.tarif || 0,
+              quantity: qty,
+              performer: act.performer || 'DOKTER',
+              notes: act.notes || null,
+            },
+          })
         }
       }
 

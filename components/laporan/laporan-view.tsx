@@ -92,6 +92,12 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
   const [activeCategory, setActiveCategory] = useState<ReportCategory>('pemeriksaan')
   const [isPending, startTransition] = useTransition()
 
+  useEffect(() => {
+    if (activeCategory === 'keuangan' && report && !report.financial) {
+      setActiveCategory('pemeriksaan')
+    }
+  }, [report, activeCategory])
+
   const fetchReport = (startStr: string, endStr: string) => {
     setError(null)
     startTransition(async () => {
@@ -147,10 +153,19 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
                 <BarChart2 className="w-4 h-4" />
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">Laporan Pelayanan &amp; Operasional</h1>
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
+                {report?.financial ? 'Laporan Pelayanan & Keuangan Klinik' : 'Laporan Pelayanan & Operasional'}
+              </h1>
+              {report?.financial && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  Akses Pemilik (Dokter)
+                </span>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Ringkasan data pemeriksaan, demografi pasien, resep obat, dan operasional antrean klinik.
+              {report?.financial
+                ? 'Ringkasan data pemeriksaan, demografi pasien, resep obat, operasional antrean, dan rekapitulasi keuangan klinik.'
+                : 'Ringkasan data pemeriksaan, demografi pasien, resep obat, dan operasional antrean klinik.'}
             </p>
           </div>
 
@@ -339,7 +354,9 @@ export function LaporanView({ initialReportData, initialError }: LaporanViewProp
             { id: 'resep' as const, label: 'Resep & Obat', icon: Pill },
             { id: 'operasional' as const, label: 'Operasional Antrean', icon: Activity },
             { id: 'keuangan' as const, label: 'Keuangan & Pendapatan', icon: Wallet },
-          ].map((tab) => (
+          ]
+            .filter((tab) => tab.id !== 'keuangan' || Boolean(report?.financial))
+            .map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveCategory(tab.id)}

@@ -276,29 +276,6 @@ export async function createMedicine(data: {
       },
     })
 
-    // If category is a procedure/action or injection, automatically create non-expiring stock batch
-    const categoryLower = (data.category || '').toLowerCase()
-    const isProcedure =
-      categoryLower.includes('tindakan') ||
-      categoryLower.includes('injeksi') ||
-      categoryLower.includes('suntik') ||
-      categoryLower.includes('layanan')
-
-    if (isProcedure) {
-      const tenYearsLater = new Date()
-      tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10)
-      await prisma.medicineBatch.create({
-        data: {
-          medicineId: medicine.id,
-          batchNumber: `PROC-${Date.now()}`,
-          stockQuantity: 9999,
-          initialQuantity: 9999,
-          expiryDate: tenYearsLater,
-          receivedDate: new Date(),
-        },
-      })
-    }
-
     try {
       revalidatePath('/obat')
       revalidatePath('/resep')
@@ -312,97 +289,66 @@ export async function createMedicine(data: {
 }
 
 /**
- * Seed default medical actions/procedures if they don't exist yet.
+ * Seed default medical actions/procedures into Procedure catalog if they don't exist yet.
  */
 export async function seedDefaultMedicalActions() {
   await requireAuth()
   const defaultActions = [
     {
+      code: '99.29',
       name: 'Injeksi / Obat Suntik (Dexamethasone / Neurobion)',
-      code: 'TND-001',
-      unit: 'Kali',
-      category: 'Tindakan / Layanan Medis',
-      unitPrice: 35000,
-      purchasePrice: 10000,
-      minStock: 0,
+      tariff: 35000,
+      category: 'Tindakan Keperawatan',
+      description: 'Pemberian injeksi intramuskular atau intravena',
     },
     {
+      code: '93.94',
       name: 'Terapi Nebulizer (Inhalasi / Uap)',
-      code: 'TND-002',
-      unit: 'Kali',
-      category: 'Tindakan / Layanan Medis',
-      unitPrice: 50000,
-      purchasePrice: 15000,
-      minStock: 0,
+      tariff: 50000,
+      category: 'Terapi Inhalasi',
+      description: 'Pemberian terapi uap inhalasi bronkodilator',
     },
     {
+      code: '86.59',
       name: 'Rawat & Jahit Luka ringan-sedang',
-      code: 'TND-003',
-      unit: 'Tindakan',
-      category: 'Tindakan / Layanan Medis',
-      unitPrice: 75000,
-      purchasePrice: 20000,
-      minStock: 0,
+      tariff: 75000,
+      category: 'Bedah Minor',
+      description: 'Perawatan luka dan penjahitan luka terbuka',
     },
     {
+      code: '99.18',
       name: 'Pemasangan Infus & Cairan RL/PZ',
-      code: 'TND-004',
-      unit: 'Paket',
-      category: 'Tindakan / Layanan Medis',
-      unitPrice: 85000,
-      purchasePrice: 30000,
-      minStock: 0,
+      tariff: 85000,
+      category: 'Tindakan Keperawatan',
+      description: 'Insersi kanula intravena dan cairan infus',
     },
     {
+      code: '89.52',
       name: 'Pemeriksaan EKG / Rekam Jantung',
-      code: 'TND-005',
-      unit: 'Pemeriksaan',
-      category: 'Tindakan / Layanan Medis',
-      unitPrice: 60000,
-      purchasePrice: 10000,
-      minStock: 0,
+      tariff: 60000,
+      category: 'Diagnostik',
+      description: 'Perekaman elektrokardiogram 12 lead',
     },
   ]
 
-  const tenYearsLater = new Date()
-  tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10)
-
   for (const act of defaultActions) {
-    const existing = await prisma.medicine.findFirst({
+    const existing = await (prisma as any).procedure.findFirst({
       where: { name: act.name },
     })
 
     if (!existing) {
-      const created = await prisma.medicine.create({
-        data: {
-          name: act.name,
-          code: act.code,
-          unit: act.unit,
-          category: act.category,
-          unitPrice: act.unitPrice,
-          purchasePrice: act.purchasePrice,
-          minStock: act.minStock,
-          isActive: true,
-        },
-      })
-
-      await prisma.medicineBatch.create({
-        data: {
-          medicineId: created.id,
-          batchNumber: `PROC-${act.code}`,
-          stockQuantity: 9999,
-          initialQuantity: 9999,
-          expiryDate: tenYearsLater,
-          receivedDate: new Date(),
-        },
+      await (prisma as any).procedure.create({
+        data: act,
       })
     }
   }
 
   try {
-    revalidatePath('/obat')
+    revalidatePath('/tindakan')
     revalidatePath('/antrean')
   } catch {}
+
+  return { success: true }
 }
 
 
