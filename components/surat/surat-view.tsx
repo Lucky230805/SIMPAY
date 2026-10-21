@@ -206,17 +206,17 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
   return (
     <div className="space-y-6">
       {/* Top Banner Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-xl border border-border shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card p-6 rounded-xl border border-border shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
               Surat Keterangan Medis
             </h1>
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-xs">
               Layanan Perawat &amp; Dokter
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Penerbitan dan pengolahan Surat Keterangan Sakit dan Surat Keterangan Sehat resmi klinik.
           </p>
         </div>
@@ -240,58 +240,58 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Total Surat Diterbitkan</p>
-            <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">{totalSurat}</p>
+            <p className="text-xs text-muted-foreground font-medium">Total Surat Diterbitkan</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-foreground mt-0.5">{totalSurat}</p>
           </div>
-          <div className="p-3 bg-slate-100 text-slate-700 rounded-lg">
+          <div className="p-3 bg-muted text-muted-foreground rounded-lg">
             <FileCheck className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Surat Keterangan Sakit</p>
-            <p className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-0.5">{totalSakit}</p>
+            <p className="text-xs text-muted-foreground font-medium">Surat Keterangan Sakit</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-emerald-500 mt-0.5">{totalSakit}</p>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+          <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-lg">
             <FileText className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Surat Keterangan Sehat</p>
-            <p className="text-xl sm:text-2xl font-extrabold text-teal-600 mt-0.5">{totalSehat}</p>
+            <p className="text-xs text-muted-foreground font-medium">Surat Keterangan Sehat</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-teal-500 mt-0.5">{totalSehat}</p>
           </div>
-          <div className="p-3 bg-teal-50 text-teal-600 rounded-lg">
+          <div className="p-3 bg-teal-500/10 text-teal-500 rounded-lg">
             <HeartPulse className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Diterbitkan Hari Ini</p>
-            <p className="text-xl sm:text-2xl font-extrabold text-blue-600 mt-0.5">{todayCount}</p>
+            <p className="text-xs text-muted-foreground font-medium">Diterbitkan Hari Ini</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-blue-500 mt-0.5">{todayCount}</p>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+          <div className="p-3 bg-blue-500/10 text-blue-500 rounded-lg">
             <Calendar className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-xl border border-border shadow-xs space-y-4">
+      <div className="bg-card p-4 rounded-xl border border-border shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Tabs */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg shrink-0">
+          <div className="flex items-center gap-1 p-1 bg-muted rounded-lg shrink-0">
             <button
               onClick={() => setActiveTab('ALL')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'ALL'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-card text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Semua ({totalSurat})
@@ -301,7 +301,7 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'SAKIT'
                   ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Surat Sakit ({totalSakit})
@@ -311,7 +311,7 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 activeTab === 'SEHAT'
                   ? 'bg-teal-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Surat Sehat ({totalSehat})
@@ -320,22 +320,22 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
 
           {/* Search Bar */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Cari nomor surat, nama pasien, atau diagnosa..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 text-xs sm:text-sm bg-slate-50 border-slate-200"
+              className="pl-9 text-xs sm:text-sm bg-muted/30 border-border"
             />
           </div>
         </div>
       </div>
 
       {/* Table of Issued Certificates */}
-      <div className="bg-white rounded-xl border border-border shadow-xs overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+            <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="px-4 py-3.5">Nomor Surat</th>
                 <th className="px-4 py-3.5">Pasien</th>
@@ -346,23 +346,23 @@ export function SuratView({ initialSuratList, patients, doctors = [] }: SuratVie
                 <th className="px-4 py-3.5 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-border text-foreground">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-400 text-xs">
-                    <FileCheck className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                  <td colSpan={7} className="text-center py-12 text-muted-foreground text-xs">
+                    <FileCheck className="w-10 h-10 mx-auto text-muted-foreground/40 mb-2" />
                     Belum ada surat keterangan yang diterbitkan.
                   </td>
                 </tr>
               ) : (
                 filteredList.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-4 py-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">
+                  <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3.5 font-mono font-bold text-foreground whitespace-nowrap">
                       {item.certificateNo}
                     </td>
                     <td className="px-4 py-3.5">
-                      <div className="font-semibold text-slate-900">{item.patientName}</div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="font-semibold text-foreground">{item.patientName}</div>
+                      <div className="text-[11px] text-muted-foreground">
                         {(item.patientGender === 'L' || item.patientGender === 'Laki-laki') ? 'Laki-laki' : 'Perempuan'} {item.patientPhone ? `• ${item.patientPhone}` : ''}
                       </div>
                     </td>

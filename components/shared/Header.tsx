@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { getSessionUserAction } from '@/app/login/actions'
 import { LogoutConfirmDialog } from '@/components/shared/logout-confirm-dialog'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['DOKTER', 'PERAWAT'] },
@@ -83,8 +84,10 @@ export default function Header() {
           <span className="text-sm font-bold tracking-tight text-foreground">SIMPAY</span>
         </div>
 
-        {/* Right side user badge & logout */}
-        <div className="ml-auto flex items-center gap-3">
+        {/* Right side user badge, theme toggle & logout */}
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+
           <div className="flex items-center gap-2.5">
             <div
               className={cn(

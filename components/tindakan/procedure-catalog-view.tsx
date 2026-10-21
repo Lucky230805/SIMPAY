@@ -65,15 +65,15 @@ function getCategoryBadge(category: string | null) {
   const cat = (category || 'Tindakan Umum').trim()
   switch (cat) {
     case 'Bedah Minor':
-      return 'bg-purple-50 text-purple-700 border-purple-200'
+      return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
     case 'Tindakan Keperawatan':
-      return 'bg-blue-50 text-blue-700 border-blue-200'
+      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
     case 'Terapi Inhalasi':
-      return 'bg-cyan-50 text-cyan-700 border-cyan-200'
+      return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'
     case 'Diagnostik':
-      return 'bg-amber-50 text-amber-700 border-amber-200'
+      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
     default:
-      return 'bg-slate-100 text-slate-700 border-slate-200'
+      return 'bg-muted/80 text-muted-foreground border-border'
   }
 }
 
@@ -256,10 +256,10 @@ export function ProcedureCatalogView({
         }
         setDeletingItem(null)
       } else {
-        alert(res.error || 'Gagal menghapus tindakan')
+        setMessage({ type: 'error', text: res.error || 'Gagal menghapus tindakan' })
       }
     } catch (err: any) {
-      alert(err?.message || 'Terjadi kesalahan')
+      setMessage({ type: 'error', text: err?.message || 'Terjadi kesalahan sistem' })
     } finally {
       setIsLoading(false)
     }
@@ -271,23 +271,23 @@ export function ProcedureCatalogView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
               <Syringe className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
                 Katalog &amp; Tarif Tindakan Medis
               </h1>
             </div>
           </div>
-          <p className="text-xs text-slate-500 pl-11.5">
+          <p className="text-xs text-muted-foreground pl-11.5">
             Kelola master prosedur klinis, kodifikasi ICD-9-CM resmi, dan tarif jasa pelayanan. Murni jasa tanpa manajemen stok barang.
           </p>
         </div>
 
         <Button
           onClick={openCreateModal}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 text-xs h-9 px-4 rounded-lg shadow-xs shrink-0 self-start sm:self-auto"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 text-xs h-9 px-4 rounded-lg shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Tambah Tindakan Medis</span>
@@ -296,57 +296,57 @@ export function ProcedureCatalogView({
 
       {/* ── KPI Stat Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-xs flex items-center justify-between">
+        <div className="bg-card rounded-xl border border-border p-4 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Total Tindakan Terdaftar
             </p>
-            <p className="text-2xl font-bold text-slate-900">{totalCount}</p>
-            <p className="text-[11px] text-slate-400">Tersedia pada form rekam medis dokter</p>
+            <p className="text-2xl font-bold text-foreground">{totalCount}</p>
+            <p className="text-[11px] text-muted-foreground">Tersedia pada form rekam medis dokter</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
             <Activity className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-xs flex items-center justify-between">
+        <div className="bg-card rounded-xl border border-border p-4 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Tindakan Aktif
             </p>
-            <p className="text-2xl font-bold text-emerald-600">{activeCount}</p>
-            <p className="text-[11px] text-slate-400">Siap dipilih saat pemeriksaan klinis</p>
+            <p className="text-2xl font-bold text-emerald-500">{activeCount}</p>
+            <p className="text-[11px] text-muted-foreground">Siap dipilih saat pemeriksaan klinis</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-xs flex items-center justify-between">
+        <div className="bg-card rounded-xl border border-border p-4 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Total Pelayanan Pasien
             </p>
-            <p className="text-2xl font-bold text-slate-900">{totalUsages}</p>
-            <p className="text-[11px] text-slate-400">Frekuensi tindakan terlaksana di klinik</p>
+            <p className="text-2xl font-bold text-foreground">{totalUsages}</p>
+            <p className="text-[11px] text-muted-foreground">Frekuensi tindakan terlaksana di klinik</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center shrink-0">
             <Layers className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* ── Filter & Search Toolbar ── */}
-      <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-xs space-y-3">
+      <div className="bg-card rounded-xl border border-border p-3 shadow-xs space-y-3">
         <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
           {/* Search Box */}
           <div className="relative w-full lg:w-80 shrink-0">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               placeholder="Cari tindakan, kode ICD-9, kategori..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 text-xs h-9 bg-slate-50/50 focus:bg-white border-slate-200"
+              className="pl-9 text-xs h-9 bg-background focus:bg-card border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
@@ -359,10 +359,10 @@ export function ProcedureCatalogView({
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border',
+                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer',
                     isActive
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
+                      : 'bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border'
                   )}
                 >
                   {cat}
@@ -374,27 +374,27 @@ export function ProcedureCatalogView({
       </div>
 
       {/* ── Table Card ── */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
-            <thead className="bg-slate-50/90 text-slate-500 font-semibold text-[11px] uppercase tracking-wider border-b border-slate-200">
+            <thead className="bg-muted/50 text-muted-foreground font-semibold text-[11px] uppercase tracking-wider border-b border-border">
               <tr>
-                <th className="px-4 py-3.5 w-32">Kode ICD-9-CM</th>
+                <th className="px-4 py-3.5 w-32 text-center">Kode ICD-9-CM</th>
                 <th className="px-4 py-3.5">Nama Tindakan &amp; Deskripsi</th>
-                <th className="px-4 py-3.5 w-48">Kategori</th>
-                <th className="px-4 py-3.5 text-right w-36">Tarif Layanan</th>
+                <th className="px-4 py-3.5 w-48 text-center">Kategori</th>
+                <th className="px-4 py-3.5 text-center w-36">Tarif Layanan</th>
                 <th className="px-4 py-3.5 text-center w-28">Riwayat Pakai</th>
                 <th className="px-4 py-3.5 text-center w-28">Status</th>
-                <th className="px-4 py-3.5 text-right w-24">Aksi</th>
+                <th className="px-4 py-3.5 text-center w-24">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {filteredProcedures.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
-                    <Syringe className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                    <p className="font-semibold text-slate-600">Tidak ada tindakan medis yang ditemukan</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Ubah kata kunci pencarian atau pilih kategori lain</p>
+                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                    <Syringe className="w-8 h-8 mx-auto text-muted-foreground/60 mb-2" />
+                    <p className="font-semibold text-foreground">Tidak ada tindakan medis yang ditemukan</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Ubah kata kunci pencarian atau pilih kategori lain</p>
                   </td>
                 </tr>
               ) : (
@@ -402,33 +402,33 @@ export function ProcedureCatalogView({
                   <tr
                     key={item.id}
                     className={cn(
-                      'hover:bg-slate-50/80 transition-colors',
-                      !item.isActive && 'opacity-60 bg-slate-50/30'
+                      'hover:bg-muted/30 transition-colors',
+                      !item.isActive && 'opacity-60 bg-muted/10'
                     )}
                   >
                     {/* ICD-9 Code */}
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-3.5 text-center">
                       {item.code ? (
-                        <span className="font-mono font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded text-[11px]">
+                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-[11px]">
                           {item.code}
                         </span>
                       ) : (
-                        <span className="text-slate-400 text-[11px] italic">—</span>
+                        <span className="text-muted-foreground text-[11px] italic">—</span>
                       )}
                     </td>
 
                     {/* Procedure Name & Description */}
                     <td className="px-4 py-3.5">
-                      <p className="font-semibold text-slate-900 text-sm">{item.name}</p>
+                      <p className="font-semibold text-foreground text-sm">{item.name}</p>
                       {item.description ? (
-                        <p className="text-slate-500 text-[11px] line-clamp-1 mt-0.5">
+                        <p className="text-muted-foreground text-[11px] line-clamp-1 mt-0.5">
                           {item.description}
                         </p>
                       ) : null}
                     </td>
 
                     {/* Category Badge */}
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-3.5 text-center">
                       <span
                         className={cn(
                           'inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border',
@@ -440,13 +440,13 @@ export function ProcedureCatalogView({
                     </td>
 
                     {/* Tariff */}
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-900 text-sm">
+                    <td className="px-4 py-3.5 text-center font-mono font-bold text-foreground text-sm">
                       {formatCurrency(item.tariff)}
                     </td>
 
                     {/* Usage Count */}
                     <td className="px-4 py-3.5 text-center">
-                      <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                      <span className="text-[11px] font-medium text-muted-foreground bg-muted/60 border border-border px-2.5 py-0.5 rounded-full">
                         {item.usageCount || 0}x
                       </span>
                     </td>
@@ -457,16 +457,16 @@ export function ProcedureCatalogView({
                         onClick={() => handleToggleStatus(item)}
                         title={item.isActive ? 'Klik untuk nonaktifkan' : 'Klik untuk aktifkan'}
                         className={cn(
-                          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-colors border',
+                          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-colors border cursor-pointer',
                           item.isActive
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                            : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                            : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
                         )}
                       >
                         <span
                           className={cn(
                             'w-1.5 h-1.5 rounded-full',
-                            item.isActive ? 'bg-emerald-600' : 'bg-slate-400'
+                            item.isActive ? 'bg-emerald-500' : 'bg-muted-foreground'
                           )}
                         />
                         {item.isActive ? 'Aktif' : 'Nonaktif'}
@@ -474,18 +474,18 @@ export function ProcedureCatalogView({
                     </td>
 
                     {/* Actions */}
-                    <td className="px-4 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="px-4 py-3.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => openEditModal(item)}
-                          className="w-7 h-7 rounded-md border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors shadow-2xs"
+                          className="w-7 h-7 rounded-md border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                           title="Edit Tindakan"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeletingItem(item)}
-                          className="w-7 h-7 rounded-md border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 flex items-center justify-center transition-colors shadow-2xs"
+                          className="w-7 h-7 rounded-md border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                           title="Hapus Tindakan"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -500,12 +500,12 @@ export function ProcedureCatalogView({
         </div>
 
         {/* Table Footer info */}
-        <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+        <div className="px-4 py-3 bg-muted/40 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <p>
-            Menampilkan <span className="font-semibold text-slate-800">{filteredProcedures.length}</span> dari{' '}
-            <span className="font-semibold text-slate-800">{procedures.length}</span> tindakan medis terdaftar
+            Menampilkan <span className="font-semibold text-foreground">{filteredProcedures.length}</span> dari{' '}
+            <span className="font-semibold text-foreground">{procedures.length}</span> tindakan medis terdaftar
           </p>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-muted-foreground/80">
             Jasa layanan klinis • Tidak mengurangi stok inventori farmasi
           </p>
         </div>
@@ -513,20 +513,20 @@ export function ProcedureCatalogView({
 
       {/* ── Modal Create / Edit Procedure ── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50/60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-card text-foreground border border-border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/40">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center">
                   <Syringe className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-foreground">
                   {editingItem ? 'Edit Tindakan Medis' : 'Tambah Tindakan Medis Baru'}
                 </h3>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                className="text-muted-foreground hover:text-foreground p-1 rounded-md cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -538,14 +538,14 @@ export function ProcedureCatalogView({
                   className={cn(
                     'p-3 rounded-lg border text-xs flex items-center gap-2',
                     message.type === 'success'
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                      : 'bg-rose-50 border-rose-200 text-rose-800'
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'
                   )}
                 >
                   {message.type === 'success' ? (
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
                   ) : (
-                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                   )}
                   <span>{message.text}</span>
                 </div>
@@ -554,28 +554,28 @@ export function ProcedureCatalogView({
               {/* ICD-9 Code & Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  <label className="block text-[11px] font-semibold text-foreground mb-1">
                     Kode ICD-9-CM (Prosedur)
                   </label>
                   <Input
                     placeholder="Contoh: 93.94"
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    className="font-mono text-xs uppercase bg-white border-slate-200"
+                    className="font-mono text-xs uppercase bg-background border-border text-foreground"
                   />
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
                     Standar BPJS &amp; SATUSEHAT Kemenkes
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  <label className="block text-[11px] font-semibold text-foreground mb-1">
                     Kategori Tindakan *
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full h-9 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                     required
                   >
                     <option value="Tindakan Umum">Tindakan Umum</option>
@@ -589,9 +589,9 @@ export function ProcedureCatalogView({
 
               {/* Quick Preset Recommendations for ICD-9 */}
               {!editingItem && (
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/90 space-y-2">
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700">
-                    <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <div className="p-3 bg-muted/30 rounded-xl border border-border space-y-2">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
+                    <Info className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                     <span>Rekomendasi Cepat Prosedur ICD-9-CM:</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -600,9 +600,9 @@ export function ProcedureCatalogView({
                         type="button"
                         key={rec.code}
                         onClick={() => handleApplyICD9Recommendation(rec)}
-                        className="text-[10px] bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 border border-slate-200 px-2.5 py-1 rounded-md transition-colors text-slate-600 font-medium shadow-2xs"
+                        className="text-[10px] bg-card hover:bg-muted border border-border px-2.5 py-1 rounded-md transition-colors text-muted-foreground hover:text-foreground font-medium shadow-2xs cursor-pointer"
                       >
-                        <span className="font-mono font-bold text-emerald-800">{rec.code}</span> {rec.name}
+                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{rec.code}</span> {rec.name}
                       </button>
                     ))}
                   </div>
@@ -611,7 +611,7 @@ export function ProcedureCatalogView({
 
               {/* Name */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-semibold text-foreground mb-1">
                   Nama Tindakan Medis *
                 </label>
                 <Input
@@ -619,13 +619,13 @@ export function ProcedureCatalogView({
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="text-xs bg-white border-slate-200"
+                  className="text-xs bg-background border-border text-foreground"
                 />
               </div>
 
               {/* Tariff */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-semibold text-foreground mb-1">
                   Tarif Jasa Layanan (Rp) *
                 </label>
                 <Input
@@ -635,16 +635,16 @@ export function ProcedureCatalogView({
                   onChange={(e) => setFormData({ ...formData, tariff: e.target.value })}
                   required
                   min={0}
-                  className="text-xs font-mono bg-white border-slate-200"
+                  className="text-xs font-mono bg-background border-border text-foreground"
                 />
-                <p className="text-[10px] text-slate-400 mt-0.5">
+                <p className="text-[10px] text-muted-foreground mt-0.5">
                   Tarif ini otomatis masuk ke rincian tagihan kasir saat dokter memilih tindakan.
                 </p>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-semibold text-foreground mb-1">
                   Deskripsi / Keterangan Klinis
                 </label>
                 <textarea
@@ -652,19 +652,19 @@ export function ProcedureCatalogView({
                   placeholder="Catatan indikasi klinis, alat yang digunakan, dll..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full rounded-md border border-slate-200 bg-white p-2.5 text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full rounded-md border border-border bg-background p-2.5 text-xs text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               {/* Footer Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsModalOpen(false)}
                   disabled={isLoading}
-                  className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="border-border text-foreground hover:bg-muted cursor-pointer"
                 >
                   Batal
                 </Button>
@@ -672,7 +672,7 @@ export function ProcedureCatalogView({
                   type="submit"
                   size="sm"
                   disabled={isLoading}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 shadow-xs"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 shadow-xs cursor-pointer"
                 >
                   {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingItem ? 'Simpan Perubahan' : 'Tambah Tindakan'}</span>
@@ -685,22 +685,22 @@ export function ProcedureCatalogView({
 
       {/* ── Modal Delete / Deactivate Confirmation ── */}
       {deletingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-md p-5 space-y-4 animate-in fade-in-50 zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-card text-foreground border border-border rounded-xl shadow-2xl w-full max-w-md p-5 space-y-4 animate-in fade-in-50 zoom-in-95 duration-150">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 shrink-0">
+              <div className="p-2.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">
                 <AlertCircle className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-foreground">
                   Hapus Tindakan Medis?
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Apakah Anda yakin ingin menghapus tindakan{' '}
-                  <span className="font-semibold text-slate-900">{deletingItem.name}</span>?
+                  <span className="font-semibold text-foreground">{deletingItem.name}</span>?
                 </p>
                 {deletingItem.usageCount && deletingItem.usageCount > 0 ? (
-                  <div className="mt-2.5 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] leading-relaxed">
+                  <div className="mt-2.5 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] leading-relaxed">
                     <p className="font-semibold mb-0.5">Catatan Audit Rekam Medis:</p>
                     Tindakan ini sudah pernah tercatat pada <strong>{deletingItem.usageCount}</strong> riwayat pemeriksaan pasien. Sistem akan <strong>menonaktifkannya</strong> secara aman agar riwayat rekam medis pasien tetap utuh.
                   </div>
@@ -708,13 +708,13 @@ export function ProcedureCatalogView({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setDeletingItem(null)}
                 disabled={isLoading}
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="border-border text-foreground hover:bg-muted cursor-pointer"
               >
                 Batal
               </Button>
@@ -723,7 +723,7 @@ export function ProcedureCatalogView({
                 size="sm"
                 onClick={handleDelete}
                 disabled={isLoading}
-                className="gap-1.5 shadow-xs"
+                className="gap-1.5 shadow-xs cursor-pointer"
               >
                 {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>{deletingItem.usageCount && deletingItem.usageCount > 0 ? 'Nonaktifkan' : 'Hapus Tindakan'}</span>

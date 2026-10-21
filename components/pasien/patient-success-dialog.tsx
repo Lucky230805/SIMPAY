@@ -104,7 +104,7 @@ export function PatientSuccessDialog({
 
       {/* PRINT-ONLY AUTHENTIC CLINIC THERMAL QUEUE TICKET RECEIPT */}
       {formattedQueueNumText && (
-        <div className="hidden print:block font-sans text-black p-4 max-w-[80mm] mx-auto text-center bg-white">
+        <div id="patient-ticket-print-area" className="hidden print:block font-sans text-black p-4 max-w-[80mm] mx-auto text-center bg-white preserve-light">
           {/* Kop Klinik */}
           <div className="border-b-2 border-black pb-2 mb-3">
             <h2 className="font-black text-base uppercase tracking-wider text-black">

@@ -100,7 +100,7 @@ export default function AntreanPage() {
         </div>
 
         {/* Polyclinic Filter */}
-        <div className="flex items-center gap-2 bg-white border border-border px-3 py-1.5 rounded-xl shadow-xs">
+        <div className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-xl shadow-xs">
           <Building2 className="w-4 h-4 text-primary" />
           <span className="text-xs font-semibold text-muted-foreground">Filter Poli:</span>
           <select
@@ -119,7 +119,7 @@ export default function AntreanPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {/* Total Antrean */}
-        <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-4">
+        <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-4">
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Users className="w-5 h-5 text-primary" />
           </div>
@@ -132,9 +132,9 @@ export default function AntreanPage() {
         </div>
 
         {/* Skrining TTV Selesai */}
-        <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5 text-teal-600" />
+        <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-teal-50 dark:bg-teal-950/40 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 text-teal-600 dark:text-teal-400" />
           </div>
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
@@ -148,9 +148,9 @@ export default function AntreanPage() {
         </div>
 
         {/* Menunggu */}
-        <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 text-amber-600" />
+        <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
@@ -160,7 +160,7 @@ export default function AntreanPage() {
               {menunggu + dalamPemeriksaan}
             </p>
             {dalamPemeriksaan > 0 && (
-              <p className="text-[10px] text-blue-600 mt-0.5">
+              <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-0.5">
                 {dalamPemeriksaan} dalam pemeriksaan
               </p>
             )}
@@ -168,9 +168,9 @@ export default function AntreanPage() {
         </div>
 
         {/* Selesai */}
-        <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+        <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
@@ -182,7 +182,7 @@ export default function AntreanPage() {
       </div>
 
       {/* Queue Table Card */}
-      <div className="bg-white rounded-xl border border-border w-full">
+      <div className="bg-card rounded-xl border border-border w-full">
         <div className="px-5 py-4 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground">Daftar Antrean Hari Ini</h2>
           <p className="text-xs text-muted-foreground mt-0.5">

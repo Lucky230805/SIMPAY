@@ -30,6 +30,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { MedicineCategoryBadge } from '@/components/ui/medicine-category-badge'
 import { StockMovementModal } from '@/components/resep/stock-movement-modal'
+import { cn } from '@/lib/utils'
 
 interface MedicineInventoryViewProps {
   initialInventory: MedicineItem[]
@@ -288,59 +289,59 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Pill className="w-5 h-5 text-primary" />
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
               Katalog & Stok Obat (Apotek)
             </h1>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Kelola data master obat, batch stok, tanggal kedaluwarsa, dan peringatan restock.
           </p>
         </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsLedgerModalOpen(true)}
-              className="border-slate-300 text-slate-800 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9"
-              title="Lihat riwayat alur mutasi stok obat (Stock Ledger)"
-            >
-              <History className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Audit Log Mutasi Stok</span>
-            </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsLedgerModalOpen(true)}
+            className="border-border bg-card text-foreground hover:bg-muted font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9 cursor-pointer"
+            title="Lihat riwayat alur mutasi stok obat (Stock Ledger)"
+          >
+            <History className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Audit Log Mutasi Stok</span>
+          </Button>
 
-            {!isNurse && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
-                <Info className="w-4 h-4" />
-                <span>Akses Baca Saja (Peran DOKTER)</span>
-              </div>
-            )}
+          {!isNurse && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-semibold">
+              <Info className="w-4 h-4" />
+              <span>Akses Baca Saja (Peran DOKTER)</span>
+            </div>
+          )}
 
-            {isNurse && (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/tindakan"
-                  className="border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9 px-3 rounded-lg transition-colors"
-                >
-                  <Syringe className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Katalog Tindakan Medis</span>
-                </Link>
-                <Button
-                  onClick={openAddModal}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Tambah Obat Baru</span>
-                </Button>
-              </div>
-            )}
-          </div>
+          {isNurse && (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/tindakan"
+                className="border border-border bg-card text-foreground hover:bg-muted font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9 px-3 rounded-lg transition-colors cursor-pointer"
+              >
+                <Syringe className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Katalog Tindakan Medis</span>
+              </Link>
+              <Button
+                onClick={openAddModal}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-1.5 shadow-xs text-xs h-9 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Tambah Obat Baru</span>
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Alert Notifications */}
       {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center justify-between">
           <span>{successMsg}</span>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 hover:underline">
+          <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer">
             Tutup
           </button>
         </div>
@@ -348,20 +349,20 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
       {/* Widget Banner Peringatan Expiry H-30 & H-60 */}
       {(nearExpiry30Count > 0 || nearExpiry60Count > 0 || expiredCount > 0) && (
-        <div className="p-4 rounded-xl border border-amber-200 bg-linear-to-r from-amber-50 via-orange-50 to-red-50 text-slate-900 shadow-xs space-y-3">
+        <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 dark:bg-amber-950/20 text-foreground shadow-xs space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-orange-500 text-white shrink-0 mt-0.5">
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
                   <span>Peringatan Masa Kadaluarsa Batch (Sistem FEFO)</span>
                   <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase bg-orange-600 text-white rounded-full">
                     Sistem Kontrol H-30 &amp; H-60
                   </span>
                 </h4>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   Terdapat batch obat yang perlu perhatian operasional untuk diprioritaskan keluar (FEFO), dikarantina, atau diretur ke distributor.
                 </p>
               </div>
@@ -372,7 +373,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 <button
                   type="button"
                   onClick={() => setFilterStatus('NEAR_EXPIRY_30')}
-                  className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                  className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <AlertTriangle className="w-3.5 h-3.5" />
                   <span>{nearExpiry30Count} Batch Kritis H-30</span>
@@ -382,7 +383,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 <button
                   type="button"
                   onClick={() => setFilterStatus('NEAR_EXPIRY_60')}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Clock className="w-3.5 h-3.5" />
                   <span>{nearExpiry60Count} Batch Waspada H-60</span>
@@ -399,126 +400,132 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
         <button
           type="button"
           onClick={() => setFilterStatus('ALL')}
-          className={`p-3.5 rounded-xl border text-left transition-all ${
+          className={cn(
+            'p-3.5 rounded-xl border text-left transition-all cursor-pointer',
             filterStatus === 'ALL'
-              ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-              : 'bg-white text-slate-900 border-slate-200 hover:border-slate-300'
-          }`}
+              ? 'bg-emerald-600 text-white border-emerald-600 shadow-md ring-2 ring-emerald-500/20'
+              : 'bg-card text-foreground border-border hover:border-slate-400 dark:hover:border-slate-600 hover:bg-muted/30'
+          )}
         >
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Total Master</span>
-            <Pill className="w-4 h-4" />
+            <Pill className={cn("w-4 h-4", filterStatus === 'ALL' ? "text-white" : "text-emerald-500")} />
           </div>
           <div className="text-xl font-extrabold">{totalActive}</div>
-          <p className="text-[10px] mt-0.5 opacity-70">Obat terdaftar</p>
+          <p className={cn("text-[10px] mt-0.5", filterStatus === 'ALL' ? "text-white/80" : "text-muted-foreground")}>Obat terdaftar</p>
         </button>
 
         {/* Low Stock */}
         <button
           type="button"
           onClick={() => setFilterStatus('LOW_STOCK')}
-          className={`p-3.5 rounded-xl border text-left transition-all ${
+          className={cn(
+            'p-3.5 rounded-xl border text-left transition-all cursor-pointer',
             filterStatus === 'LOW_STOCK'
-              ? 'bg-amber-500 text-white border-amber-500 shadow-md'
-              : 'bg-amber-50 text-amber-900 border-amber-200 hover:border-amber-300'
-          }`}
+              ? 'bg-amber-600 text-white border-amber-600 shadow-md ring-2 ring-amber-500/20'
+              : 'bg-card text-foreground border-amber-500/30 hover:border-amber-500/60 hover:bg-amber-500/10'
+          )}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Stok Menipis</span>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <span className={cn("text-[10px] font-bold uppercase tracking-wider", filterStatus === 'LOW_STOCK' ? "text-white" : "text-amber-600 dark:text-amber-400")}>Stok Menipis</span>
+            <AlertTriangle className={cn("w-4 h-4", filterStatus === 'LOW_STOCK' ? "text-white" : "text-amber-600 dark:text-amber-400")} />
           </div>
-          <div className="text-xl font-extrabold">{lowStockCount}</div>
-          <p className="text-[10px] mt-0.5 opacity-70">≤ Min. Stok</p>
+          <div className={cn("text-xl font-extrabold", filterStatus === 'LOW_STOCK' ? "text-white" : "text-amber-600 dark:text-amber-400")}>{lowStockCount}</div>
+          <p className={cn("text-[10px] mt-0.5", filterStatus === 'LOW_STOCK' ? "text-white/80" : "text-muted-foreground")}>≤ Min. Stok</p>
         </button>
 
         {/* Out of Stock */}
         <button
           type="button"
           onClick={() => setFilterStatus('OUT_OF_STOCK')}
-          className={`p-3.5 rounded-xl border text-left transition-all ${
+          className={cn(
+            'p-3.5 rounded-xl border text-left transition-all cursor-pointer',
             filterStatus === 'OUT_OF_STOCK'
-              ? 'bg-red-600 text-white border-red-600 shadow-md'
-              : 'bg-red-50 text-red-900 border-red-200 hover:border-red-300'
-          }`}
+              ? 'bg-rose-600 text-white border-rose-600 shadow-md ring-2 ring-rose-500/20'
+              : 'bg-card text-foreground border-rose-500/30 hover:border-rose-500/60 hover:bg-rose-500/10'
+          )}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Stok Habis</span>
-            <PackageX className="w-4 h-4 text-red-600" />
+            <span className={cn("text-[10px] font-bold uppercase tracking-wider", filterStatus === 'OUT_OF_STOCK' ? "text-white" : "text-rose-600 dark:text-rose-400")}>Stok Habis</span>
+            <PackageX className={cn("w-4 h-4", filterStatus === 'OUT_OF_STOCK' ? "text-white" : "text-rose-600 dark:text-rose-400")} />
           </div>
-          <div className="text-xl font-extrabold">{outOfStockCount}</div>
-          <p className="text-[10px] mt-0.5 opacity-70">0 Pcs tersedia</p>
+          <div className={cn("text-xl font-extrabold", filterStatus === 'OUT_OF_STOCK' ? "text-white" : "text-rose-600 dark:text-rose-400")}>{outOfStockCount}</div>
+          <p className={cn("text-[10px] mt-0.5", filterStatus === 'OUT_OF_STOCK' ? "text-white/80" : "text-muted-foreground")}>0 Pcs tersedia</p>
         </button>
 
         {/* Kritis H-30 */}
         <button
           type="button"
           onClick={() => setFilterStatus('NEAR_EXPIRY_30')}
-          className={`p-3.5 rounded-xl border text-left transition-all ${
+          className={cn(
+            'p-3.5 rounded-xl border text-left transition-all cursor-pointer',
             filterStatus === 'NEAR_EXPIRY_30'
-              ? 'bg-orange-600 text-white border-orange-600 shadow-md'
-              : 'bg-orange-50 text-orange-950 border-orange-300 hover:border-orange-400'
-          }`}
+              ? 'bg-orange-600 text-white border-orange-600 shadow-md ring-2 ring-orange-500/20'
+              : 'bg-card text-foreground border-orange-500/30 hover:border-orange-500/60 hover:bg-orange-500/10'
+          )}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Kritis H-30</span>
-            <AlertTriangle className="w-4 h-4 text-orange-600" />
+            <span className={cn("text-[10px] font-bold uppercase tracking-wider", filterStatus === 'NEAR_EXPIRY_30' ? "text-white" : "text-orange-600 dark:text-orange-400")}>Kritis H-30</span>
+            <AlertTriangle className={cn("w-4 h-4", filterStatus === 'NEAR_EXPIRY_30' ? "text-white" : "text-orange-600 dark:text-orange-400")} />
           </div>
-          <div className="text-xl font-extrabold">{nearExpiry30Count}</div>
-          <p className="text-[10px] mt-0.5 opacity-80 font-medium">≤ 30 Hari ED</p>
+          <div className={cn("text-xl font-extrabold", filterStatus === 'NEAR_EXPIRY_30' ? "text-white" : "text-orange-600 dark:text-orange-400")}>{nearExpiry30Count}</div>
+          <p className={cn("text-[10px] mt-0.5", filterStatus === 'NEAR_EXPIRY_30' ? "text-white/80" : "text-muted-foreground")}>≤ 30 Hari ED</p>
         </button>
 
         {/* Waspada H-60 */}
         <button
           type="button"
           onClick={() => setFilterStatus('NEAR_EXPIRY_60')}
-          className={`p-3.5 rounded-xl border text-left transition-all ${
+          className={cn(
+            'p-3.5 rounded-xl border text-left transition-all cursor-pointer',
             filterStatus === 'NEAR_EXPIRY_60'
-              ? 'bg-amber-500 text-white border-amber-500 shadow-md'
-              : 'bg-amber-50/80 text-amber-950 border-amber-300 hover:border-amber-400'
-          }`}
+              ? 'bg-yellow-600 text-white border-yellow-600 shadow-md ring-2 ring-yellow-500/20'
+              : 'bg-card text-foreground border-yellow-500/30 hover:border-yellow-500/60 hover:bg-yellow-500/10'
+          )}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Waspada H-60</span>
-            <Clock className="w-4 h-4 text-amber-600" />
+            <span className={cn("text-[10px] font-bold uppercase tracking-wider", filterStatus === 'NEAR_EXPIRY_60' ? "text-white" : "text-yellow-600 dark:text-yellow-400")}>Waspada H-60</span>
+            <Clock className={cn("w-4 h-4", filterStatus === 'NEAR_EXPIRY_60' ? "text-white" : "text-yellow-600 dark:text-yellow-400")} />
           </div>
-          <div className="text-xl font-extrabold">{nearExpiry60Count}</div>
-          <p className="text-[10px] mt-0.5 opacity-80 font-medium">31–60 Hari ED</p>
+          <div className={cn("text-xl font-extrabold", filterStatus === 'NEAR_EXPIRY_60' ? "text-white" : "text-yellow-600 dark:text-yellow-400")}>{nearExpiry60Count}</div>
+          <p className={cn("text-[10px] mt-0.5", filterStatus === 'NEAR_EXPIRY_60' ? "text-white/80" : "text-muted-foreground")}>31–60 Hari ED</p>
         </button>
 
         {/* Expired */}
         <button
           type="button"
           onClick={() => setFilterStatus('EXPIRED')}
-          className={`p-3.5 rounded-xl border text-left transition-all ${
+          className={cn(
+            'p-3.5 rounded-xl border text-left transition-all cursor-pointer',
             filterStatus === 'EXPIRED'
-              ? 'bg-purple-600 text-white border-purple-600 shadow-md'
-              : 'bg-purple-50 text-purple-900 border-purple-200 hover:border-purple-300'
-          }`}
+              ? 'bg-purple-600 text-white border-purple-600 shadow-md ring-2 ring-purple-500/20'
+              : 'bg-card text-foreground border-purple-500/30 hover:border-purple-500/60 hover:bg-purple-500/10'
+          )}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Kedaluwarsa</span>
-            <Calendar className="w-4 h-4 text-purple-600" />
+            <span className={cn("text-[10px] font-bold uppercase tracking-wider", filterStatus === 'EXPIRED' ? "text-white" : "text-purple-600 dark:text-purple-400")}>Kedaluwarsa</span>
+            <Calendar className={cn("w-4 h-4", filterStatus === 'EXPIRED' ? "text-white" : "text-purple-600 dark:text-purple-400")} />
           </div>
-          <div className="text-xl font-extrabold">{expiredCount}</div>
-          <p className="text-[10px] mt-0.5 opacity-70">Stok kedaluwarsa</p>
+          <div className={cn("text-xl font-extrabold", filterStatus === 'EXPIRED' ? "text-white" : "text-purple-600 dark:text-purple-400")}>{expiredCount}</div>
+          <p className={cn("text-[10px] mt-0.5", filterStatus === 'EXPIRED' ? "text-white/80" : "text-muted-foreground")}>Stok kedaluwarsa</p>
         </button>
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-card p-4 rounded-xl border border-border flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari obat berdasarkan nama, kode..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-          <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Filter Status:</span>
+          <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">Filter Status:</span>
           {[
             { id: 'ALL', label: 'Semua' },
             { id: 'LOW_STOCK', label: 'Stok Menipis' },
@@ -530,11 +537,12 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
             <button
               key={st.id}
               onClick={() => setFilterStatus(st.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer',
                 filterStatus === st.id
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/50'
+              )}
             >
               {st.label}
             </button>
@@ -543,10 +551,10 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
+            <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-3">Kode</th>
                 <th className="px-4 py-3">Nama Obat</th>
@@ -559,63 +567,64 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 <th className="px-4 py-3 text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {filteredInventory.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
                     <Pill className="w-8 h-8 mx-auto mb-2 opacity-40" />
                     <p className="font-medium">Tidak ada data obat yang sesuai</p>
                   </td>
                 </tr>
               ) : (
                 filteredInventory.map((med) => (
-                  <tr key={med.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-4 py-3 font-mono text-slate-500 font-semibold">
+                  <tr key={med.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-mono text-muted-foreground font-semibold">
                       {med.code || `OBT-${med.id.toString().padStart(3, '0')}`}
                     </td>
-                    <td className="px-4 py-3 font-bold text-slate-900">{med.name}</td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 font-bold text-foreground">{med.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
                       <MedicineCategoryBadge category={med.category} size="sm" />
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{med.unit}</td>
-                    <td className="px-4 py-3 text-right font-bold text-slate-900">
+                    <td className="px-4 py-3 text-muted-foreground">{med.unit}</td>
+                    <td className="px-4 py-3 text-right font-bold text-foreground">
                       Rp {med.unitPrice.toLocaleString('id-ID')}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full font-bold ${
+                        className={cn(
+                          'inline-flex items-center px-2.5 py-1 rounded-full font-bold text-xs border',
                           med.availableStock === 0
-                            ? 'bg-red-100 text-red-700 border border-red-200'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
                             : med.availableStock <= med.minStock
-                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                        }`}
+                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                        )}
                       >
                         {med.availableStock} {med.unit}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-slate-500 font-medium">
+                    <td className="px-4 py-3 text-center text-muted-foreground font-medium">
                       {med.minStock} {med.unit}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {med.availableStock === 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-bold">
                           <PackageX className="w-3 h-3" /> Stok Habis
                         </span>
                       ) : med.expiredStock > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 text-[10px] font-bold">
                           <Calendar className="w-3 h-3" /> Ada Kedaluwarsa ({med.expiredStock})
                         </span>
                       ) : med.availableStock <= med.minStock ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-bold">
                           <AlertTriangle className="w-3 h-3" /> Stok Menipis
                         </span>
                       ) : med.nearExpiryBatchesCount > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-[10px] font-bold">
                           <Clock className="w-3 h-3" /> Mendekati Kedaluwarsa ({med.nearExpiryBatchesCount} Batch)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
                           <CheckCircle2 className="w-3 h-3" /> Aman
                         </span>
                       )}
@@ -628,7 +637,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                             setSelectedMedViewBatches(med)
                             setIsViewBatchesOpen(true)
                           }}
-                          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                          className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                         >
                           <Layers className="w-3.5 h-3.5" />
                         </button>
@@ -638,14 +647,14 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                             <button
                               title="Tambah Batch (Restock)"
                               onClick={() => openAddBatchModal(med)}
-                              className="p-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                              className="p-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
                             <button
                               title="Edit Master Obat"
                               onClick={() => openEditModal(med)}
-                              className="p-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                              className="p-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
@@ -663,15 +672,15 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
       {/* Modal 1: Add / Edit Medicine Master */}
       {isAddMedOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-sm font-bold text-slate-900">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card text-foreground rounded-2xl shadow-xl border border-border w-full max-w-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/40">
+              <h3 className="text-sm font-bold text-foreground">
                 {editingMed ? `Edit Master Obat: ${editingMed.name}` : 'Tambah Obat Baru'}
               </h3>
               <button
                 onClick={() => setIsAddMedOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                className="text-muted-foreground hover:text-foreground text-lg font-bold cursor-pointer"
               >
                 ×
               </button>
@@ -679,41 +688,41 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
             <form onSubmit={handleSaveMedicine} className="p-6 space-y-4">
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium">
                   {errorMsg}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Nama Obat *</label>
+                <label className="block text-xs font-semibold text-foreground mb-1">Nama Obat *</label>
                 <input
                   type="text"
                   required
                   value={medName}
                   onChange={(e) => setMedName(e.target.value)}
                   placeholder="mis. Paracetamol 500mg"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kode Obat <span className="font-normal text-slate-400 text-[10px]">(Opsional / Otomatis OBT-xxx)</span></label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Kode Obat <span className="font-normal text-muted-foreground text-[10px]">(Opsional / Otomatis OBT-xxx)</span></label>
                   <input
                     type="text"
                     value={medCode}
                     onChange={(e) => setMedCode(e.target.value)}
                     placeholder="Otomatis terisi mis. OBT-001"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kategori Obat (Golongan BPOM) *</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Kategori Obat (Golongan BPOM) *</label>
                   <select
                     value={medCategory}
                     onChange={(e) => setMedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-white"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-background text-foreground"
                   >
                     <option value="Obat Bebas">Obat Bebas (Lingkaran Hijau Tepi Hitam)</option>
                     <option value="Obat Bebas Terbatas">Obat Bebas Terbatas (Lingkaran Biru Tepi Hitam)</option>
@@ -724,18 +733,18 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
               </div>
 
               {/* BPOM Symbol & Description Live Preview */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Simbol Golongan Obat (BPOM)</span>
+              <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Simbol Golongan Obat (BPOM)</span>
                 <MedicineCategoryBadge category={medCategory} showDescription={true} size="md" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Satuan</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Satuan</label>
                   <select
                     value={medUnit}
                     onChange={(e) => setMedUnit(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none bg-background text-foreground"
                   >
                     <option value="Pcs">Pcs</option>
                     <option value="Tablet">Tablet</option>
@@ -748,53 +757,53 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Minimum Stok *</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Minimum Stok *</label>
                   <input
                     type="number"
                     required
                     min={0}
                     value={medMinStock}
                     onChange={(e) => setMedMinStock(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Harga Jual (Rp) *</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Harga Jual (Rp) *</label>
                   <input
                     type="number"
                     required
                     min={0}
                     value={medUnitPrice}
                     onChange={(e) => setMedUnitPrice(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Harga Beli (Rp)</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Harga Beli (Rp)</label>
                   <input
                     type="number"
                     min={0}
                     value={medPurchasePrice}
                     onChange={(e) => setMedPurchasePrice(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
+              <div className="pt-4 flex items-center justify-end gap-2 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsAddMedOpen(false)}
-                  className="text-xs"
+                  className="text-xs cursor-pointer"
                 >
                   Batal
                 </Button>
-                <Button type="submit" disabled={isPending} className="text-xs bg-primary">
+                <Button type="submit" disabled={isPending} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer">
                   {isPending ? 'Menyimpan...' : 'Simpan Data Obat'}
                 </Button>
               </div>
@@ -805,16 +814,16 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
       {/* Modal 2: Add Batch Restock */}
       {isBatchModalOpen && selectedMedForBatch && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50">
-              <h3 className="text-sm font-bold text-emerald-900 flex items-center gap-1.5">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card text-foreground rounded-2xl shadow-xl border border-border w-full max-w-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-emerald-500/10">
+              <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <Plus className="w-4 h-4" />
                 <span>Restock / Tambah Batch: {selectedMedForBatch.name}</span>
               </h3>
               <button
                 onClick={() => setIsBatchModalOpen(false)}
-                className="text-emerald-700 hover:text-emerald-900 text-lg font-bold"
+                className="text-muted-foreground hover:text-foreground text-lg font-bold cursor-pointer"
               >
                 ×
               </button>
@@ -822,25 +831,25 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
             <form onSubmit={handleSaveBatch} className="p-6 space-y-4">
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium">
                   {errorMsg}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Nomor Batch *</label>
+                <label className="block text-xs font-semibold text-foreground mb-1">Nomor Batch *</label>
                 <input
                   type="text"
                   required
                   value={batchNumber}
                   onChange={(e) => setBatchNumber(e.target.value)}
                   placeholder="mis. BATCH-20260910-001"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Jumlah Stok Baru ({selectedMedForBatch.unit}) *
                 </label>
                 <input
@@ -849,12 +858,12 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                   min={1}
                   value={batchQty}
                   onChange={(e) => setBatchQty(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Tanggal Kedaluwarsa (Expiry Date) *
                 </label>
                 <input
@@ -862,20 +871,20 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                   required
                   value={batchExpiryDate}
                   onChange={(e) => setBatchExpiryDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
+              <div className="pt-4 flex items-center justify-end gap-2 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsBatchModalOpen(false)}
-                  className="text-xs"
+                  className="text-xs cursor-pointer"
                 >
                   Batal
                 </Button>
-                <Button type="submit" disabled={isPending} className="text-xs bg-emerald-600 hover:bg-emerald-700">
+                <Button type="submit" disabled={isPending} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer">
                   {isPending ? 'Menyimpan...' : 'Tambah Stok Batch'}
                 </Button>
               </div>
@@ -886,52 +895,52 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
       {/* Modal 3: View Batches */}
       {isViewBatchesOpen && selectedMedViewBatches && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card text-foreground rounded-2xl shadow-xl border border-border w-full max-w-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/40">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Layers className="w-4 h-4 text-primary" />
                 <span>Rincian Batch Stok: {selectedMedViewBatches.name}</span>
               </h3>
               <button
                 onClick={() => setIsViewBatchesOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                className="text-muted-foreground hover:text-foreground text-lg font-bold cursor-pointer"
               >
                 ×
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 leading-relaxed flex items-start gap-2">
-                <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-600 dark:text-amber-400 leading-relaxed flex items-start gap-2">
+                <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <div>
                   <strong>Informasi Manajemen Stok (Sistem FEFO):</strong> Stok obat terbagi per-batch. Peringatan status obat dihitung berdasarkan batch yang stoknya masih tersisa. Jika batch lama sudah tidak berlaku/dibuang/salah input ED, Anda dapat mengedit tanggal kedaluwarsa atau menghapus batch lama di kolom <strong>Aksi</strong>.
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border text-xs">
                 <div>
-                  <span className="text-slate-500">Stok Aktif Tersedia: </span>
-                  <span className="font-bold text-emerald-700">
+                  <span className="text-muted-foreground">Stok Aktif Tersedia: </span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
                     {selectedMedViewBatches.availableStock} {selectedMedViewBatches.unit}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Stok Kedaluwarsa: </span>
-                  <span className="font-bold text-purple-700">
+                  <span className="text-muted-foreground">Stok Kedaluwarsa: </span>
+                  <span className="font-bold text-purple-600 dark:text-purple-400">
                     {selectedMedViewBatches.expiredStock} {selectedMedViewBatches.unit}
                   </span>
                 </div>
               </div>
 
               {!selectedMedViewBatches.batches || selectedMedViewBatches.batches.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
+                <div className="py-8 text-center text-muted-foreground text-xs">
                   Belum ada batch stok yang terdaftar untuk obat ini.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider">
+                    <thead className="bg-muted/60 text-muted-foreground font-semibold uppercase tracking-wider">
                       <tr>
                         <th className="px-3 py-2">No. Batch</th>
                         <th className="px-3 py-2 text-center">Sisa Stok</th>
@@ -941,19 +950,19 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                         {isNurse && <th className="px-3 py-2 text-center">Aksi</th>}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-border">
                       {selectedMedViewBatches.batches.map((b) => (
-                        <tr key={b.id} className="hover:bg-slate-50">
-                          <td className="px-3 py-2 font-mono font-bold text-slate-800">
+                        <tr key={b.id} className="hover:bg-muted/30">
+                          <td className="px-3 py-2 font-mono font-bold text-foreground">
                             {b.batchNumber}
                           </td>
-                          <td className="px-3 py-2 text-center font-bold text-slate-900">
+                          <td className="px-3 py-2 text-center font-bold text-foreground">
                             {b.stockQuantity} {selectedMedViewBatches.unit}
                           </td>
-                          <td className="px-3 py-2 text-center text-slate-400">
+                          <td className="px-3 py-2 text-center text-muted-foreground">
                             {b.initialQuantity}
                           </td>
-                          <td className="px-3 py-2 text-slate-700 font-medium">
+                          <td className="px-3 py-2 text-foreground font-medium">
                             {new Date(b.expiryDate).toLocaleDateString('id-ID', {
                               day: 'numeric',
                               month: 'short',
@@ -962,22 +971,22 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                           </td>
                           <td className="px-3 py-2 text-center">
                             {b.isExpired ? (
-                              <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold text-[10px] inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-bold text-[10px] inline-flex items-center gap-1">
                                 <span>Kedaluwarsa</span>
                                 <span className="opacity-80">({Math.abs(b.daysUntilExpiry)} hr lalu)</span>
                               </span>
                             ) : b.isNearExpiry30 ? (
-                              <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-800 font-extrabold text-[10px] inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 font-extrabold text-[10px] inline-flex items-center gap-1">
                                 <span>🚨 Kritis H-30</span>
                                 <span>({b.daysUntilExpiry} hr lagi)</span>
                               </span>
                             ) : b.isNearExpiry60 ? (
-                              <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px] inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold text-[10px] inline-flex items-center gap-1">
                                 <span>🟡 Waspada H-60</span>
                                 <span>({b.daysUntilExpiry} hr lagi)</span>
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">
+                              <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
                                 Aman (&gt;60 hr)
                               </span>
                             )}
@@ -989,7 +998,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                                   type="button"
                                   title="Ubah Tanggal ED Batch"
                                   onClick={() => openEditBatchExpiryModal(b.id, b.batchNumber, b.expiryDate)}
-                                  className="p-1 rounded text-blue-600 hover:bg-blue-50 border border-blue-200 transition-colors"
+                                  className="p-1 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/30 transition-colors cursor-pointer"
                                 >
                                   <Edit2 className="w-3 h-3" />
                                 </button>
@@ -997,7 +1006,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                                   type="button"
                                   title="Hapus Batch Ini"
                                   onClick={() => openDeleteBatchModal(b.id, b.batchNumber)}
-                                  className="p-1 rounded text-red-600 hover:bg-red-50 border border-red-200 transition-colors"
+                                  className="p-1 rounded text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
@@ -1011,10 +1020,10 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 </div>
               )}
 
-              <div className="pt-4 flex justify-end border-t border-slate-100">
+              <div className="pt-4 flex justify-end border-t border-border">
                 <Button
                   onClick={() => setIsViewBatchesOpen(false)}
-                  className="text-xs bg-slate-900 text-white"
+                  className="text-xs bg-muted text-foreground hover:bg-muted/80 border border-border cursor-pointer"
                 >
                   Tutup
                 </Button>
@@ -1026,17 +1035,17 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
       {/* Modal 4: Custom Delete Batch Confirmation Dialog */}
       {batchToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-card text-foreground rounded-2xl shadow-2xl border border-border w-full max-w-md overflow-hidden">
             <div className="p-6 text-center space-y-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto border border-red-200">
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto border border-rose-500/20">
                 <AlertTriangle className="w-6 h-6" />
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-slate-900">Hapus Batch Stok Obat?</h3>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Apakah Anda yakin ingin menghapus <strong className="text-slate-900 font-mono font-bold">{batchToDelete.batchNumber}</strong>?
+                <h3 className="text-base font-bold text-foreground">Hapus Batch Stok Obat?</h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Apakah Anda yakin ingin menghapus <strong className="text-foreground font-mono font-bold">{batchToDelete.batchNumber}</strong>?
                   <br />
                   Stok dari batch ini akan dihapus permanen dari inventaris. Action ini tidak dapat dibatalkan.
                 </p>
@@ -1047,7 +1056,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                   type="button"
                   onClick={() => setBatchToDelete(null)}
                   disabled={isPending}
-                  className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors"
+                  className="py-2.5 px-4 rounded-xl border border-border text-foreground font-semibold text-xs hover:bg-muted transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
@@ -1055,7 +1064,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                   type="button"
                   onClick={confirmDeleteBatch}
                   disabled={isPending}
-                  className="py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {isPending ? 'Menghapus...' : 'Ya, Hapus Batch'}
                 </button>
@@ -1067,30 +1076,30 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
 
       {/* Modal 5: Custom Edit Batch Expiry Date Dialog */}
       {batchToEditExpiry && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-card text-foreground rounded-2xl shadow-2xl border border-border w-full max-w-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/40">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-primary" />
                 <span>Ubah Tanggal Kedaluwarsa</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setBatchToEditExpiry(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                className="text-muted-foreground hover:text-foreground text-lg font-bold cursor-pointer"
               >
                 ×
               </button>
             </div>
 
             <form onSubmit={confirmEditBatchExpiry} className="p-6 space-y-4">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                <span className="text-slate-500 font-medium">Nomor Batch: </span>
-                <span className="font-mono font-bold text-slate-900">{batchToEditExpiry.batchNumber}</span>
+              <div className="p-3 rounded-xl bg-muted/40 border border-border text-xs">
+                <span className="text-muted-foreground font-medium">Nomor Batch: </span>
+                <span className="font-mono font-bold text-foreground">{batchToEditExpiry.batchNumber}</span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Tanggal Kedaluwarsa Baru (ED) *
                 </label>
                 <input
@@ -1098,7 +1107,7 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                   required
                   value={newExpiryDateInput}
                   onChange={(e) => setNewExpiryDateInput(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-white"
+                  className="w-full px-3 py-2.5 border border-border rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-background text-foreground"
                 />
               </div>
 
@@ -1107,14 +1116,14 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                   type="button"
                   onClick={() => setBatchToEditExpiry(null)}
                   disabled={isPending}
-                  className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors"
+                  className="py-2.5 px-4 rounded-xl border border-border text-foreground font-semibold text-xs hover:bg-muted transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md transition-all"
+                  className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
                 >
                   {isPending ? 'Menyimpan...' : 'Simpan Tanggal'}
                 </button>

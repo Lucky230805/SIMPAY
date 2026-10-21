@@ -110,9 +110,9 @@ export function MedicalRecordDrawer({
       />
 
       {/* Right-Side Slide-Over Drawer */}
-      <div className="relative w-full max-w-2xl lg:max-w-3xl bg-white h-full shadow-2xl border-l border-border flex flex-col z-50 animate-in slide-in-from-right duration-300 print:max-w-none print:w-full print:border-none print:shadow-none print:static">
+      <div id="medical-record-print-area" className="relative w-full max-w-2xl lg:max-w-3xl bg-card text-card-foreground h-full shadow-2xl border-l border-border flex flex-col z-50 animate-in slide-in-from-right duration-300 print:max-w-none print:w-full print:border-none print:shadow-none print:static print:bg-white print:text-black">
         {/* Drawer Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/10 print:hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card print:hidden">
           <div className="flex items-center gap-2.5">
             <button
               onClick={onClose}
@@ -169,7 +169,7 @@ export function MedicalRecordDrawer({
           </div>
 
           {/* 1. PATIENT INFORMATION HEADER CARD */}
-          <div className="p-4 rounded-xl bg-muted/25 border border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-xl bg-card border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground">
@@ -218,7 +218,7 @@ export function MedicalRecordDrawer({
                       className={`px-3 py-1.5 rounded-lg border text-left shrink-0 transition-all flex flex-col gap-0.5 ${
                         isSelected
                           ? 'bg-primary text-primary-foreground border-primary shadow-xs font-semibold'
-                          : 'bg-white text-slate-700 border-border hover:bg-muted/40 hover:border-slate-300'
+                          : 'bg-card text-muted-foreground border-border hover:bg-muted/40 hover:text-foreground'
                       }`}
                     >
                       <div className="flex items-center gap-1.5 text-[11px]">
@@ -242,7 +242,7 @@ export function MedicalRecordDrawer({
               <span>Subjektif (Anamnesa)</span>
             </div>
 
-            <div className="p-4 rounded-lg border border-border bg-white space-y-3">
+            <div className="p-4 rounded-lg border border-border bg-card space-y-3">
               <div>
                 <span className="text-[11px] font-semibold text-muted-foreground block mb-0.5">
                   Keluhan Utama:
@@ -257,8 +257,8 @@ export function MedicalRecordDrawer({
                   Riwayat Alergi:
                 </span>
                 {currentRecord.allergy ? (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                     <span>{currentRecord.allergy}</span>
                   </div>
                 ) : (
@@ -277,7 +277,7 @@ export function MedicalRecordDrawer({
 
             {/* Vital Signs Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="p-3 rounded-lg border border-border bg-muted/10 space-y-0.5">
+              <div className="p-3 rounded-lg border border-border bg-card space-y-0.5">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] uppercase font-semibold">Tekanan Darah</span>
                   <Activity className="w-3 h-3 text-primary" />
@@ -287,7 +287,7 @@ export function MedicalRecordDrawer({
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg border border-border bg-muted/10 space-y-0.5">
+              <div className="p-3 rounded-lg border border-border bg-card space-y-0.5">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] uppercase font-semibold">Suhu Tubuh</span>
                   <Thermometer className="w-3 h-3 text-orange-500" />
@@ -297,7 +297,7 @@ export function MedicalRecordDrawer({
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg border border-border bg-muted/10 space-y-0.5">
+              <div className="p-3 rounded-lg border border-border bg-card space-y-0.5">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] uppercase font-semibold">Nadi</span>
                   <Heart className="w-3 h-3 text-rose-500" />
@@ -307,7 +307,7 @@ export function MedicalRecordDrawer({
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg border border-border bg-muted/10 space-y-0.5">
+              <div className="p-3 rounded-lg border border-border bg-card space-y-0.5">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] uppercase font-semibold">Respirasi</span>
                   <Wind className="w-3 h-3 text-blue-500" />
@@ -320,7 +320,7 @@ export function MedicalRecordDrawer({
 
             {/* Pemeriksaan Lanjutan / Notes */}
             {currentRecord.notes && (
-              <div className="p-3 rounded-lg border border-border/70 bg-white">
+              <div className="p-3 rounded-lg border border-border/70 bg-card">
                 <span className="text-[11px] font-semibold text-muted-foreground block mb-0.5">
                   Pemeriksaan Fisik & Status Generalis:
                 </span>
@@ -336,7 +336,7 @@ export function MedicalRecordDrawer({
               <span>Assessment</span>
             </div>
 
-            <div className="p-4 rounded-lg border border-border bg-white space-y-3">
+            <div className="p-4 rounded-lg border border-border bg-card space-y-3">
               {/* Primary Diagnosis */}
               <div>
                 <span className="text-[11px] font-semibold text-muted-foreground block mb-1">
@@ -375,7 +375,7 @@ export function MedicalRecordDrawer({
               <span>Planning</span>
             </div>
 
-            <div className="p-4 rounded-lg border border-border bg-white space-y-3.5">
+            <div className="p-4 rounded-lg border border-border bg-card space-y-3.5">
               {/* Tindakan */}
               <div>
                 <span className="text-[11px] font-semibold text-muted-foreground block mb-0.5">
@@ -431,7 +431,7 @@ export function MedicalRecordDrawer({
               </p>
             </div>
             <div className="text-right">
-              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-semibold">
+              <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
                 TERVALIDASI
               </span>
             </div>
@@ -517,7 +517,7 @@ export function MedicalRecordDrawer({
 
                       {/* Vital signs summary */}
                       {(hist.bloodPressure || hist.temperature || hist.heartRate) && (
-                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground pt-1 bg-white/60 p-2 rounded-md border border-border/40">
+                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground pt-1 bg-muted/30 p-2 rounded-md border border-border/40">
                           {hist.bloodPressure && (
                             <span>
                               TD: <strong className="text-foreground">{hist.bloodPressure}</strong>

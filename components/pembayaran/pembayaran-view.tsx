@@ -217,14 +217,14 @@ export function PembayaranView({
           </div>
 
           {/* User Session Role Badge */}
-          <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 shrink-0">
+          <div className="flex items-center gap-2 bg-muted/60 px-3 py-1.5 rounded-lg border border-border shrink-0">
             <span className="text-[11px] font-semibold text-muted-foreground">Peran Pengguna:</span>
             <span
               className={cn(
                 'px-2 py-0.5 rounded font-bold text-[10px] uppercase border',
                 activeRole === 'PERAWAT'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
               )}
             >
               {activeRole}
@@ -234,11 +234,11 @@ export function PembayaranView({
 
         {/* Role Warning Banner if Dokter */}
         {activeRole === 'DOKTER' && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl flex items-start gap-3 shadow-sm">
-            <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300 p-4 rounded-xl flex items-start gap-3 shadow-sm">
+            <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
             <div>
               <h4 className="font-bold text-sm">Peringatan Hak Akses</h4>
-              <p className="text-xs text-rose-700 mt-0.5">
+              <p className="text-xs text-rose-700 dark:text-rose-300/80 mt-0.5">
                 Anda sedang melihat antarmuka dengan peran <span className="font-bold">DOKTER</span>.
                 Dokter tidak diperkenankan memproses pembayaran kasir. Pengajuan transaksi akan ditolak oleh server.
               </p>
@@ -250,7 +250,7 @@ export function PembayaranView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT COLUMN: Patient Visit List (5 Cols) */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white border border-border rounded-xl p-4 shadow-sm space-y-3">
+            <div className="bg-card border border-border rounded-xl p-4 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm text-foreground">Daftar Antrean & Tagihan</h3>
                 <span className="text-[11px] font-semibold text-muted-foreground">
@@ -258,28 +258,28 @@ export function PembayaranView({
                 </span>
               </div>
               {/* Date Filter Tabs */}
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-[10px]">
+              <div className="flex items-center gap-1 bg-muted p-1 rounded-lg border border-border text-[10px]">
                 <button
                   onClick={() => setDateRangeFilter('TODAY')}
                   className={cn(
-                    'flex-1 py-1 px-2 rounded-md font-bold transition-all flex items-center justify-center gap-1',
+                    'flex-1 py-1 px-2 rounded-md font-bold transition-all flex items-center justify-center gap-1 cursor-pointer',
                     dateRangeFilter === 'TODAY'
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-card text-foreground shadow-sm border border-border'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  <Calendar className="w-3 h-3 text-emerald-600" /> Hari Ini
+                  <Calendar className="w-3 h-3 text-emerald-500" /> Hari Ini
                 </button>
                 <button
                   onClick={() => setDateRangeFilter('ALL')}
                   className={cn(
-                    'flex-1 py-1 px-2 rounded-md font-bold transition-all flex items-center justify-center gap-1',
+                    'flex-1 py-1 px-2 rounded-md font-bold transition-all flex items-center justify-center gap-1 cursor-pointer',
                     dateRangeFilter === 'ALL'
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-card text-foreground shadow-sm border border-border'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  <Clock className="w-3 h-3 text-blue-600" /> Semua Riwayat
+                  <Clock className="w-3 h-3 text-blue-500" /> Semua Riwayat
                 </button>
               </div>
 
@@ -291,7 +291,7 @@ export function PembayaranView({
                   placeholder="Cari pasien / No. RM..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-slate-800"
+                  className="w-full pl-8 pr-3 py-1.5 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -300,10 +300,10 @@ export function PembayaranView({
                 <button
                   onClick={() => setStatusFilter('SEMUA')}
                   className={cn(
-                    'px-2.5 py-1 rounded-md font-bold text-[10px] border transition-colors',
+                    'px-2.5 py-1 rounded-md font-bold text-[10px] border transition-colors cursor-pointer',
                     statusFilter === 'SEMUA'
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                      : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+                      : 'bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground'
                   )}
                 >
                   Semua
@@ -311,10 +311,10 @@ export function PembayaranView({
                 <button
                   onClick={() => setStatusFilter('BELUM_LUNAS')}
                   className={cn(
-                    'px-2.5 py-1 rounded-md font-bold text-[10px] border transition-colors',
+                    'px-2.5 py-1 rounded-md font-bold text-[10px] border transition-colors cursor-pointer',
                     statusFilter === 'BELUM_LUNAS'
-                      ? 'bg-amber-600 text-white border-amber-600'
-                      : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                      : 'bg-card text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/10'
                   )}
                 >
                   Belum Lunas
@@ -322,10 +322,10 @@ export function PembayaranView({
                 <button
                   onClick={() => setStatusFilter('LUNAS')}
                   className={cn(
-                    'px-2.5 py-1 rounded-md font-bold text-[10px] border transition-colors',
+                    'px-2.5 py-1 rounded-md font-bold text-[10px] border transition-colors cursor-pointer',
                     statusFilter === 'LUNAS'
-                      ? 'bg-emerald-600 text-white border-emerald-600'
-                      : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                      : 'bg-card text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10'
                   )}
                 >
                   Lunas
@@ -336,7 +336,7 @@ export function PembayaranView({
             {/* Queue List */}
             <div className="space-y-2.5 max-h-[650px] overflow-y-auto p-1 pr-1.5">
               {filteredQueues.length === 0 ? (
-                <div className="bg-white border rounded-xl p-8 text-center text-muted-foreground shadow-sm">
+                <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm">
                   Tidak ada data antrean/tagihan ditemukan.
                 </div>
               ) : (
@@ -349,14 +349,15 @@ export function PembayaranView({
                       key={item.queueId}
                       onClick={() => setSelectedQueueId(item.queueId)}
                       className={cn(
-                        'bg-white rounded-xl p-4 transition-all cursor-pointer flex items-center justify-between gap-3',
-                        isSelected ? 'border-2 border-slate-900 shadow-md' : 'border border-border hover:border-slate-300',
-                        isLunas ? 'bg-slate-50/50' : ''
+                        'bg-card rounded-xl p-4 transition-all cursor-pointer flex items-center justify-between gap-3 border',
+                        isSelected
+                          ? 'border-primary ring-2 ring-primary/20 shadow-md bg-accent/30'
+                          : 'border-border hover:border-slate-400 dark:hover:border-slate-600 hover:bg-muted/30'
                       )}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">
+                          <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-muted rounded border border-border text-foreground/80">
                             Antrean #{item.queueNumber}
                           </span>
                           <span className="font-mono text-[10px] text-muted-foreground">
@@ -376,8 +377,8 @@ export function PembayaranView({
                           className={cn(
                             'inline-block px-2 py-0.5 rounded font-bold text-[10px] border',
                             isLunas
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 animate-pulse'
                           )}
                         >
                           {isLunas ? '✓ LUNAS' : 'BELUM LUNAS'}
@@ -398,26 +399,26 @@ export function PembayaranView({
           {/* RIGHT COLUMN: Billing Details & Payment Form (7 Cols) */}
           <div className="lg:col-span-7 space-y-6">
             {!selectedQueueId ? (
-              <div className="bg-white border rounded-xl p-12 text-center text-muted-foreground shadow-sm flex flex-col items-center justify-center space-y-3 min-h-[350px]">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto" />
+              <div className="bg-card border border-border rounded-xl p-12 text-center text-muted-foreground shadow-sm flex flex-col items-center justify-center space-y-3 min-h-[350px]">
+                <FileText className="w-12 h-12 text-muted-foreground/40 mx-auto" />
                 <h3 className="font-bold text-base text-foreground">Pilih Kunjungan Pasien</h3>
                 <p className="text-xs text-muted-foreground max-w-sm">
                   Pilih salah satu kunjungan dari daftar di sebelah kiri untuk melihat rincian tagihan dan memproses pembayaran.
                 </p>
               </div>
             ) : isLoadingBilling ? (
-              <div className="bg-white border rounded-xl p-12 text-center shadow-sm flex flex-col items-center justify-center space-y-3 min-h-[350px]">
-                <Loader2 className="w-8 h-8 text-slate-800 animate-spin mx-auto" />
-                <p className="text-xs font-semibold text-slate-700">Memuat data rincian tagihan database...</p>
+              <div className="bg-card border border-border rounded-xl p-12 text-center shadow-sm flex flex-col items-center justify-center space-y-3 min-h-[350px]">
+                <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+                <p className="text-xs font-semibold text-muted-foreground">Memuat data rincian tagihan database...</p>
               </div>
             ) : billingError ? (
-              <div className="bg-white border rounded-xl p-8 text-center shadow-sm space-y-3">
+              <div className="bg-card border border-border rounded-xl p-8 text-center shadow-sm space-y-3">
                 <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
-                <h3 className="font-bold text-base text-rose-700">Gagal Memuat Tagihan</h3>
+                <h3 className="font-bold text-base text-rose-600 dark:text-rose-400">Gagal Memuat Tagihan</h3>
                 <p className="text-xs text-muted-foreground">{billingError}</p>
                 <button
                   onClick={() => setSelectedQueueId(selectedQueueId)}
-                  className="px-4 py-2 bg-slate-800 text-white rounded-lg font-bold text-xs hover:bg-slate-900"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bold text-xs hover:opacity-90 transition-opacity cursor-pointer"
                 >
                   Coba Lagi
                 </button>
@@ -425,8 +426,8 @@ export function PembayaranView({
             ) : billing ? (
               <div className="space-y-6">
                 {/* Visit Information Header Card */}
-                <div className="bg-white border border-border rounded-xl p-5 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between border-b pb-3">
+                <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-border pb-3">
                     <div>
                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                         RINCIAN KUNJUNGAN PASIEN
@@ -439,13 +440,13 @@ export function PembayaranView({
                       className={cn(
                         'px-3 py-1 rounded-full font-bold text-xs border flex items-center gap-1.5',
                         billing.status === 'LUNAS'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
                       )}
                     >
                       {billing.status === 'LUNAS' ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" /> Tagihan Lunas
+                          <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Tagihan Lunas
                         </>
                       ) : (
                         <>
@@ -459,29 +460,29 @@ export function PembayaranView({
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                     <div>
                       <span className="text-muted-foreground block text-[10px]">No. RM:</span>
-                      <span className="font-bold font-mono">{billing.patientNoRM}</span>
+                      <span className="font-bold font-mono text-foreground">{billing.patientNoRM}</span>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[10px]">Dokter Pemeriksa:</span>
-                      <span className="font-semibold">{billing.doctorName || 'dr. Raniisyana R.R.'}</span>
+                      <span className="font-semibold text-foreground">{billing.doctorName || 'dr. Raniisyana R.R.'}</span>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[10px]">Poliklinik:</span>
-                      <span className="font-semibold">{billing.polyclinic || 'Poli Umum'}</span>
+                      <span className="font-semibold text-foreground">{billing.polyclinic || 'Poli Umum'}</span>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[10px]">Status Resep / Obat:</span>
                       <span className="font-bold">
                         {billing.items.filter((i) => !i.name.includes('Konsultasi') && !i.name.includes('Pendaftaran') && !i.name.startsWith('Tindakan') && !i.name.includes('Injeksi')).length === 0 ? (
-                          <span className="text-gray-500">Tidak Ada Resep</span>
+                          <span className="text-muted-foreground">Tidak Ada Resep</span>
                         ) : (
-                          <span className="text-slate-700">Ada Resep Obat</span>
+                          <span className="text-foreground">Ada Resep Obat</span>
                         )}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground block text-[10px]">Tanggal Kunjungan:</span>
-                      <span className="font-semibold">
+                      <span className="font-semibold text-foreground">
                         {new Date(billing.createdAt).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
@@ -493,12 +494,12 @@ export function PembayaranView({
                 </div>
 
                 {/* Itemized Billing Breakdown Table */}
-                <div className="bg-white border border-border rounded-xl p-5 shadow-sm space-y-4">
-                  <h3 className="font-bold text-sm border-b pb-2 text-foreground">Rincian Tagihan Layanan & Obat</h3>
+                <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
+                  <h3 className="font-bold text-sm border-b border-border pb-2 text-foreground">Rincian Tagihan Layanan & Obat</h3>
 
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b text-muted-foreground text-left">
+                      <tr className="border-b border-border text-muted-foreground text-left">
                         <th className="py-2">Item Layanan / Obat</th>
                         <th className="py-2 text-center w-16">Qty</th>
                         <th className="py-2 text-right w-24">Harga Satuan</th>
@@ -507,7 +508,7 @@ export function PembayaranView({
                     </thead>
                     <tbody className="divide-y divide-border/60">
                       {billing.items.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50">
+                        <tr key={idx} className="hover:bg-muted/40 transition-colors">
                           <td className="py-2.5 font-medium text-foreground">{item.name}</td>
                           <td className="py-2.5 text-center font-mono">{item.quantity}</td>
                           <td className="py-2.5 text-right font-mono text-muted-foreground">
@@ -520,11 +521,11 @@ export function PembayaranView({
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr className="border-t-2 border-slate-200">
+                      <tr className="border-t-2 border-border">
                         <td colSpan={3} className="py-3 text-right font-bold text-sm text-foreground">
                           Total Tagihan:
                         </td>
-                        <td className="py-3 text-right font-mono font-bold text-base text-emerald-700">
+                        <td className="py-3 text-right font-mono font-bold text-base text-emerald-600 dark:text-emerald-400">
                           Rp {billing.totalAmount.toLocaleString('id-ID')}
                         </td>
                       </tr>
@@ -534,8 +535,8 @@ export function PembayaranView({
 
                 {/* Action Error Banner */}
                 {actionError && (
-                  <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl flex items-start gap-3 text-xs shadow-sm">
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300 p-4 rounded-xl flex items-start gap-3 text-xs shadow-sm">
+                    <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                     <div>
                       <h5 className="font-bold">Gagal Memproses Pembayaran</h5>
                       <p className="mt-0.5">{actionError}</p>
@@ -543,16 +544,16 @@ export function PembayaranView({
                   </div>
                 )}
 
-                {/* Payment Success Receipt Card */}
+                {/* Payment Success Card (Follows dark mode theme on screen) */}
                 {paymentSuccess || billing.status === 'LUNAS' ? (
-                  <div className="bg-white border border-emerald-300 rounded-xl p-6 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-emerald-200 pb-3">
+                  <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-4 text-card-foreground">
+                    <div className="flex items-center justify-between border-b border-border pb-3">
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                        <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                         <div>
-                          <h3 className="font-bold text-base text-emerald-900">Pembayaran Berhasil</h3>
-                          <p className="text-[11px] text-emerald-700">
-                            Nomor Kuitansi: <span className="font-mono font-bold">{billing.payment?.paymentNumber || paymentSuccess?.paymentNumber}</span>
+                          <h3 className="font-bold text-base text-foreground">Pembayaran Berhasil</h3>
+                          <p className="text-[11px] text-muted-foreground">
+                            Nomor Kuitansi: <span className="font-mono font-bold text-foreground">{billing.payment?.paymentNumber || paymentSuccess?.paymentNumber}</span>
                           </p>
                         </div>
                       </div>
@@ -564,7 +565,7 @@ export function PembayaranView({
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-xs bg-emerald-50/50 p-4 rounded-lg border border-emerald-100">
+                    <div className="grid grid-cols-2 gap-3 text-xs bg-muted/60 p-4 rounded-lg border border-border text-foreground">
                       <div>
                         <span className="text-muted-foreground block text-[10px]">Metode Pembayaran:</span>
                         <span className="font-bold text-foreground">
@@ -585,7 +586,7 @@ export function PembayaranView({
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[10px]">Kembalian:</span>
-                        <span className="font-bold font-mono text-emerald-700">
+                        <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
                           Rp {(billing.payment?.changeAmount || paymentSuccess?.changeAmount || 0).toLocaleString('id-ID')}
                         </span>
                       </div>
@@ -597,8 +598,8 @@ export function PembayaranView({
                   </div>
                 ) : (
                   /* Payment Processing Input Form */
-                  <div className="bg-white border border-border rounded-xl p-5 shadow-sm space-y-5">
-                    <h3 className="font-bold text-sm border-b pb-2 text-foreground flex items-center justify-between">
+                  <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-5">
+                    <h3 className="font-bold text-sm border-b border-border pb-2 text-foreground flex items-center justify-between">
                       <span>Formulir Pembayaran Kasir</span>
                       <span className="text-[11px] font-normal text-muted-foreground">Diproses oleh Perawat</span>
                     </h3>
@@ -614,10 +615,10 @@ export function PembayaranView({
                             setAmountPaidInput(billing.totalAmount.toString())
                           }}
                           className={cn(
-                            'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all',
+                            'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer',
                             paymentMethod === 'TUNAI'
                               ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
-                              : 'border-gray-200 bg-white text-slate-700 hover:bg-gray-50'
+                              : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                           )}
                         >
                           <Banknote className="w-5 h-5" />
@@ -631,10 +632,10 @@ export function PembayaranView({
                             setAmountPaidInput(billing.totalAmount.toString())
                           }}
                           className={cn(
-                            'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all',
+                            'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer',
                             paymentMethod === 'QRIS'
                               ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
-                              : 'border-gray-200 bg-white text-slate-700 hover:bg-gray-50'
+                              : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                           )}
                         >
                           <QrCode className="w-5 h-5" />
@@ -648,10 +649,10 @@ export function PembayaranView({
                             setAmountPaidInput(billing.totalAmount.toString())
                           }}
                           className={cn(
-                            'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all',
+                            'p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer',
                             paymentMethod === 'TRANSFER'
                               ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
-                              : 'border-gray-200 bg-white text-slate-700 hover:bg-gray-50'
+                              : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                           )}
                         >
                           <CreditCard className="w-5 h-5" />
@@ -662,14 +663,14 @@ export function PembayaranView({
 
                     {/* Method Specific Inputs */}
                     {paymentMethod === 'TUNAI' ? (
-                      <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      <div className="space-y-3 bg-muted/40 p-4 rounded-xl border border-border">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <label className="font-bold text-xs text-foreground">Nominal Uang Tunai Diterima:</label>
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => setAmountPaidInput(billing.totalAmount.toString())}
-                              className="px-2 py-0.5 bg-white border rounded text-[10px] font-semibold hover:bg-gray-100"
+                              className="px-2 py-0.5 bg-card border border-border text-foreground rounded text-[10px] font-semibold hover:bg-muted cursor-pointer transition-colors"
                             >
                               Pas (Rp {billing.totalAmount.toLocaleString('id-ID')})
                             </button>
@@ -679,7 +680,7 @@ export function PembayaranView({
                                 const roundedUp = Math.ceil(billing.totalAmount / 50000) * 50000
                                 setAmountPaidInput(roundedUp.toString())
                               }}
-                              className="px-2 py-0.5 bg-white border rounded text-[10px] font-semibold hover:bg-gray-100"
+                              className="px-2 py-0.5 bg-card border border-border text-foreground rounded text-[10px] font-semibold hover:bg-muted cursor-pointer transition-colors"
                             >
                               Pecahan Terdekat
                             </button>
@@ -694,21 +695,21 @@ export function PembayaranView({
                             onChange={(e) => setAmountPaidInput(e.target.value)}
                             placeholder="Masukkan jumlah uang"
                             className={cn(
-                              'w-full pl-9 pr-3 py-2 bg-white border rounded-lg font-mono font-bold text-sm focus:outline-none focus:ring-2',
+                              'w-full pl-9 pr-3 py-2 bg-background border rounded-lg font-mono font-bold text-sm focus:outline-none focus:ring-2',
                               isCashInsufficient
-                                ? 'border-rose-400 focus:ring-rose-400 text-rose-700'
-                                : 'border-border focus:ring-slate-800 text-foreground'
+                                ? 'border-rose-400 focus:ring-rose-400 text-rose-600 dark:text-rose-400'
+                                : 'border-border focus:ring-primary text-foreground'
                             )}
                           />
                         </div>
 
                         {/* Realtime Cash Change Calculation */}
-                        <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-xs">
+                        <div className="flex justify-between items-center pt-2 border-t border-border text-xs">
                           <span className="text-muted-foreground font-semibold">Uang Kembalian:</span>
                           <span
                             className={cn(
                               'font-mono font-bold text-sm',
-                              isCashInsufficient ? 'text-rose-600' : 'text-emerald-700'
+                              isCashInsufficient ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                             )}
                           >
                             {isCashInsufficient
@@ -718,7 +719,7 @@ export function PembayaranView({
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+                      <div className="bg-muted/40 p-4 rounded-xl border border-border space-y-2 text-xs">
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Total Tagihan Nontunai ({paymentMethod}):</span>
                           <span className="font-mono font-bold text-sm text-foreground">
@@ -737,9 +738,9 @@ export function PembayaranView({
                       disabled={isSubmitting || activeRole === 'DOKTER' || isCashInsufficient}
                       onClick={handleProcessPayment}
                       className={cn(
-                        'w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-sm',
+                        'w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer',
                         activeRole === 'DOKTER' || isCashInsufficient
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                          ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border'
                           : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.99]'
                       )}
                     >
@@ -764,7 +765,7 @@ export function PembayaranView({
 
       {/* PRINT-ONLY CLINIC RECEIPT (STRUK KUITANSI PEMBAYARAN KLINIK) */}
       {billing && (
-        <div id="receipt-print-area" className="hidden print:block font-mono text-black bg-white p-6 max-w-md mx-auto">
+        <div id="receipt-print-area" className="hidden print:block font-mono text-black bg-white p-6 max-w-md mx-auto preserve-light">
           {/* Header Klinik */}
           <div style={{ textAlign: 'center', paddingBottom: '8px', borderBottom: '1px dashed #64748b' }}>
             <h1 style={{ fontSize: '15px', fontWeight: 'bold', letterSpacing: '0.5px', textTransform: 'uppercase', margin: 0 }}>

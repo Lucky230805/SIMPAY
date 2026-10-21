@@ -125,8 +125,8 @@ export function SuratDetailPrintModal({
           </div>
 
           {/* On-Screen Preview Container */}
-          <div className="p-6 sm:p-8 bg-slate-100 overflow-y-auto max-h-[75vh]">
-            <div className="bg-white p-8 sm:p-10 rounded-xl shadow-md max-w-2xl mx-auto border border-slate-200 text-slate-900 font-sans text-xs sm:text-sm leading-normal">
+          <div className="p-6 sm:p-8 bg-slate-900/60 dark:bg-black/60 overflow-y-auto max-h-[75vh]">
+            <div className="preserve-light bg-white p-8 sm:p-10 rounded-xl shadow-2xl max-w-2xl mx-auto border border-slate-300 text-slate-900 font-sans text-xs sm:text-sm leading-normal">
               <CertificateContent
                 surat={surat}
                 calculateAge={calculateAge}
@@ -140,7 +140,7 @@ export function SuratDetailPrintModal({
       </div>
 
       {/* PRINT-ONLY OFFICIAL MEDICAL CERTIFICATE (HIDDEN ON SCREEN, SHOWN ONLY ON PRINT) */}
-      <div className="hidden print:block fixed inset-0 bg-white text-black font-sans p-8 sm:p-10 leading-relaxed z-[9999]">
+      <div id="surat-print-area" className="hidden print:block fixed inset-0 bg-white text-black font-sans p-8 sm:p-10 leading-relaxed z-[9999] preserve-light">
         <CertificateContent
           surat={surat}
           calculateAge={calculateAge}

@@ -22,10 +22,14 @@ import {
   CheckCircle2,
   Building2,
   X,
+  ArrowRight,
+  AlertTriangle,
+  Info,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import { formatNoRM, formatBirthDateAndAge } from '@/lib/patient-utils'
 import { getPatients, PatientRecord, getAllPatientsForExport, addExistingPatientToQueue } from '@/app/pasien/actions'
 import { getSessionUserAction } from '@/app/login/actions'
@@ -96,11 +100,22 @@ export function PatientTable({ initialData }: PatientTableProps) {
   const [isQueueingId, setIsQueueingId] = useState<number | null>(null)
   const [selectedPatientForQueue, setSelectedPatientForQueue] = useState<PatientRecord | null>(null)
   const [selectedPoliForQueue, setSelectedPoliForQueue] = useState<string>('Poli Umum 1')
+  const [alreadyQueuedInfo, setAlreadyQueuedInfo] = useState<{
+    patientName: string
+    noRM: string
+    queueNumber: number
+    status: string
+  } | null>(null)
 
   const handleAddToQueue = (patient: PatientRecord) => {
     setActiveMenuId(null)
     if (patient.todayQueue) {
-      alert(`Pasien ${patient.name} sudah terdaftar di Antrean Pemeriksaan hari ini (No. Antrean #${patient.todayQueue.queueNumber}, Status: ${patient.todayQueue.status === 'MENUNGGU' ? 'Menunggu' : 'Dalam Pemeriksaan'}). Pasien tidak dapat diinputkan lagi ke antrean.`)
+      setAlreadyQueuedInfo({
+        patientName: patient.name,
+        noRM: formatNoRM(patient.id),
+        queueNumber: patient.todayQueue.queueNumber,
+        status: patient.todayQueue.status === 'MENUNGGU' ? 'Menunggu di Ruang Tunggu' : 'Sedang Dalam Pemeriksaan',
+      })
       return
     }
     setSelectedPatientForQueue(patient)
@@ -114,7 +129,7 @@ export function PatientTable({ initialData }: PatientTableProps) {
     try {
       const res = await addExistingPatientToQueue(patient.id, selectedPoliForQueue)
       if (res.success && res.queue) {
-        showToast(`Pasien ${res.patientName} berhasil didaftarkan ke ${selectedPoliForQueue} (#${res.queue.queueNumber})`)
+        showToast(`Pasien ${res.patientName} berhasil didaftarkan ke ${selectedPoliForQueue} (#${res.queue.queueNumber})`, 'success')
         setTicketModalData({
           queueNumber: res.queue.queueNumber,
           patientName: res.patientName,
@@ -125,10 +140,10 @@ export function PatientTable({ initialData }: PatientTableProps) {
         setSelectedPatientForQueue(null)
         fetchData(page, search, genderFilter)
       } else {
-        alert(res.error || 'Gagal mendaftarkan pasien ke antrean')
+        showToast(res.error || 'Gagal mendaftarkan pasien ke antrean', 'error')
       }
     } catch (err: any) {
-      alert('Terjadi kesalahan: ' + err.message)
+      showToast('Terjadi kesalahan: ' + err.message, 'error')
     } finally {
       setIsQueueingId(null)
     }
@@ -136,7 +151,10 @@ export function PatientTable({ initialData }: PatientTableProps) {
 
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [feedbackToast, setFeedbackToast] = useState<string | null>(null)
+  const [feedbackToast, setFeedbackToast] = useState<{
+    type: 'success' | 'error' | 'warning' | 'info'
+    message: string
+  } | null>(null)
 
   const fetchData = useCallback(
     (currentPage: number, currentSearch: string, currentGender: string) => {
@@ -179,7 +197,7 @@ export function PatientTable({ initialData }: PatientTableProps) {
     try {
       const allPatients = await getAllPatientsForExport()
       if (!allPatients.length) {
-        alert('Tidak ada data pasien untuk diekspor.')
+        showToast('Tidak ada data pasien untuk diekspor.', 'warning')
         return
       }
 
@@ -202,15 +220,15 @@ export function PatientTable({ initialData }: PatientTableProps) {
       link.click()
       document.body.removeChild(link)
 
-      showToast('Data pasien berhasil diekspor ke CSV')
+      showToast('Data pasien berhasil diekspor ke CSV', 'success')
     } catch (err: any) {
-      alert('Gagal mengekspor data: ' + err.message)
+      showToast('Gagal mengekspor data: ' + err.message, 'error')
     }
   }
 
-  const showToast = (msg: string) => {
-    setFeedbackToast(msg)
-    setTimeout(() => setFeedbackToast(null), 3000)
+  const showToast = (msg: string, type: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+    setFeedbackToast({ type, message: msg })
+    setTimeout(() => setFeedbackToast(null), 3500)
   }
 
   // Handlers for edit and add
@@ -254,10 +272,87 @@ export function PatientTable({ initialData }: PatientTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Toast alert */}
+      {/* Rich Floating Toast alert */}
       {feedbackToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-700 text-white text-xs font-medium shadow-lg animate-in slide-in-from-bottom-5">
-          <span>{feedbackToast}</span>
+        <div
+          className={cn(
+            'fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold animate-in slide-in-from-bottom-5 duration-200 border',
+            feedbackToast.type === 'success' && 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-600/20',
+            feedbackToast.type === 'error' && 'bg-rose-600 text-white border-rose-500 shadow-rose-600/20',
+            feedbackToast.type === 'warning' && 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/20',
+            feedbackToast.type === 'info' && 'bg-blue-600 text-white border-blue-500 shadow-blue-600/20'
+          )}
+        >
+          {feedbackToast.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0" />}
+          {feedbackToast.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0" />}
+          {feedbackToast.type === 'warning' && <AlertTriangle className="w-4 h-4 shrink-0" />}
+          {feedbackToast.type === 'info' && <Info className="w-4 h-4 shrink-0" />}
+          <span>{feedbackToast.message}</span>
+          <button
+            onClick={() => setFeedbackToast(null)}
+            className="ml-2 p-0.5 rounded-full hover:bg-black/10 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Sleek In-App Modal when Patient is Already Queued */}
+      {alreadyQueuedInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0 duration-200">
+          <div className="w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border p-6 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-foreground">
+                  Pasien Sudah Terdaftar di Antrean
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Pasien <strong className="text-foreground">{alreadyQueuedInfo.patientName}</strong> telah terdaftar dalam antrean pemeriksaan aktif hari ini dan tidak dapat didaftarkan ganda.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">No. Rekam Medis:</span>
+                <span className="font-mono font-bold text-foreground">{alreadyQueuedInfo.noRM}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Nomor Antrean Hari Ini:</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                  #{alreadyQueuedInfo.queueNumber}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Status Pemeriksaan:</span>
+                <span className="font-semibold text-foreground">{alreadyQueuedInfo.status}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAlreadyQueuedInfo(null)}
+                className="text-xs font-semibold"
+              >
+                Tutup
+              </Button>
+              <Link
+                href="/antrean"
+                className={cn(
+                  buttonVariants({ size: 'sm' }),
+                  'text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white'
+                )}
+              >
+                Lihat di Antrean
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
         </div>
       )}
 
@@ -357,7 +452,7 @@ export function PatientTable({ initialData }: PatientTableProps) {
       />
 
       {/* Table Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-lg border border-border">
         {/* Left: Search Bar */}
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -365,7 +460,7 @@ export function PatientTable({ initialData }: PatientTableProps) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Saring tabel ini..."
-            className="pl-8 text-xs h-9 bg-muted/20 focus:bg-white"
+            className="pl-8 text-xs h-9 bg-muted/20 focus:bg-card"
           />
         </div>
 
@@ -384,7 +479,7 @@ export function PatientTable({ initialData }: PatientTableProps) {
             </Button>
 
             {showFilterDropdown && (
-              <div className="absolute right-0 mt-1.5 w-48 bg-white rounded-lg shadow-lg border border-border p-2 z-30 animate-in fade-in-0 zoom-in-95 text-xs space-y-1">
+              <div className="absolute right-0 mt-1.5 w-48 bg-popover rounded-lg shadow-lg border border-border p-2 z-30 animate-in fade-in-0 zoom-in-95 text-xs space-y-1">
                 <p className="px-2 py-1 text-[11px] font-semibold text-muted-foreground uppercase">
                   Jenis Kelamin
                 </p>
@@ -467,7 +562,7 @@ export function PatientTable({ initialData }: PatientTableProps) {
       )}
 
       {/* Main Table Card */}
-      <div className="bg-white rounded-lg border border-border shadow-xs">
+      <div className="bg-card rounded-lg border border-border shadow-xs">
         <div className="overflow-x-auto min-h-[360px] pb-2">
           <table className="w-full text-xs">
             <thead>
@@ -643,7 +738,7 @@ export function PatientTable({ initialData }: PatientTableProps) {
                                 <div
                                   className={`absolute right-0 ${
                                     isBottomRows ? 'bottom-full mb-1' : 'top-full mt-1'
-                                  } w-44 bg-white rounded-lg shadow-xl border border-border py-1 z-40 animate-in fade-in-0 zoom-in-95 text-xs text-left`}
+                                  } w-44 bg-popover rounded-lg shadow-xl border border-border py-1 z-40 animate-in fade-in-0 zoom-in-95 text-xs text-left`}
                                 >
                                   {!isDokter && (
                                     patient.todayQueue ? (

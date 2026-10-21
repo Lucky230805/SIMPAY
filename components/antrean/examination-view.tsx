@@ -822,24 +822,24 @@ export function ExaminationView({
               </div>
 
               {/* ── P1: Tindakan & Layanan Medis (Procedures & Injections) ── */}
-              <div className="space-y-4 p-4 rounded-lg border border-purple-200 bg-purple-50/20">
-                <div className="flex items-center justify-between pb-2 border-b border-purple-200/60">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-purple-900 uppercase tracking-wide">
-                    <Syringe className="w-3.5 h-3.5 text-purple-700" />
+              <div className="space-y-4 p-4 rounded-lg border border-purple-200 dark:border-purple-900/60 bg-purple-50/20 dark:bg-purple-950/20">
+                <div className="flex items-center justify-between pb-2 border-b border-purple-200/60 dark:border-purple-900/50">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-purple-900 dark:text-purple-300 uppercase tracking-wide">
+                    <Syringe className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
                     <span>Tindakan Medis &amp; Injeksi (Plan)</span>
                   </div>
                   {actionsList.length > 0 && (
-                    <span className="text-[11px] font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded-full">
                       {actionsList.length} Tindakan ({formatCurrency(totalEstimatedActionFee)})
                     </span>
                   )}
                 </div>
 
                 {!isCompleted && (
-                  <div className="p-3.5 rounded-lg border border-purple-200 bg-white space-y-3">
+                  <div className="p-3.5 rounded-lg border border-purple-200 dark:border-purple-900/50 bg-card space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-semibold text-purple-950 flex items-center gap-1.5">
-                        <Syringe className="w-3.5 h-3.5 text-purple-600" />
+                      <label className="text-[11px] font-semibold text-purple-950 dark:text-purple-200 flex items-center gap-1.5">
+                        <Syringe className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                         Pilih Tindakan Medis / Obat Suntik
                       </label>
                       <span className="text-[10px] text-muted-foreground">
@@ -860,7 +860,7 @@ export function ExaminationView({
                             setActionError(null)
                           }}
                           disabled={isSubmitting || isCompleted}
-                          className="w-full h-8 rounded-md border border-input bg-white px-2.5 py-1 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-60"
+                          className="w-full h-8 rounded-md border border-input bg-card text-foreground px-2.5 py-1 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-60"
                         >
                           <option value="">-- Pilih Tindakan Medis / Injeksi --</option>
                           {procedureOptions.map((act) => (
@@ -879,7 +879,7 @@ export function ExaminationView({
                           onChange={(e) => setInputActionTarif(e.target.value)}
                           placeholder="Tarif (Rp)"
                           disabled={isSubmitting || isCompleted}
-                          className="text-xs h-8 bg-white font-mono"
+                          className="text-xs h-8 bg-card text-foreground font-mono"
                         />
                       </div>
 
@@ -891,7 +891,7 @@ export function ExaminationView({
                           onChange={(e) => setInputActionQty(e.target.value)}
                           placeholder="Qty"
                           disabled={isSubmitting || isCompleted}
-                          className="text-xs h-8 bg-white font-mono"
+                          className="text-xs h-8 bg-card text-foreground font-mono"
                         />
                       </div>
                     </div>
@@ -908,9 +908,9 @@ export function ExaminationView({
                             type="button"
                             onClick={() => handleSelectActionPreset(act)}
                             disabled={isSubmitting || isCompleted}
-                            className="text-[10px] px-2 py-1 rounded border border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100 transition-colors font-medium flex items-center gap-1"
+                            className="text-[10px] px-2 py-1 rounded border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition-colors font-medium flex items-center gap-1"
                           >
-                            <Plus className="w-3 h-3 text-purple-600" />
+                            <Plus className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                             <span>{act.nama}</span>
                             <span className="font-mono text-[9px] opacity-75">({formatCurrency(act.tarif)})</span>
                           </button>
@@ -924,7 +924,7 @@ export function ExaminationView({
                         size="sm"
                         onClick={handleAddAction}
                         disabled={isSubmitting || isCompleted || !selectedActionId}
-                        className="h-8 text-xs gap-1 font-semibold px-3 bg-purple-600 hover:bg-purple-700 text-white shrink-0"
+                        className="h-8 text-xs gap-1 font-semibold px-3 bg-purple-600 hover:bg-purple-700 text-white shrink-0 disabled:opacity-40"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Tambah Tindakan
@@ -947,13 +947,13 @@ export function ExaminationView({
                   </label>
 
                   {actionsList.length === 0 ? (
-                    <div className="p-3.5 rounded-lg border border-dashed border-purple-200 text-center text-xs text-muted-foreground bg-purple-50/10">
+                    <div className="p-3.5 rounded-lg border border-dashed border-purple-200 dark:border-purple-800/60 text-center text-xs text-muted-foreground bg-purple-50/10 dark:bg-purple-950/10">
                       Belum ada tindakan medis / injeksi yang ditentukan. Pilih dari dropdown atau preset tindakan di atas.
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-purple-200 overflow-hidden bg-white">
+                    <div className="rounded-lg border border-purple-200 dark:border-purple-900/60 overflow-hidden bg-card">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-purple-50 text-purple-900 text-[10px] uppercase font-semibold border-b border-purple-200">
+                        <thead className="bg-purple-50 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 text-[10px] uppercase font-semibold border-b border-purple-200 dark:border-purple-800">
                           <tr>
                             <th className="px-3 py-2">Nama Tindakan</th>
                             <th className="px-3 py-2 text-center">Jumlah</th>
@@ -962,18 +962,18 @@ export function ExaminationView({
                             {!isCompleted && <th className="px-3 py-2 text-center w-10">Aksi</th>}
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-purple-100 text-slate-800">
+                        <tbody className="divide-y divide-purple-100 dark:divide-purple-900/40 text-foreground">
                           {actionsList.map((a) => {
                             const qty = parseInt(a.jumlah, 10) || 1
                             const subtotal = a.tarif * qty
                             return (
-                              <tr key={a.id} className="hover:bg-purple-50/30">
-                                <td className="px-3 py-2 font-medium text-purple-950">{a.nama}</td>
+                              <tr key={a.id} className="hover:bg-purple-50/30 dark:hover:bg-purple-950/30">
+                                <td className="px-3 py-2 font-medium text-foreground">{a.nama}</td>
                                 <td className="px-3 py-2 text-center font-mono font-semibold">{a.jumlah}x</td>
                                 <td className="px-3 py-2 text-right font-mono text-muted-foreground">
                                   {formatCurrency(a.tarif)}
                                 </td>
-                                <td className="px-3 py-2 text-right font-mono font-bold text-purple-900">
+                                <td className="px-3 py-2 text-right font-mono font-bold text-purple-700 dark:text-purple-300">
                                   {formatCurrency(subtotal)}
                                 </td>
                                 {!isCompleted && (
@@ -992,12 +992,12 @@ export function ExaminationView({
                             )
                           })}
                         </tbody>
-                        <tfoot className="bg-purple-50/60 border-t border-purple-200 font-semibold text-xs text-purple-950">
+                        <tfoot className="bg-purple-50/60 dark:bg-purple-950/40 border-t border-purple-200 dark:border-purple-800 font-semibold text-xs text-purple-950 dark:text-purple-200">
                           <tr>
-                            <td colSpan={3} className="px-3 py-2 text-right text-purple-800 uppercase text-[10px]">
+                            <td colSpan={3} className="px-3 py-2 text-right text-purple-800 dark:text-purple-300 uppercase text-[10px]">
                               Total Biaya Tindakan:
                             </td>
-                            <td className="px-3 py-2 text-right font-mono text-sm text-purple-700 font-bold">
+                            <td className="px-3 py-2 text-right font-mono text-sm text-purple-700 dark:text-purple-400 font-bold">
                               {formatCurrency(totalEstimatedActionFee)}
                             </td>
                             {!isCompleted && <td />}
@@ -1010,7 +1010,7 @@ export function ExaminationView({
               </div>
 
               {/* ── P2: Resep Obat (Pharmacy Prescription) ── */}
-              <div className="space-y-4 p-4 rounded-lg border border-border bg-white">
+              <div className="space-y-4 p-4 rounded-lg border border-border bg-card">
                 <div className="flex items-center justify-between pb-2 border-b border-border/60">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-foreground uppercase tracking-wide">
                     <Pill className="w-3.5 h-3.5 text-primary" />
@@ -1025,9 +1025,9 @@ export function ExaminationView({
 
                 {/* Pemilih Obat dari Stok */}
                 {!isCompleted && (
-                  <div className="p-3.5 rounded-lg border border-blue-100 bg-blue-50/40 space-y-3">
+                  <div className="p-3.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20 space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5">
+                      <label className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
                         <ShoppingBag className="w-3.5 h-3.5 text-primary" />
                         Pilih Obat dari Stok Klinik
                       </label>
@@ -1046,7 +1046,7 @@ export function ExaminationView({
                             setPrescError(null)
                           }}
                           disabled={isSubmitting || isCompleted}
-                          className="w-full h-8 rounded-md border border-input bg-white px-2.5 py-1 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-60"
+                          className="w-full h-8 rounded-md border border-input bg-card text-foreground px-2.5 py-1 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-60"
                         >
                           <option value="">-- Pilih Obat --</option>
                           {medicineOptions.map((med) => {
@@ -1075,10 +1075,10 @@ export function ExaminationView({
 
                             if (hasAllergyMatch) {
                               return (
-                                <div className="p-2.5 rounded-lg bg-red-100 border border-red-300 text-red-900 text-xs font-bold flex items-start gap-2 animate-pulse mt-1.5">
-                                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                                <div className="p-2.5 rounded-lg bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 text-xs font-bold flex items-start gap-2 animate-pulse mt-1.5">
+                                  <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                                   <div>
-                                    <span className="uppercase text-[10px] text-red-700 block">🚨 Peringatan Kontraindikasi Alergi</span>
+                                    <span className="uppercase text-[10px] text-red-700 dark:text-red-300 block">🚨 Peringatan Kontraindikasi Alergi</span>
                                     <span>
                                       Pasien memiliki riwayat alergi (&ldquo;{allergy || patient.allergy}&rdquo;) yang berpotensi memicu reaksi alergi dengan obat &ldquo;{selectedMedObject.name}&rdquo;!
                                     </span>
@@ -1098,7 +1098,7 @@ export function ExaminationView({
                           onChange={(e) => setInputDosage(e.target.value)}
                           placeholder="Dosis (mis: 3x sehari (tiap 8 jam) sesudah makan)"
                           disabled={isSubmitting || isCompleted}
-                          className="text-xs h-8 bg-white font-medium"
+                          className="text-xs h-8 bg-card text-foreground font-medium"
                         />
                       </div>
 
@@ -1112,7 +1112,7 @@ export function ExaminationView({
                           onChange={(e) => setInputQty(e.target.value)}
                           placeholder="Qty"
                           disabled={isSubmitting || isCompleted}
-                          className="text-xs h-8 bg-white font-mono"
+                          className="text-xs h-8 bg-card text-foreground font-mono"
                         />
                       </div>
                     </div>
@@ -1139,7 +1139,7 @@ export function ExaminationView({
                               'text-[10px] px-2 py-0.5 rounded border transition-colors font-medium',
                               inputDosage.includes(freq)
                                 ? 'bg-primary text-primary-foreground border-primary font-bold shadow-xs'
-                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                             )}
                           >
                             {freq}
@@ -1172,7 +1172,7 @@ export function ExaminationView({
                               'text-[10px] px-2.5 py-0.5 rounded border transition-colors font-medium',
                               inputDosage.toLowerCase().includes(timing.toLowerCase())
                                 ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-xs'
-                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                             )}
                           >
                             {timing}
@@ -1185,15 +1185,15 @@ export function ExaminationView({
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
                       <div>
                         {selectedMedObject ? (
-                          <div className="text-[11px] text-slate-600 flex flex-wrap items-center gap-2">
-                            <span className="flex items-center gap-1 font-semibold">
+                          <div className="text-[11px] text-muted-foreground flex flex-wrap items-center gap-2">
+                            <span className="flex items-center gap-1 font-semibold text-foreground">
                               <span>Golongan:</span>
                               <MedicineCategoryBadge category={selectedMedObject.category} size="sm" />
                             </span>
                             <span>·</span>
-                            <span>Stok Tersedia: <strong className="text-emerald-600 font-mono">{selectedMedObject.availableStock} {selectedMedObject.unit}</strong></span>
+                            <span>Stok Tersedia: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{selectedMedObject.availableStock} {selectedMedObject.unit}</strong></span>
                             <span>·</span>
-                            <span>Harga: <strong className="text-slate-800 font-mono">{formatCurrency(selectedMedObject.unitPrice)}/{selectedMedObject.unit}</strong></span>
+                            <span>Harga: <strong className="text-foreground font-mono">{formatCurrency(selectedMedObject.unitPrice)}/{selectedMedObject.unit}</strong></span>
                           </div>
                         ) : (
                           <span className="text-[11px] text-muted-foreground">Pilih obat untuk melihat detail harga dan ketersediaan stok.</span>
@@ -1205,7 +1205,7 @@ export function ExaminationView({
                         size="sm"
                         onClick={handleAddMedicine}
                         disabled={isSubmitting || isCompleted || !selectedMedId}
-                        className="h-8 text-xs gap-1 font-semibold px-3 shrink-0"
+                        className="h-8 text-xs gap-1 font-semibold px-3 shrink-0 disabled:opacity-40"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Tambah Obat
@@ -1244,21 +1244,19 @@ export function ExaminationView({
                             {!isCompleted && <th className="px-3 py-2 text-center w-10">Aksi</th>}
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-border bg-white text-slate-800">
+                        <tbody className="divide-y divide-border bg-card text-foreground">
                           {prescriptions.map((p) => {
                             const qty = parseInt(p.jumlah, 10) || 0
                             const subtotal = p.unitPrice * qty
                             return (
-                              <tr key={p.id} className="hover:bg-slate-50/50">
-                                <td className="px-3 py-2 font-medium">{p.nama}</td>
+                              <tr key={p.id} className="hover:bg-muted/40">
+                                <td className="px-3 py-2 font-medium text-foreground">{p.nama}</td>
                                 <td className="px-3 py-2">
-                                  <span className="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-mono text-[11px]">
+                                  <span className="inline-block px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 font-mono text-[11px]">
                                     {p.dosis}
                                   </span>
                                 </td>
-                                <td className="px-3 py-2 text-center font-mono font-semibold">
-                                  {p.jumlah} {p.unit}
-                                </td>
+                                <td className="px-3 py-2 text-center font-mono font-semibold">{p.jumlah} {p.unit}</td>
                                 <td className="px-3 py-2 text-right font-mono text-muted-foreground">
                                   {formatCurrency(p.unitPrice)}
                                 </td>
@@ -1281,7 +1279,7 @@ export function ExaminationView({
                             )
                           })}
                         </tbody>
-                        <tfoot className="bg-slate-50 border-t border-border font-semibold text-xs text-slate-800">
+                        <tfoot className="bg-muted/40 border-t border-border font-semibold text-xs text-foreground">
                           <tr>
                             <td colSpan={4} className="px-3 py-2 text-right text-muted-foreground uppercase text-[10px]">
                               Total Estimasi Biaya Obat:

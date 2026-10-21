@@ -96,7 +96,7 @@ export function MedicalRecordTable({
   return (
     <div className="space-y-4">
       {/* Table Toolbar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-border shadow-xs">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-card p-3 rounded-lg border border-border shadow-xs">
         {/* Left: Search Bar */}
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -104,7 +104,7 @@ export function MedicalRecordTable({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari pasien / RM..."
-            className="pl-8 text-xs h-9 bg-muted/20 focus:bg-white"
+            className="pl-8 text-xs h-9 bg-muted/20 focus:bg-card"
           />
         </div>
 
@@ -165,7 +165,7 @@ export function MedicalRecordTable({
       )}
 
       {/* Medical Records Table */}
-      <div className="bg-white rounded-lg border border-border overflow-hidden shadow-xs">
+      <div className="bg-card rounded-lg border border-border overflow-hidden shadow-xs">
         <div className="overflow-x-auto min-h-[300px]">
           <table className="w-full text-xs">
             <thead>

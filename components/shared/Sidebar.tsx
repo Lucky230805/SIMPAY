@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils'
 import { getSessionUserAction } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 import { LogoutConfirmDialog } from '@/components/shared/logout-confirm-dialog'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 const navItems = [
   {
@@ -186,16 +187,19 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <Button
-            type="button"
-            onClick={() => setIsLogoutConfirmOpen(true)}
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-            title="Keluar / Logout"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1 shrink-0">
+            <ThemeToggle />
+            <Button
+              type="button"
+              onClick={() => setIsLogoutConfirmOpen(true)}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+              title="Keluar / Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 

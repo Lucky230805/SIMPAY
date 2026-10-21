@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, CheckCircle2, AlertCircle, ArrowLeft, Printer, CreditCard } from 'lucide-react'
+import { FileText, CheckCircle2, AlertCircle, ArrowLeft, Printer, CreditCard, Eye, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { processPrescriptionQueue } from '@/app/resep/actions'
 
@@ -121,6 +122,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
   )
   const [processedAlert, setProcessedAlert] = useState<string | null>(null)
   const [detailMode, setDetailMode] = useState<boolean>(false)
+  const [isEtiketModalOpen, setIsEtiketModalOpen] = useState<boolean>(false)
 
   const displayedList = activeTab === 'antrean' ? antreList : selesaiList
   const selectedQueue = displayedList.find((q) => q.id === selectedQueueId) || displayedList[0] || null
@@ -147,23 +149,38 @@ export function ResepView({ initialQueues }: ResepViewProps) {
     router.refresh()
   }
 
+  useEffect(() => {
+    if (!processedAlert) return
+    const timer = setTimeout(() => {
+      setProcessedAlert(null)
+    }, 6000)
+    return () => clearTimeout(timer)
+  }, [processedAlert])
+
   return (
     <div className="p-6 space-y-6 w-full max-w-7xl mx-auto text-xs">
       {/* Alert Banner when processed */}
       {processedAlert && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg flex items-start justify-between shadow-sm print:hidden">
+        <div className="p-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 dark:bg-emerald-950/30 text-foreground flex items-start justify-between shadow-xs animate-in fade-in-0 duration-200 print:hidden">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
-            <div>
-              <h4 className="font-bold text-sm">Resep Berhasil Diproses</h4>
-              <p className="text-xs text-blue-700 mt-0.5">{processedAlert}</p>
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="font-semibold text-xs text-foreground">
+                Resep Berhasil Diproses
+              </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {processedAlert}
+              </p>
             </div>
           </div>
           <button
             onClick={() => setProcessedAlert(null)}
-            className="text-blue-500 hover:text-blue-700 text-xs font-bold px-2"
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+            title="Tutup Notifikasi"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -177,13 +194,13 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               <h1 className="text-2xl font-bold tracking-tight text-foreground">Daftar Antrean Resep</h1>
               <p className="text-xs text-muted-foreground mt-0.5">Manajemen penyiapan obat pasien.</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded-full font-semibold text-xs flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <div className="flex items-center gap-2.5">
+              <span className="px-3 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded-full font-semibold text-xs flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                 {antreList.length} Antre
               </span>
-              <span className="px-3 py-1 bg-gray-100 text-gray-700 border border-gray-200 rounded-full font-semibold text-xs flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-gray-400" />
+              <span className="px-3 py-1 bg-muted/80 text-muted-foreground border border-border rounded-full font-semibold text-xs flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-muted-foreground/60" />
                 {selesaiList.length} Selesai
               </span>
             </div>
@@ -200,7 +217,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               className={cn(
                 'pb-3 border-b-2 transition-colors',
                 activeTab === 'antrean'
-                  ? 'border-slate-800 text-slate-900 font-bold'
+                  ? 'border-primary text-foreground font-bold'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >
@@ -215,7 +232,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               className={cn(
                 'pb-3 border-b-2 transition-colors',
                 activeTab === 'selesai'
-                  ? 'border-slate-800 text-slate-900 font-bold'
+                  ? 'border-primary text-foreground font-bold'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >
@@ -257,20 +274,20 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                             </span>
                             <span
                               className={cn(
-                                'text-[10px] px-1.5 py-0.2 rounded font-semibold border',
+                                'text-[10px] px-1.5 py-0.5 rounded font-semibold border',
                                 isCito
-                                  ? 'bg-red-100 text-red-700 border-red-200'
-                                  : 'bg-gray-100 text-gray-600 border-gray-200'
+                                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                                  : 'bg-muted/80 text-muted-foreground border-border'
                               )}
                             >
                               {isCito ? '▲ Cito' : 'Normal'}
                             </span>
                             <span
                               className={cn(
-                                'text-[10px] px-1.5 py-0.2 rounded font-semibold border',
+                                'text-[10px] px-1.5 py-0.5 rounded font-semibold border',
                                 item.billingStatus === 'LUNAS'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
                               )}
                             >
                               {item.billingStatus === 'LUNAS' ? '✓ Tagihan Lunas' : 'Tagihan Belum Lunas'}
@@ -293,27 +310,30 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                           </span>
                         </div>
                         {item.status !== 'SELESAI' ? (
-                          <button
+                          <Button
+                            size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleSelectQueue(item.id)
                               setDetailMode(true)
                             }}
-                            className="px-3.5 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700 transition shadow-2xs"
+                            className="h-8 px-3.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xs transition"
                           >
                             Proses Resep
-                          </button>
+                          </Button>
                         ) : (
-                          <button
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleSelectQueue(item.id)
                               setDetailMode(true)
                             }}
-                            className="px-3 py-1.5 border border-gray-300 text-gray-700 bg-white rounded-md text-xs font-semibold hover:bg-gray-50 transition"
+                            className="h-8 px-3 rounded-lg text-xs font-semibold"
                           >
                             Lihat Rincian
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -324,7 +344,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
 
             {/* RIGHT DETAIL PANEL (5 cols) */}
             {selectedQueue ? (
-              <div className="lg:col-span-5 bg-white border border-border rounded-xl p-5 shadow-sm space-y-5">
+              <div className="lg:col-span-5 bg-card border border-border rounded-xl p-5 shadow-sm space-y-5">
                 <div>
                   <div className="flex justify-between items-start">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -333,20 +353,20 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                     <div className="flex items-center gap-1.5">
                       <span
                         className={cn(
-                          'text-[10px] px-2 py-0.5 rounded font-bold border',
+                          'text-[10px] px-2 py-0.5 rounded font-semibold border',
                           selectedQueue.priority === 'Cito'
-                            ? 'bg-red-100 text-red-700 border-red-200'
-                            : 'bg-gray-100 text-gray-600 border-gray-200'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                            : 'bg-muted/80 text-muted-foreground border-border'
                         )}
                       >
                         {selectedQueue.priority}
                       </span>
                       <span
                         className={cn(
-                          'text-[10px] px-2 py-0.5 rounded font-bold border',
+                          'text-[10px] px-2 py-0.5 rounded font-semibold border',
                           selectedQueue.billingStatus === 'LUNAS'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
                         )}
                       >
                         {selectedQueue.billingStatus === 'LUNAS' ? '✓ LUNAS' : 'BELUM LUNAS'}
@@ -383,8 +403,8 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                                   className={cn(
                                     'text-[10px] px-2 py-0.5 rounded font-bold border',
                                     isSufficient
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                      : 'bg-red-50 text-red-700 border-red-200'
+                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                                   )}
                                 >
                                   {isSufficient
@@ -393,9 +413,12 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                                 </span>
                               )}
                             </p>
-                            <p className="text-xs text-muted-foreground">{item.dosage}</p>
+                            <div className="preserve-light inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-900 text-xs shadow-2xs mt-1">
+                              <span className="font-bold text-emerald-800 text-[10px] uppercase tracking-wider">Aturan Pakai:</span>
+                              <span className="font-semibold text-slate-900">{item.dosage}</span>
+                            </div>
                           </div>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded border border-gray-200 font-mono font-semibold text-xs shrink-0">
+                          <span className="px-2 py-1 bg-muted/70 text-foreground rounded border border-border font-mono font-semibold text-xs shrink-0">
                             {item.qty}
                           </span>
                         </div>
@@ -406,8 +429,8 @@ export function ResepView({ initialQueues }: ResepViewProps) {
 
                 {/* Allergy warning if present */}
                 {selectedQueue.patient.allergy && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-2 text-xs">
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-700 dark:text-amber-400 flex items-start gap-2.5 text-xs">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                     <p>
                       Pasien memiliki riwayat alergi terhadap{' '}
                       <span className="font-bold">{selectedQueue.patient.allergy}</span>. Harap
@@ -417,41 +440,64 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                 )}
 
                 {/* Submit action */}
-                <div className="pt-3 border-t space-y-2">
+                <div className="pt-3 border-t border-border space-y-2.5">
                   {selectedQueue.items.length > 0 && (
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-bold text-xs hover:bg-blue-100 transition text-center flex items-center justify-center gap-1.5"
-                    >
-                      <Printer className="w-3.5 h-3.5" /> Cetak Etiket Obat ({selectedQueue.items.length} Item)
-                    </button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEtiketModalOpen(true)}
+                        className="flex-1 h-9 rounded-xl font-semibold text-xs gap-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 transition shadow-2xs"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        <span>Pratinjau Etiket</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.print()}
+                        className="h-9 px-3.5 rounded-xl font-medium text-xs gap-1.5 bg-muted/40 hover:bg-muted text-foreground border border-border transition"
+                        title="Cetak Langsung Etiket Obat"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span>Cetak</span>
+                      </Button>
+                    </div>
                   )}
 
                   {selectedQueue.status !== 'SELESAI' && selectedQueue.items.length > 0 ? (
-                    <button
+                    <Button
+                      size="sm"
                       onClick={() => handleProsesDanSerahkan(selectedQueue)}
-                      className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition text-center flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
+                      className="w-full h-10 rounded-xl font-semibold text-xs gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition"
                     >
-                      <CheckCircle2 className="w-4 h-4" /> Selesai &amp; Serahkan Obat
-                    </button>
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                      <span>Selesai &amp; Serahkan Obat</span>
+                    </Button>
                   ) : selectedQueue.status === 'SELESAI' ? (
-                    <button
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setDetailMode(true)}
-                      className="w-full py-2.5 border border-gray-300 text-gray-700 bg-white rounded-lg font-bold text-sm hover:bg-gray-50 transition text-center"
+                      className="w-full h-10 rounded-xl font-semibold text-xs"
                     >
                       Lihat Detail Lengkap
-                    </button>
+                    </Button>
                   ) : null}
-                  <button
+
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => router.push(`/pembayaran?queueId=${selectedQueue.queueId || selectedQueue.id}`)}
-                    className="w-full py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-bold text-xs hover:bg-emerald-100 transition text-center flex items-center justify-center gap-1.5"
+                    className="w-full h-9 rounded-xl font-semibold text-xs gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 transition"
                   >
-                    <CreditCard className="w-3.5 h-3.5" /> Buka Kasir Pembayaran Pasien
-                  </button>
+                    <CreditCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Buka Kasir Pembayaran Pasien</span>
+                  </Button>
                 </div>
               </div>
             ) : (
-              <div className="lg:col-span-5 bg-white border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm flex flex-col items-center justify-center space-y-2 min-h-[250px]">
+              <div className="lg:col-span-5 bg-card border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm flex flex-col items-center justify-center space-y-2 min-h-[250px]">
                 <FileText className="w-10 h-10 text-gray-300 mx-auto" />
                 <p className="text-sm font-semibold text-foreground">Tidak Ada Resep Terpilih</p>
                 <p className="text-xs text-muted-foreground max-w-xs">
@@ -481,18 +527,23 @@ export function ResepView({ initialQueues }: ResepViewProps) {
               <p className="text-xs text-muted-foreground">ID Resep: {selectedQueue?.code}</p>
             </div>
             <div className="flex items-center gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setDetailMode(false)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-xs font-semibold hover:bg-gray-50"
+                className="h-8 px-3 rounded-lg text-xs font-medium"
               >
                 Kembali ke Daftar
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => window.print()}
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-xs font-semibold hover:bg-gray-50 flex items-center gap-1.5"
+                className="h-8 px-3 rounded-lg text-xs font-medium gap-1.5"
               >
-                <Printer className="w-3.5 h-3.5" /> Cetak Label
-              </button>
+                <Printer className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>Cetak Label</span>
+              </Button>
             </div>
           </div>
 
@@ -501,7 +552,7 @@ export function ResepView({ initialQueues }: ResepViewProps) {
             {/* Left Info Panel */}
             <div className="lg:col-span-5 space-y-6">
               {/* Patient Info Card */}
-              <div className="bg-white border rounded-xl p-5 space-y-4 shadow-sm">
+              <div className="bg-card border border-border rounded-xl p-5 space-y-4 shadow-sm">
                 <h3 className="font-bold text-sm border-b pb-2">Informasi Pasien</h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gray-100 font-bold text-gray-700 flex items-center justify-center text-sm">
@@ -611,13 +662,124 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                   Resep ini telah selesai diproses dan obat telah diserahkan kepada pasien. Tidak ada
                   tindakan lebih lanjut yang diperlukan.
                 </p>
-                <button
+                <Button
+                  size="sm"
                   onClick={() => setDetailMode(false)}
-                  className="mt-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg text-xs hover:bg-emerald-700 transition shadow-md shadow-emerald-600/20"
+                  className="mt-2 h-9 px-4 rounded-xl font-semibold text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   Lihat Antrean Berikutnya
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ON-SCREEN MODAL PREVIEW FOR ETIKET ATURAN PAKAI OBAT */}
+      {isEtiketModalOpen && selectedQueue && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-200 print:hidden overflow-y-auto">
+          <div className="relative w-full max-w-xl bg-card rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col my-8">
+            {/* Top Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-slate-900 text-white">
+              <div>
+                <h2 className="font-bold text-base">Pratinjau Etiket Aturan Pakai Obat</h2>
+                <p className="text-xs text-slate-300">
+                  {selectedQueue.patientName} • {selectedQueue.items.length} Resep Obat
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => window.print()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs gap-1.5"
+                >
+                  <Printer className="w-4 h-4" /> Cetak Etiket
+                </Button>
+                <button
+                  onClick={() => setIsEtiketModalOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-800 transition-colors text-slate-300 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
                 </button>
               </div>
+            </div>
+
+            {/* Modal Body: Scrollable White Etiket Stickers */}
+            <div className="p-6 bg-slate-900/60 dark:bg-black/60 overflow-y-auto max-h-[70vh] space-y-6">
+              {selectedQueue.items.map((item, index) => (
+                <div
+                  key={index}
+                  className="preserve-light border-2 border-slate-900 p-5 rounded-xl max-w-md mx-auto text-xs bg-white text-slate-900 shadow-xl space-y-3"
+                >
+                  {/* Kop Surat Klinik */}
+                  <div className="text-center border-b-2 border-slate-900 pb-2">
+                    <h2 className="font-black text-sm uppercase tracking-wide text-slate-900">
+                      KLINIK PRAKTEK DOKTER UMUM
+                    </h2>
+                    <p className="text-[10px] text-slate-600">
+                      Layanan Resep &amp; Farmasi Pasien
+                    </p>
+                    <div className="mt-1">
+                      <span
+                        style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000' }}
+                        className="px-3 py-0.5 bg-white text-black border border-slate-900 font-mono font-bold text-[10px] rounded uppercase tracking-wider inline-block"
+                      >
+                        ETIKET ATURAN PAKAI OBAT
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Patient Identity */}
+                  <div className="space-y-1 border-b border-slate-300 pb-2 text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">No. RM / Antrean:</span>
+                      <span className="font-mono font-bold text-slate-950">{selectedQueue.patient.noRM || `RM-${selectedQueue.patient.id}`} ({selectedQueue.code})</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Nama Pasien:</span>
+                      <span className="font-bold text-sm text-slate-950">{selectedQueue.patientName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Dokter / Poli:</span>
+                      <span className="font-medium text-slate-900">{selectedQueue.doctorName} ({selectedQueue.polyclinic})</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Tanggal:</span>
+                      <span className="text-slate-900">{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                  </div>
+
+                  {/* Medicine & Dosage */}
+                  <div className="space-y-2 text-center">
+                    <div className="bg-slate-100 p-2.5 rounded-lg border border-slate-300">
+                      <span className="text-[10px] text-slate-500 font-semibold block uppercase">KEGUNAAN OBAT &amp; JUMLAH:</span>
+                      <h3 className="font-black text-lg text-slate-900 leading-tight mt-0.5">
+                        {getMedicineKegunaan(item.name, item.notes)}
+                      </h3>
+                      <span className="font-mono font-bold text-xs text-slate-700 block mt-1">
+                        JUMLAH: {item.qty} ({item.quantity || 1} Pcs)
+                      </span>
+                    </div>
+
+                    <div className="bg-emerald-50 border-2 border-emerald-600 p-3 rounded-lg text-emerald-950">
+                      <span className="text-[10px] font-black uppercase tracking-wider block text-emerald-800">
+                        ATURAN MINUM / DOSIS:
+                      </span>
+                      <p className="font-black text-base text-emerald-900 mt-0.5">
+                        {item.dosage}
+                      </p>
+                      {item.notes && (
+                        <p className="text-[10px] text-emerald-800 font-bold mt-1 italic">
+                          Catatan: {item.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-300 text-[9px] text-center text-slate-500 italic font-medium">
+                    Semoga Lekas Sembuh • Simpan Obat di Tempat Sejuk &amp; Kering
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -625,11 +787,11 @@ export function ResepView({ initialQueues }: ResepViewProps) {
 
       {/* PRINT-ONLY MEDICINE LABELS (ETIKET OBAT PER ITEM PASIEN) */}
       {selectedQueue && (
-        <div className="hidden print:block font-sans text-slate-900 p-2">
+        <div id="etiket-print-area" className="hidden print:block font-sans text-slate-900 p-2 preserve-light">
           {selectedQueue.items.map((item, index) => (
             <div
               key={index}
-              className="border-2 border-slate-900 p-4 mb-6 rounded-xl max-w-sm mx-auto page-break-inside-avoid text-xs bg-white shadow-none"
+              className="preserve-light border-2 border-slate-900 p-4 mb-6 rounded-xl max-w-sm mx-auto page-break-inside-avoid text-xs bg-white shadow-none"
             >
               {/* Kop Surat Klinik */}
               <div className="text-center border-b-2 border-slate-900 pb-2 mb-3">
@@ -640,7 +802,10 @@ export function ResepView({ initialQueues }: ResepViewProps) {
                   Layanan Resep &amp; Farmasi Pasien
                 </p>
                 <div className="mt-1">
-                  <span className="px-2 py-0.5 bg-slate-900 text-white font-mono font-bold text-[9px] rounded uppercase">
+                  <span
+                    style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000' }}
+                    className="px-3 py-0.5 bg-white text-black border border-slate-900 font-mono font-bold text-[10px] rounded uppercase tracking-wider inline-block"
+                  >
                     ETIKET ATURAN PAKAI OBAT
                   </span>
                 </div>

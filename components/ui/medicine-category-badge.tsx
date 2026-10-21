@@ -75,11 +75,11 @@ export function MedicineCategoryBadge({
       <div className="inline-flex items-center gap-1.5">
         {symbolNode}
         {showLabel && (
-          <span className="font-bold text-slate-800 text-xs tracking-tight">{labelText}</span>
+          <span className="font-bold text-foreground text-xs tracking-tight">{labelText}</span>
         )}
       </div>
       {showDescription && descriptionText && (
-        <p className="text-[11px] text-slate-500 leading-snug mt-0.5">{descriptionText}</p>
+        <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{descriptionText}</p>
       )}
     </div>
   )

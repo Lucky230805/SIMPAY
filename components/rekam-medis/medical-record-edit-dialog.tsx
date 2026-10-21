@@ -103,7 +103,7 @@ export function MedicalRecordEditDialog({
 
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0">
-      <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl border border-border flex flex-col overflow-hidden max-h-[90vh]">
+      <div className="relative w-full max-w-2xl bg-card rounded-xl shadow-2xl border border-border flex flex-col overflow-hidden max-h-[90vh]">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/20">
           <div>
@@ -182,7 +182,7 @@ export function MedicalRecordEditDialog({
           </div>
 
           {/* Subjektif Section */}
-          <div className="space-y-3 p-3.5 rounded-lg border border-border bg-white">
+          <div className="space-y-3 p-3.5 rounded-lg border border-border bg-card">
             <div className="flex items-center gap-1.5 font-bold text-foreground">
               <FileText className="w-3.5 h-3.5 text-primary" />
               <span>Anamnesa & Keluhan</span>
@@ -288,7 +288,7 @@ export function MedicalRecordEditDialog({
           </div>
 
           {/* Planning Section */}
-          <div className="space-y-2 p-3.5 rounded-lg border border-border bg-white">
+          <div className="space-y-2 p-3.5 rounded-lg border border-border bg-card">
             <label className="text-[11px] font-medium text-foreground block">
               Tindakan, Terapi & Edukasi (Planning)
             </label>

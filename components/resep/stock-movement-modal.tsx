@@ -165,35 +165,35 @@ export function StockMovementModal({
     switch (type) {
       case 'IN':
         return (
-          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-extrabold text-[10px] inline-flex items-center gap-1">
-            <ArrowUpRight className="w-3 h-3 text-emerald-600" />
+          <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-extrabold text-[10px] inline-flex items-center gap-1">
+            <ArrowUpRight className="w-3 h-3 text-emerald-500" />
             <span>Stok Masuk (+{qty})</span>
           </span>
         )
       case 'DISPENSE':
         return (
-          <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[10px] inline-flex items-center gap-1">
-            <ArrowDownLeft className="w-3 h-3 text-blue-600" />
+          <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 font-bold text-[10px] inline-flex items-center gap-1">
+            <ArrowDownLeft className="w-3 h-3 text-blue-500" />
             <span>Dispen Resep ({qty})</span>
           </span>
         )
       case 'EXPIRED_DISPOSAL':
         return (
-          <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-extrabold text-[10px] inline-flex items-center gap-1">
-            <Trash2 className="w-3 h-3 text-purple-600" />
+          <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-extrabold text-[10px] inline-flex items-center gap-1">
+            <Trash2 className="w-3 h-3 text-purple-500" />
             <span>Pemusnahan Expired ({qty})</span>
           </span>
         )
       case 'ADJUSTMENT':
         return (
-          <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px] inline-flex items-center gap-1">
-            <RefreshCw className="w-3 h-3 text-amber-600" />
+          <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-[10px] inline-flex items-center gap-1">
+            <RefreshCw className="w-3 h-3 text-amber-500" />
             <span>Stok Opname ({qty > 0 ? `+${qty}` : qty})</span>
           </span>
         )
       default:
         return (
-          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">
+          <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border font-bold text-[10px]">
             {type} ({qty})
           </span>
         )
@@ -201,49 +201,49 @@ export function StockMovementModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl h-[88vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-card text-foreground rounded-2xl shadow-2xl border border-border w-full max-w-5xl h-[88vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white shrink-0">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/40 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
               <History className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <span>Audit Log Mutasi Stok Obat (Stock Ledger)</span>
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Pencatatan riwayat alur stok obat real-time (Stok Masuk, Dispen Resep, Pemusnahan Expired &amp; Stok Opname).
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white text-xl font-bold p-1 rounded-lg transition"
+            className="text-muted-foreground hover:text-foreground text-xl font-bold p-1 rounded-lg transition cursor-pointer"
           >
             ×
           </button>
         </div>
 
         {/* Action & Filter Bar */}
-        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div className="p-4 bg-muted/20 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari obat, batch, atau catatan..."
-                className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full pl-9 pr-3 py-1.5 bg-background border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
 
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="px-3 py-1.5 bg-background border border-border rounded-lg text-xs font-semibold text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
             >
               <option value="ALL">Semua Jenis Mutasi</option>
               <option value="IN">Stok Masuk (+)</option>
@@ -255,7 +255,7 @@ export function StockMovementModal({
             <select
               value={selectedMedId}
               onChange={(e) => setSelectedMedId(e.target.value)}
-              className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none max-w-[200px]"
+              className="px-3 py-1.5 bg-background border border-border rounded-lg text-xs font-semibold text-foreground focus:ring-2 focus:ring-primary focus:outline-none max-w-[200px]"
             >
               <option value="ALL">Semua Obat</option>
               {medicines.map((m) => (
@@ -270,16 +270,16 @@ export function StockMovementModal({
             <Button
               variant="outline"
               onClick={exportLedgerToCSV}
-              className="border-slate-300 text-slate-700 hover:bg-white text-xs h-8 font-semibold flex items-center gap-1.5"
+              className="border-border text-foreground bg-card hover:bg-muted text-xs h-8 font-semibold flex items-center gap-1.5 cursor-pointer"
             >
-              <FileCode className="w-3.5 h-3.5 text-blue-600" />
+              <FileCode className="w-3.5 h-3.5 text-blue-500" />
               <span>Export CSV</span>
             </Button>
 
             {isNurse && (
               <Button
                 onClick={() => setIsAdjFormOpen(!isAdjFormOpen)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 font-semibold flex items-center gap-1.5 shadow-xs"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Stok Opname / Adjust</span>
@@ -290,17 +290,17 @@ export function StockMovementModal({
 
         {/* Notifications & Forms */}
         {errorMsg && (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs font-medium flex items-center justify-between">
+          <div className="mx-6 mt-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium flex items-center justify-between">
             <span>{errorMsg}</span>
-            <button onClick={() => setErrorMsg(null)} className="text-red-600 hover:underline">
+            <button onClick={() => setErrorMsg(null)} className="text-rose-600 dark:text-rose-400 hover:underline cursor-pointer">
               Tutup
             </button>
           </div>
         )}
         {successMsg && (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center justify-between">
+          <div className="mx-6 mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center justify-between">
             <span>{successMsg}</span>
-            <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 hover:underline">
+            <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer">
               Tutup
             </button>
           </div>
@@ -308,19 +308,19 @@ export function StockMovementModal({
 
         {/* Manual Adjustment Form Modal */}
         {isAdjFormOpen && (
-          <div className="mx-6 mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-3">
-            <h4 className="font-bold text-slate-900 flex items-center gap-1.5">
-              <RefreshCw className="w-4 h-4 text-emerald-600" />
+          <div className="mx-6 mt-4 p-4 rounded-xl bg-muted/30 border border-border text-xs space-y-3">
+            <h4 className="font-bold text-foreground flex items-center gap-1.5">
+              <RefreshCw className="w-4 h-4 text-emerald-500" />
               <span>Catat Stok Opname / Pemusnahan Manual</span>
             </h4>
             <form onSubmit={handleCreateAdjustment} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Pilih Obat *</label>
+                <label className="block font-semibold text-foreground mb-1">Pilih Obat *</label>
                 <select
                   required
                   value={adjMedId}
                   onChange={(e) => setAdjMedId(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-md bg-white text-xs focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-2.5 py-1.5 border border-border rounded-md bg-background text-foreground text-xs focus:ring-2 focus:ring-primary focus:outline-none"
                 >
                   <option value="">-- Pilih Obat --</option>
                   {medicines.map((m) => (
@@ -332,11 +332,11 @@ export function StockMovementModal({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Tipe Mutasi *</label>
+                <label className="block font-semibold text-foreground mb-1">Tipe Mutasi *</label>
                 <select
                   value={adjType}
                   onChange={(e) => setAdjType(e.target.value as any)}
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-md bg-white text-xs focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-2.5 py-1.5 border border-border rounded-md bg-background text-foreground text-xs focus:ring-2 focus:ring-primary focus:outline-none"
                 >
                   <option value="ADJUSTMENT">Stok Opname (+ / -)</option>
                   <option value="EXPIRED_DISPOSAL">Pemusnahan Expired (-)</option>
@@ -346,7 +346,7 @@ export function StockMovementModal({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-foreground mb-1">
                   Jumlah Mutasi * (Gunakan minus (-) jika berkurang)
                 </label>
                 <input
@@ -355,35 +355,35 @@ export function StockMovementModal({
                   value={adjQty}
                   onChange={(e) => setAdjQty(e.target.value)}
                   placeholder="contoh: -5 atau 10"
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-md bg-white text-xs focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-2.5 py-1.5 border border-border rounded-md bg-background text-foreground text-xs focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Keterangan / Alasan *</label>
+                <label className="block font-semibold text-foreground mb-1">Keterangan / Alasan *</label>
                 <input
                   type="text"
                   required
                   value={adjNotes}
                   onChange={(e) => setAdjNotes(e.target.value)}
                   placeholder="cth: Stok Opname September / Obat Rusak"
-                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-md bg-white text-xs focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-2.5 py-1.5 border border-border rounded-md bg-background text-foreground text-xs focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
-              <div className="sm:col-span-4 flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="sm:col-span-4 flex justify-end gap-2 pt-2 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsAdjFormOpen(false)}
-                  className="h-7 text-xs"
+                  className="h-7 text-xs cursor-pointer"
                 >
                   Batal
                 </Button>
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
                 >
                   {isPending ? 'Menyimpan...' : 'Simpan Mutasi'}
                 </Button>
@@ -395,18 +395,18 @@ export function StockMovementModal({
         {/* Ledger Table */}
         <div className="flex-1 overflow-auto p-6">
           {loading ? (
-            <div className="py-12 text-center text-slate-400 text-xs animate-pulse">
+            <div className="py-12 text-center text-muted-foreground text-xs animate-pulse">
               Memuat data audit log mutasi stok...
             </div>
           ) : filteredLogs.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-xs space-y-2">
-              <Package className="w-8 h-8 mx-auto opacity-40 text-slate-400" />
+            <div className="py-12 text-center text-muted-foreground text-xs space-y-2">
+              <Package className="w-8 h-8 mx-auto opacity-40 text-muted-foreground" />
               <p>Belum ada riwayat mutasi stok obat yang tercatat.</p>
             </div>
           ) : (
-            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+            <div className="border border-border rounded-xl overflow-hidden shadow-2xs bg-card">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+                <thead className="bg-muted/50 text-muted-foreground font-bold uppercase tracking-wider border-b border-border">
                   <tr>
                     <th className="px-3.5 py-2.5">Waktu &amp; Tanggal</th>
                     <th className="px-3.5 py-2.5">Nama Obat &amp; Kode</th>
@@ -418,10 +418,10 @@ export function StockMovementModal({
                     <th className="px-3.5 py-2.5">Petugas</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {filteredLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-3.5 py-2.5 text-slate-600 font-medium whitespace-nowrap">
+                    <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-3.5 py-2.5 text-muted-foreground font-medium whitespace-nowrap">
                         {new Date(log.createdAt).toLocaleString('id-ID', {
                           day: 'numeric',
                           month: 'short',
@@ -431,47 +431,47 @@ export function StockMovementModal({
                         })}
                       </td>
                       <td className="px-3.5 py-2.5">
-                        <div className="font-bold text-slate-900">{log.medicineName}</div>
+                        <div className="font-bold text-foreground">{log.medicineName}</div>
                         {log.medicineCode && (
-                          <span className="text-[10px] text-slate-400 font-mono">
+                          <span className="text-[10px] text-muted-foreground font-mono">
                             {log.medicineCode}
                           </span>
                         )}
                       </td>
-                      <td className="px-3.5 py-2.5 font-mono text-slate-700 font-semibold">
+                      <td className="px-3.5 py-2.5 font-mono text-foreground font-semibold">
                         {log.batchNumber || '-'}
                       </td>
                       <td className="px-3.5 py-2.5">
                         {getTypeBadge(log.type, log.quantity)}
                       </td>
-                      <td className="px-3.5 py-2.5 text-center font-extrabold text-slate-900">
+                      <td className="px-3.5 py-2.5 text-center font-extrabold">
                         <span
                           className={
                             log.quantity > 0
-                              ? 'text-emerald-700'
+                              ? 'text-emerald-600 dark:text-emerald-400'
                               : log.quantity < 0
-                              ? 'text-red-600'
-                              : 'text-slate-600'
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-muted-foreground'
                           }
                         >
                           {log.quantity > 0 ? `+${log.quantity}` : log.quantity}
                         </span>
                       </td>
-                      <td className="px-3.5 py-2.5 text-center font-medium text-slate-600">
+                      <td className="px-3.5 py-2.5 text-center font-medium text-muted-foreground">
                         <span>{log.previousStock}</span>
-                        <span className="text-slate-400 mx-1">&rarr;</span>
-                        <strong className="text-slate-900">{log.currentStock}</strong>
+                        <span className="text-muted-foreground/60 mx-1">&rarr;</span>
+                        <strong className="text-foreground">{log.currentStock}</strong>
                       </td>
-                      <td className="px-3.5 py-2.5 text-slate-700 max-w-xs">
+                      <td className="px-3.5 py-2.5 text-muted-foreground max-w-xs">
                         <div>{log.notes || '-'}</div>
                         {log.referenceNo && (
-                          <div className="text-[10px] text-slate-400 font-mono">
+                          <div className="text-[10px] text-muted-foreground/80 font-mono">
                             Ref: {log.referenceNo}
                           </div>
                         )}
                       </td>
-                      <td className="px-3.5 py-2.5 text-slate-700 font-medium whitespace-nowrap flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <td className="px-3.5 py-2.5 text-muted-foreground font-medium whitespace-nowrap flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
                         <span>{log.createdByName}</span>
                       </td>
                     </tr>

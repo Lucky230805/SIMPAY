@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -129,20 +129,286 @@
   }
 }
 
+/* ========================================================
+   SEAMLESS UNIVERSAL DARK MODE TABLE & CARD STYLING
+   ======================================================== */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* 1. Containers, Cards, Panels & Tables with legacy bg-white (except preserved paper documents) */
+html.dark .bg-white:not(.preserve-light, .preserve-light *) {
+  background-color: var(--card) !important;
+}
+
+html.dark .focus\:bg-white:focus:not(.preserve-light, .preserve-light *) {
+  background-color: var(--card) !important;
+}
+
+html.dark .hover\:bg-white:hover:not(.preserve-light, .preserve-light *) {
+  background-color: var(--card) !important;
+}
+
+/* 2. Soft background chips & secondary containers */
+html.dark .bg-slate-50:not(.preserve-light, .preserve-light *),
+html.dark .bg-gray-50:not(.preserve-light, .preserve-light *),
+html.dark .bg-zinc-50:not(.preserve-light, .preserve-light *),
+html.dark .bg-neutral-50:not(.preserve-light, .preserve-light *) {
+  background-color: var(--muted) !important;
+}
+
+html.dark .bg-slate-100:not(.preserve-light, .preserve-light *),
+html.dark .bg-gray-100:not(.preserve-light, .preserve-light *) {
+  background-color: color-mix(in oklch, var(--muted) 80%, var(--card)) !important;
+}
+
+html.dark .hover\:bg-gray-50:hover:not(.preserve-light, .preserve-light *),
+html.dark .hover\:bg-slate-50:hover:not(.preserve-light, .preserve-light *),
+html.dark .hover\:bg-gray-100:hover:not(.preserve-light, .preserve-light *),
+html.dark .hover\:bg-slate-100:hover:not(.preserve-light, .preserve-light *) {
+  background-color: var(--muted) !important;
+}
+
+/* 3. Text contrast fixes for legacy dark text classes */
+html.dark .text-slate-900:not(.preserve-light, .preserve-light *),
+html.dark .text-gray-900:not(.preserve-light, .preserve-light *),
+html.dark .text-slate-800:not(.preserve-light, .preserve-light *),
+html.dark .text-gray-800:not(.preserve-light, .preserve-light *),
+html.dark .text-black:not(.preserve-light, .preserve-light *) {
+  color: var(--foreground) !important;
+}
+
+html.dark .text-slate-700:not(.preserve-light, .preserve-light *),
+html.dark .text-gray-700:not(.preserve-light, .preserve-light *),
+html.dark .text-slate-600:not(.preserve-light, .preserve-light *),
+html.dark .text-gray-600:not(.preserve-light, .preserve-light *),
+html.dark .text-slate-500:not(.preserve-light, .preserve-light *),
+html.dark .text-gray-500:not(.preserve-light, .preserve-light *) {
+  color: var(--muted-foreground) !important;
+}
+
+/* 4. Border adjustments */
+html.dark .border-slate-100:not(.preserve-light, .preserve-light *),
+html.dark .border-slate-200:not(.preserve-light, .preserve-light *),
+html.dark .border-gray-200:not(.preserve-light, .preserve-light *),
+html.dark .border-slate-300:not(.preserve-light, .preserve-light *),
+html.dark .border-gray-300:not(.preserve-light, .preserve-light *) {
+  border-color: var(--border) !important;
+}
+
+/* ========================================================
+   AUTHENTIC WHITE PAPER DOCUMENTS & PRINTABLES (EVEN IN DARK MODE)
+   - Detail Surat Keterangan (Sakit & Sehat)
+   - Struk Kuitansi Pembayaran Klinik
+   - Etiket & Aturan Pakai Obat
+   - Lembar Riwayat Rekam Medis
+   - Laporan Rekapitulasi Klinik
+   - Tiket Antrean & Pendaftaran Pasien
+   ======================================================== */
+html.dark .preserve-light,
+html.dark .preserve-light.bg-white,
+html.dark .preserve-light .bg-white,
+html.dark [data-preserve-light],
+html.dark [data-preserve-light] .bg-white,
+html.dark #receipt-print-area,
+html.dark #receipt-print-area *,
+html.dark #surat-print-area,
+html.dark #surat-print-area *,
+html.dark #queue-ticket-print-area,
+html.dark #queue-ticket-print-area *,
+html.dark #patient-ticket-print-area,
+html.dark #patient-ticket-print-area *,
+html.dark #etiket-print-area,
+html.dark #etiket-print-area * {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  color-scheme: light !important;
+}
+
+html.dark .preserve-light,
+html.dark .preserve-light *,
+html.dark #receipt-print-area *,
+html.dark #surat-print-area *,
+html.dark #queue-ticket-print-area *,
+html.dark #patient-ticket-print-area *,
+html.dark #etiket-print-area * {
+  color-scheme: light !important;
+}
+
+html.dark .preserve-light .text-slate-950,
+html.dark .preserve-light .text-slate-900,
+html.dark .preserve-light .text-slate-800,
+html.dark .preserve-light .text-black,
+html.dark .preserve-light strong,
+html.dark .preserve-light span,
+html.dark .preserve-light h1,
+html.dark .preserve-light h2,
+html.dark .preserve-light h3,
+html.dark .preserve-light div {
+  color: #0f172a !important;
+}
+
+/* Inverted badges / dark containers inside preserve-light must keep pure white text */
+html.dark .preserve-light .text-white,
+html.dark .preserve-light [class*="text-white"],
+html.dark .preserve-light .bg-slate-900,
+html.dark .preserve-light .bg-slate-900 *,
+html.dark .preserve-light .bg-black,
+html.dark .preserve-light .bg-black * {
+  color: #ffffff !important;
+}
+
+html.dark .preserve-light .text-slate-700,
+html.dark .preserve-light .text-slate-600,
+html.dark .preserve-light .text-slate-500 {
+  color: #475569 !important;
+}
+
+html.dark .preserve-light .bg-slate-50 {
+  background-color: #f8fafc !important;
+}
+
+html.dark .preserve-light .bg-slate-100 {
+  background-color: #f1f5f9 !important;
+}
+
+html.dark .preserve-light .bg-emerald-50 {
+  background-color: #ecfdf5 !important;
+}
+
+html.dark .preserve-light .text-emerald-950,
+html.dark .preserve-light .text-emerald-900 {
+  color: #064e3b !important;
+}
+
+html.dark .preserve-light .text-emerald-800 {
+  color: #065f46 !important;
+}
+
+html.dark .preserve-light .text-emerald-700 {
+  color: #047857 !important;
+}
+
+html.dark .preserve-light .border-slate-200,
+html.dark .preserve-light .border-slate-300 {
+  border-color: #cbd5e1 !important;
+}
+
+html.dark .preserve-light .border-slate-900 {
+  border-color: #0f172a !important;
+}
+
+html.dark .preserve-light .border-emerald-600 {
+  border-color: #059669 !important;
+}
+
+/* 5. Table rows, headers & cells */
+html.dark table {
+  color: var(--foreground) !important;
+}
+
+html.dark table thead {
+  background-color: color-mix(in oklch, var(--muted) 70%, var(--card)) !important;
+  color: var(--muted-foreground) !important;
+}
+
+html.dark table thead th {
+  color: var(--muted-foreground) !important;
+  border-color: var(--border) !important;
+}
+
+html.dark table tbody tr {
+  border-color: var(--border) !important;
+  background-color: transparent;
+}
+
+html.dark table tbody tr:hover {
+  background-color: color-mix(in oklch, var(--muted) 50%, transparent) !important;
+}
+
+html.dark table td {
+  border-color: var(--border) !important;
+}
+
+/* 6. Form inputs, select dropdowns & textareas */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: var(--muted-foreground) !important;
+}
+
+html.dark select option {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+}
+
+/* ========================================================
+   GLOBAL PRINT ENGINE (ALL PRINTS MUST BE CLEAN WHITE PAPER)
+   ======================================================== */
 @media print {
-  /* Hide all elements on the page by default during print */
+  /* 1. Global Reset to Pure Light / White Canvas for Print */
+  :root,
+  html,
+  html.dark,
+  body,
+  html.dark body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    color-scheme: light !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 2. Hide all elements by default during print */
   body * {
     visibility: hidden !important;
   }
 
-  /* Make ONLY elements with .print:block and their children visible */
+  /* 3. Make ONLY printable areas and their children visible */
   .print\:block,
-  .print\:block * {
+  .print\:block *,
+  #receipt-print-area,
+  #receipt-print-area *,
+  #report-print-area,
+  #report-print-area *,
+  #patient-history-print-area,
+  #patient-history-print-area *,
+  #medical-record-print-area,
+  #medical-record-print-area *,
+  #surat-print-area,
+  #surat-print-area *,
+  #queue-ticket-print-area,
+  #queue-ticket-print-area *,
+  #patient-ticket-print-area,
+  #patient-ticket-print-area *,
+  #etiket-print-area,
+  #etiket-print-area * {
     visibility: visible !important;
   }
 
-  /* Position the printable receipt at the top center of the paper */
-  .print\:block {
+  /* 4. Position the printable documents cleanly */
+  .print\:block,
+  #receipt-print-area,
+  #report-print-area,
+  #patient-history-print-area,
+  #medical-record-print-area,
+  #surat-print-area,
+  #queue-ticket-print-area,
+  #patient-ticket-print-area,
+  #etiket-print-area {
     display: block !important;
     position: absolute !important;
     left: 0 !important;
@@ -150,23 +416,113 @@
     right: 0 !important;
     margin-left: auto !important;
     margin-right: auto !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
-  /* Force hide screen-only elements */
+  /* 5. Force hide screen-only elements */
   .print\:hidden,
   aside,
   header,
   nav,
-  button {
+  button,
+  .fixed.inset-0.bg-black\/60,
+  .fixed.inset-0.bg-black\/50,
+  .fixed.inset-0.bg-black\/40 {
     display: none !important;
     visibility: hidden !important;
   }
 
-  html, body {
-    background-color: white !important;
-    color: black !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  /* 6. All text inside printed elements MUST be high-contrast dark ink */
+  .print\:block *,
+  #receipt-print-area *,
+  #report-print-area *,
+  #patient-history-print-area *,
+  #medical-record-print-area *,
+  #surat-print-area *,
+  #queue-ticket-print-area *,
+  #patient-ticket-print-area *,
+  #etiket-print-area * {
+    color-scheme: light !important;
+    text-shadow: none !important;
+  }
+
+  /* Headers and bold items in pure black */
+  .print\:block h1, .print\:block h2, .print\:block h3, .print\:block h4,
+  .print\:block strong, .print\:block b, .print\:block th,
+  [id*="-print-area"] h1, [id*="-print-area"] h2, [id*="-print-area"] h3, [id*="-print-area"] h4,
+  [id*="-print-area"] strong, [id*="-print-area"] b, [id*="-print-area"] th {
+    color: #000000 !important;
+  }
+
+  /* Body and regular paragraphs in solid dark slate */
+  .print\:block p, .print\:block span, .print\:block td,
+  [id*="-print-area"] p, [id*="-print-area"] span, [id*="-print-area"] td {
+    color: #0f172a !important;
+  }
+
+  /* Inverted badges / dark containers in print must keep white text */
+  .print\:block .text-white,
+  .print\:block [class*="text-white"],
+  .print\:block .bg-slate-900 *,
+  .print\:block .bg-black *,
+  [id*="-print-area"] .text-white,
+  [id*="-print-area"] [class*="text-white"],
+  [id*="-print-area"] .bg-slate-900 *,
+  [id*="-print-area"] .bg-black * {
+    color: #ffffff !important;
+  }
+
+  /* Ensure printed borders are visible and crisp dark gray or black */
+  .print\:block [class*="border"],
+  [id*="-print-area"] [class*="border"],
+  .print\:block hr,
+  [id*="-print-area"] hr {
+    border-color: #334155 !important;
+  }
+
+  /* Subtle background fills and card resets for clean white paper printing */
+  .print\:block .bg-slate-50,
+  [id*="-print-area"] .bg-slate-50 {
+    background-color: #f8fafc !important;
+  }
+
+  .print\:block .bg-slate-100,
+  [id*="-print-area"] .bg-slate-100 {
+    background-color: #f1f5f9 !important;
+  }
+
+  .print\:block .bg-emerald-50,
+  [id*="-print-area"] .bg-emerald-50 {
+    background-color: #ecfdf5 !important;
+  }
+
+  /* Force all cards, containers and backgrounds inside print areas to clean white on paper */
+  [id*="-print-area"] .bg-card,
+  [id*="-print-area"] .bg-background,
+  [id*="-print-area"] .bg-muted,
+  [id*="-print-area"] [class*="bg-muted"],
+  .print\:block .bg-card,
+  .print\:block .bg-background,
+  .print\:block .bg-muted,
+  .print\:block [class*="bg-muted"] {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+
+  /* High contrast text for any dark mode semantic tokens in print */
+  [id*="-print-area"] .text-foreground,
+  [id*="-print-area"] .text-card-foreground,
+  [id*="-print-area"] [class*="text-foreground"],
+  .print\:block .text-foreground,
+  .print\:block .text-card-foreground {
+    color: #000000 !important;
+  }
+
+  [id*="-print-area"] .text-muted-foreground,
+  .print\:block .text-muted-foreground {
+    color: #475569 !important;
   }
 
   @page {
