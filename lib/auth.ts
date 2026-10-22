@@ -48,6 +48,13 @@ export async function setSessionCookie(user: {
       path: '/',
       maxAge: SESSION_DURATION_MS / 1000,
     })
+    cookieStore.set('simpay_role', role, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: SESSION_DURATION_MS / 1000,
+    })
   } catch {
     // Graceful fallback outside HTTP request context (e.g. test environment)
   }
@@ -63,6 +70,13 @@ export async function clearSessionCookie(): Promise<void> {
     const cookieStore = await cookies()
     cookieStore.set(COOKIE_NAME, '', {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+    })
+    cookieStore.set('simpay_role', '', {
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',

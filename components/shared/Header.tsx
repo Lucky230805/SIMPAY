@@ -17,6 +17,7 @@ import {
   LogOut,
   Layers,
   FileCheck,
+  Syringe,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -30,16 +31,38 @@ const navItems = [
   { label: 'Antrean Pemeriksaan', href: '/antrean', icon: ClipboardList, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Rekam Medis', href: '/rekam-medis', icon: FileText, roles: ['DOKTER'] },
   { label: 'Resep & Penyerahan', href: '/resep', icon: Pill, roles: ['PERAWAT'] },
-  { label: 'Stok & Obat', href: '/obat', icon: Layers, roles: ['PERAWAT'] },
+  { label: 'Stok Obat', href: '/obat', icon: Layers, roles: ['PERAWAT'] },
+  { label: 'Tindakan Medis', href: '/tindakan', icon: Syringe, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Kasir & Pembayaran', href: '/pembayaran', icon: CreditCard, roles: ['PERAWAT'] },
   { label: 'Surat Keterangan', href: '/surat', icon: FileCheck, roles: ['PERAWAT'] },
   { label: 'Laporan', href: '/laporan', icon: BarChart2, roles: ['DOKTER', 'PERAWAT'] },
 ]
 
+interface HeaderProps {
+  initialUser?: { name: string; role: 'DOKTER' | 'PERAWAT' } | null
+}
 
-export default function Header() {
+export default function Header({ initialUser }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [user, setUser] = useState<{ name: string; role: 'DOKTER' | 'PERAWAT' } | null>(null)
+  const [user, setUser] = useState<{ name: string; role: 'DOKTER' | 'PERAWAT' } | null>(() => {
+    if (initialUser) return initialUser
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('simpay_user')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed && (parsed.role === 'DOKTER' || parsed.role === 'PERAWAT')) {
+            return parsed
+          }
+        }
+        const match = document.cookie.match(/(?:^|;\s*)simpay_role=([^;]*)/)
+        if (match && (match[1] === 'DOKTER' || match[1] === 'PERAWAT')) {
+          return { name: '', role: match[1] as 'DOKTER' | 'PERAWAT' }
+        }
+      } catch (e) {}
+    }
+    return null
+  })
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
   const pathname = usePathname()
 
@@ -48,6 +71,9 @@ export default function Header() {
     getSessionUserAction().then((u) => {
       if (active && u) {
         setUser({ name: u.name, role: u.role })
+        try {
+          localStorage.setItem('simpay_user', JSON.stringify({ name: u.name, role: u.role }))
+        } catch (e) {}
       }
     })
     return () => {
@@ -55,13 +81,38 @@ export default function Header() {
     }
   }, [])
 
-  const filteredNavItems = navItems.filter(
-    (item) => !user || item.roles.includes(user.role)
-  )
+  // Resolve current active role immediately
+  const activeRole: 'DOKTER' | 'PERAWAT' | null =
+    user?.role ||
+    initialUser?.role ||
+    (typeof window !== 'undefined'
+      ? (() => {
+          try {
+            const stored = localStorage.getItem('simpay_user')
+            if (stored) {
+              const p = JSON.parse(stored)
+              if (p?.role === 'DOKTER' || p?.role === 'PERAWAT') return p.role
+            }
+            const match = document.cookie.match(/(?:^|;\s*)simpay_role=([^;]*)/)
+            if (match && (match[1] === 'DOKTER' || match[1] === 'PERAWAT')) {
+              return match[1] as 'DOKTER' | 'PERAWAT'
+            }
+          } catch (e) {}
+          return null
+        })()
+      : null)
 
-  const isDokter = user?.role === 'DOKTER'
-  const roleInitials = isDokter ? 'DR' : 'PR'
-  const roleLabel = isDokter ? 'Dokter' : 'Perawat'
+  const filteredNavItems = navItems.filter((item) => {
+    if (activeRole) {
+      return item.roles.includes(activeRole)
+    }
+    return item.roles.includes('DOKTER') && item.roles.includes('PERAWAT')
+  })
+
+  const isDokter = activeRole === 'DOKTER'
+  const displayName = user?.name || initialUser?.name || ''
+  const roleInitials = activeRole ? (isDokter ? 'DR' : 'PR') : '—'
+  const roleLabel = activeRole ? (isDokter ? 'Dokter' : 'Perawat') : 'Memuat...'
 
   return (
     <>
@@ -99,7 +150,7 @@ export default function Header() {
             </div>
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-sm font-bold text-foreground leading-tight">
-                {user ? user.name : 'Memuat...'}
+                {displayName || (activeRole ? (isDokter ? 'Dokter SIMPAY' : 'Perawat SIMPAY') : 'Memuat...')}
               </span>
               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
                 {roleLabel}
@@ -107,7 +158,7 @@ export default function Header() {
             </div>
           </div>
 
-          {user && (
+          {(user || activeRole) && (
             <Button
               type="button"
               onClick={() => setIsLogoutConfirmOpen(true)}

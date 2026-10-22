@@ -22,6 +22,9 @@ export function LogoutConfirmDialog({ open, onOpenChange }: LogoutConfirmDialogP
   const [isPending, startTransition] = useTransition()
 
   const handleLogout = () => {
+    try {
+      localStorage.removeItem('simpay_user')
+    } catch (e) {}
     startTransition(async () => {
       await logoutAction()
     })

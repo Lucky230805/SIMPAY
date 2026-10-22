@@ -89,9 +89,31 @@ const navItems = [
 ]
 
 
-export default function Sidebar() {
+interface SidebarProps {
+  initialUser?: { name: string; role: 'DOKTER' | 'PERAWAT' } | null
+}
+
+export default function Sidebar({ initialUser }: SidebarProps) {
   const pathname = usePathname()
-  const [user, setUser] = useState<{ name: string; role: 'DOKTER' | 'PERAWAT' } | null>(null)
+  const [user, setUser] = useState<{ name: string; role: 'DOKTER' | 'PERAWAT' } | null>(() => {
+    if (initialUser) return initialUser
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('simpay_user')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed && (parsed.role === 'DOKTER' || parsed.role === 'PERAWAT')) {
+            return parsed
+          }
+        }
+        const match = document.cookie.match(/(?:^|;\s*)simpay_role=([^;]*)/)
+        if (match && (match[1] === 'DOKTER' || match[1] === 'PERAWAT')) {
+          return { name: '', role: match[1] as 'DOKTER' | 'PERAWAT' }
+        }
+      } catch (e) {}
+    }
+    return null
+  })
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
   useEffect(() => {
@@ -99,6 +121,9 @@ export default function Sidebar() {
     getSessionUserAction().then((u) => {
       if (active && u) {
         setUser({ name: u.name, role: u.role })
+        try {
+          localStorage.setItem('simpay_user', JSON.stringify({ name: u.name, role: u.role }))
+        } catch (e) {}
       }
     })
     return () => {
@@ -106,13 +131,40 @@ export default function Sidebar() {
     }
   }, [])
 
-  const filteredNavItems = navItems.filter(
-    (item) => !user || item.roles.includes(user.role)
-  )
+  // Resolve current active role immediately (from server initialUser, state, localStorage, or cookie)
+  const activeRole: 'DOKTER' | 'PERAWAT' | null =
+    user?.role ||
+    initialUser?.role ||
+    (typeof window !== 'undefined'
+      ? (() => {
+          try {
+            const stored = localStorage.getItem('simpay_user')
+            if (stored) {
+              const p = JSON.parse(stored)
+              if (p?.role === 'DOKTER' || p?.role === 'PERAWAT') return p.role
+            }
+            const match = document.cookie.match(/(?:^|;\s*)simpay_role=([^;]*)/)
+            if (match && (match[1] === 'DOKTER' || match[1] === 'PERAWAT')) {
+              return match[1] as 'DOKTER' | 'PERAWAT'
+            }
+          } catch (e) {}
+          return null
+        })()
+      : null)
 
-  const isDokter = user?.role === 'DOKTER'
-  const roleLabel = isDokter ? 'Dokter' : 'Perawat'
-  const roleInitials = isDokter ? 'DR' : 'PR'
+  // Strictly filter by confirmed active role.
+  // During loading/refresh, Perawat ONLY sees Perawat items, Dokter ONLY sees Dokter items.
+  const filteredNavItems = navItems.filter((item) => {
+    if (activeRole) {
+      return item.roles.includes(activeRole)
+    }
+    return item.roles.includes('DOKTER') && item.roles.includes('PERAWAT')
+  })
+
+  const isDokter = activeRole === 'DOKTER'
+  const displayName = user?.name || initialUser?.name || ''
+  const roleLabel = activeRole ? (isDokter ? 'Dokter' : 'Perawat') : 'Memuat...'
+  const roleInitials = activeRole ? (isDokter ? 'DR' : 'PR') : '—'
 
   return (
     <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-border/80 bg-card h-screen sticky top-0 print:hidden shadow-xs">
@@ -172,7 +224,7 @@ export default function Sidebar() {
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-bold text-foreground truncate">
-                {user ? user.name : 'Memuat...'}
+                {displayName || (activeRole ? (isDokter ? 'Dokter SIMPAY' : 'Perawat SIMPAY') : 'Memuat...')}
               </p>
               <div className="flex items-center gap-1 mt-0.5">
                 {isDokter ? (

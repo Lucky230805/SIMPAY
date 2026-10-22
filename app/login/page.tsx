@@ -44,6 +44,18 @@ function LoginFormContent() {
       if (!res.success) {
         setError(res.error || 'Login gagal')
       } else {
+        if (res.user) {
+          try {
+            localStorage.setItem(
+              'simpay_user',
+              JSON.stringify({
+                name: res.user.name,
+                role: res.user.role,
+                email: res.user.email,
+              })
+            )
+          } catch (e) {}
+        }
         router.push(fromPath)
         router.refresh()
       }
