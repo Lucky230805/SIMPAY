@@ -200,8 +200,12 @@ export default function Header({ initialUser }: HeaderProps) {
                     item.href === '/dashboard'
                       ? pathname === '/dashboard' || pathname === '/'
                       : pathname.startsWith(item.href)
+                  const isDokterOnly = item.roles.length === 1 && item.roles[0] === 'DOKTER'
+                  const isPerawatOnly = item.roles.length === 1 && item.roles[0] === 'PERAWAT'
+                  const roleClass = isDokterOnly ? 'nav-dokter-only' : isPerawatOnly ? 'nav-perawat-only' : ''
+
                   return (
-                    <li key={item.href}>
+                    <li key={item.href} className={roleClass}>
                       <Link
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
@@ -216,7 +220,7 @@ export default function Header({ initialUser }: HeaderProps) {
                         {item.label}
                       </Link>
                     </li>
-                  );
+                  )
                 })}
               </ul>
             </nav>

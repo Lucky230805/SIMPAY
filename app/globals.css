@@ -549,3 +549,11 @@ html.dark select option {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Instant role-based sidebar & mobile menu display before and during hydration */
+html[data-simpay-role="PERAWAT"] .nav-dokter-only {
+  display: none !important;
+}
+html[data-simpay-role="DOKTER"] .nav-perawat-only {
+  display: none !important;
+}
