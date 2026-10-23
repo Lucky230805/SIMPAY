@@ -10,6 +10,9 @@ export interface MedicineItem {
   code: string | null
   unit: string
   category: string | null
+  brandType?: string | null
+  brandName?: string | null
+  genericName?: string | null
   unitPrice: number
   purchasePrice: number | null
   minStock: number
@@ -141,6 +144,9 @@ export async function getMedicineInventory(): Promise<MedicineItem[]> {
         code: med.code,
         unit: med.unit,
         category: med.category,
+        brandType: med.brandType,
+        brandName: med.brandName,
+        genericName: med.genericName,
         unitPrice: med.unitPrice,
         purchasePrice: med.purchasePrice,
         minStock: med.minStock,
@@ -226,6 +232,9 @@ export async function createMedicine(data: {
   code?: string
   unit?: string
   category?: string
+  brandType?: string
+  brandName?: string
+  genericName?: string
   unitPrice?: number
   purchasePrice?: number
   minStock?: number
@@ -267,8 +276,11 @@ export async function createMedicine(data: {
       data: {
         name: data.name.trim(),
         code: finalCode,
-        unit: data.unit?.trim() || 'Pcs',
+        unit: data.unit?.trim() || 'Tablet',
         category: data.category?.trim() || 'Obat Bebas',
+        brandType: data.brandType || 'GENERIK',
+        brandName: data.brandName?.trim() || null,
+        genericName: data.genericName?.trim() || null,
         unitPrice: data.unitPrice !== undefined ? Number(data.unitPrice) : 0,
         purchasePrice: data.purchasePrice !== undefined ? Number(data.purchasePrice) : 0,
         minStock: data.minStock !== undefined ? Number(data.minStock) : 10,
@@ -362,6 +374,9 @@ export async function updateMedicine(
     code?: string
     unit?: string
     category?: string
+    brandType?: string
+    brandName?: string
+    genericName?: string
     unitPrice?: number
     purchasePrice?: number
     minStock?: number
@@ -390,6 +405,9 @@ export async function updateMedicine(
         ...(data.code !== undefined ? { code: data.code.trim() || null } : {}),
         ...(data.unit !== undefined ? { unit: data.unit.trim() } : {}),
         ...(data.category !== undefined ? { category: data.category.trim() } : {}),
+        ...(data.brandType !== undefined ? { brandType: data.brandType } : {}),
+        ...(data.brandName !== undefined ? { brandName: data.brandName.trim() || null } : {}),
+        ...(data.genericName !== undefined ? { genericName: data.genericName.trim() || null } : {}),
         ...(data.unitPrice !== undefined ? { unitPrice: Number(data.unitPrice) } : {}),
         ...(data.purchasePrice !== undefined ? { purchasePrice: Number(data.purchasePrice) } : {}),
         ...(data.minStock !== undefined ? { minStock: Number(data.minStock) } : {}),

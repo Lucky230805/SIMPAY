@@ -10,11 +10,27 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true)
+
+    // Check stored theme in localStorage
+    const stored = localStorage.getItem('simpay_theme')
+    const hasDarkClass = document.documentElement.classList.contains('dark')
+
+    if (stored === 'dark' || (!stored && hasDarkClass)) {
+      document.documentElement.classList.add('dark')
+      setTheme('dark')
+      document.cookie = 'simpay_theme=dark; path=/; max-age=31536000; SameSite=Lax'
+    } else if (stored === 'light') {
+      document.documentElement.classList.remove('dark')
+      setTheme('light')
+      document.cookie = 'simpay_theme=light; path=/; max-age=31536000; SameSite=Lax'
+    } else {
+      setTheme(hasDarkClass ? 'dark' : 'light')
+    }
+
     const syncTheme = () => {
       const isDark = document.documentElement.classList.contains('dark')
       setTheme(isDark ? 'dark' : 'light')
     }
-    syncTheme()
 
     window.addEventListener('simpay-theme-change', syncTheme)
     return () => window.removeEventListener('simpay-theme-change', syncTheme)
@@ -25,6 +41,8 @@ export function ThemeToggle() {
     const nextTheme = isCurrentlyDark ? 'light' : 'dark'
     setTheme(nextTheme)
     localStorage.setItem('simpay_theme', nextTheme)
+    document.cookie = `simpay_theme=${nextTheme}; path=/; max-age=31536000; SameSite=Lax`
+
     if (nextTheme === 'dark') {
       document.documentElement.classList.add('dark')
     } else {
@@ -52,14 +70,14 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="w-9 h-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors relative"
+      className="w-9 h-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors relative cursor-pointer"
       title={theme === 'light' ? 'Beralih ke Mode Gelap (Dark Mode)' : 'Beralih ke Mode Terang (Light Mode)'}
       aria-label="Toggle tema tampilan"
     >
       {theme === 'light' ? (
         <Moon className="w-4 h-4 transition-transform duration-200 hover:-rotate-12 text-slate-700 dark:text-slate-300" />
       ) : (
-        <Sun className="w-4 h-4 transition-transform duration-200 hover:rotate-45 text-amber-400" />
+        <Sun className="w-4 h-4 transition-transform duration-200 hover:rotate-45 text-amber-500" />
       )}
     </Button>
   )

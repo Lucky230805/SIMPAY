@@ -18,6 +18,8 @@ model User {
   issuedCertificates MedicalCertificate[] @relation("IssuedCertificates")
   doctorCertificates MedicalCertificate[] @relation("DoctorCertificates")
   stockMovements     StockMovement[]
+  createdPurchaseOrders   PurchaseOrder[]   @relation("CreatedPurchaseOrders")
+  createdPurchaseInvoices PurchaseInvoice[] @relation("CreatedPurchaseInvoices")
 }
 
 model Patient {
@@ -127,8 +129,11 @@ model Medicine {
   id            Int             @id @default(autoincrement())
   name          String          @unique
   code          String?         @unique
-  unit          String          @default("Pcs")
+  unit          String          @default("Tablet")
   category      String?         @default("Obat Bebas")
+  brandType     String?         @default("GENERIK") // "GENERIK" | "PATEN_BERMEREK"
+  brandName     String?         // Nama dagang paten jika ada
+  genericName   String?         // Nama zat aktif generik
   unitPrice     Float           @default(0)
   purchasePrice Float?          @default(0)
   minStock      Int             @default(10)
@@ -136,9 +141,11 @@ model Medicine {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
-  batches        MedicineBatch[]
-  prescriptions  Prescription[]
-  stockMovements StockMovement[]
+  batches              MedicineBatch[]
+  prescriptions        Prescription[]
+  stockMovements       StockMovement[]
+  purchaseOrderItems   PurchaseOrderItem[]
+  purchaseInvoiceItems PurchaseInvoiceItem[]
 }
 
 model MedicineBatch {
@@ -152,8 +159,9 @@ model MedicineBatch {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  medicine       Medicine        @relation(fields: [medicineId], references: [id], onDelete: Cascade)
-  stockMovements StockMovement[]
+  medicine             Medicine              @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  stockMovements       StockMovement[]
+  purchaseInvoiceItems PurchaseInvoiceItem[]
 }
 
 model StockMovement {
@@ -244,4 +252,120 @@ model MedicalCertificate {
   patient       Patient  @relation(fields: [patientId], references: [id])
   issuedBy      User?    @relation("IssuedCertificates", fields: [issuedById], references: [id])
   doctor        User?    @relation("DoctorCertificates", fields: [doctorId], references: [id])
+}
+
+model Supplier {
+  id            Int               @id @default(autoincrement())
+  code          String            @unique // e.g. "PBF-AAM"
+  name          String            // e.g. "PT Anugrah Argon Medica (AAM)"
+  address       String?
+  phone         String?
+  email         String?
+  picName       String?           // Kontak person PBF
+  licenseNumber String?           // No. Izin PBF
+  isPkp         Boolean           @default(false)
+  npwp          String?
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  purchaseOrders   PurchaseOrder[]
+  purchaseInvoices PurchaseInvoice[]
+}
+
+model PurchaseOrder {
+  id             Int                 @id @default(autoincrement())
+  orderNumber    String              @unique // e.g. "PO-202610-0001"
+  supplierId     Int
+  orderDate      DateTime            @default(now())
+  expectedDate   DateTime?
+  status         String              @default("MENUNGGU") // MENUNGGU | DISETUJUI | DIKIRIM | SELESAI | DIBATALKAN
+  notes          String?
+  createdById    Int?
+  createdByName  String              @default("Staf Farmasi")
+  totalEstimated Float               @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  supplier         Supplier            @relation(fields: [supplierId], references: [id])
+  createdBy        User?               @relation("CreatedPurchaseOrders", fields: [createdById], references: [id])
+  items            PurchaseOrderItem[]
+  purchaseInvoices PurchaseInvoice[]
+}
+
+model PurchaseOrderItem {
+  id              Int           @id @default(autoincrement())
+  purchaseOrderId Int
+  medicineId      Int
+  medicineName    String
+  unit            String        @default("Tablet")
+  quantity        Int           @default(1)
+  estimatedPrice  Float         @default(0)
+  subtotal        Float         @default(0)
+  notes           String?
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  medicine      Medicine      @relation(fields: [medicineId], references: [id])
+}
+
+model PurchaseInvoice {
+  id                     Int                   @id @default(autoincrement())
+  invoiceNumber          String                @unique // No faktur sistem (identik): "FAK-202610-0001"
+  supplierInvoiceNumber  String                // No faktur fisik dari supplier PBF
+  purchaseOrderId        Int?
+  supplierId             Int
+  transactionDate        DateTime              @default(now())
+  facilityLocation       String                @default("Klinik Pratama SIMPAY") // Lokasi Faskes
+  paymentMethod          String                @default("KREDIT") // TUNAI | TRANSFER | KREDIT
+  creditTerm             String?               // D7 | D21 | D30 | null
+  dueDate                DateTime?             // Jatuh tempo dihitung otomatis
+  status                 String                @default("PROSES") // PROSES | TUNDA | SELESAI
+  paymentStatus          String                @default("TAGIHAN") // TAGIHAN | LUNAS
+  taxInvoiceNumber       String?               // No faktur pajak jika PKP
+  notes                  String?
+
+  // Kalkulasi Footer Faktur
+  totalQty               Int                   @default(0)
+  totalQtyBonus          Int                   @default(0)
+  subtotalBeforeDiscount Float                 @default(0)
+  itemDiscountAmount     Float                 @default(0)
+  additionalDiscount     Float                 @default(0)
+  dppAmount              Float                 @default(0) // Harga sebelum PPN
+  taxRate                Float                 @default(11) // PPN %
+  taxAmount              Float                 @default(0) // Nilai PPN
+  totalAmount            Float                 @default(0) // Total nilai faktur (wajib klop fisik)
+
+  createdById            Int?
+  createdByName          String                @default("Staf Farmasi")
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  supplier      Supplier              @relation(fields: [supplierId], references: [id])
+  purchaseOrder PurchaseOrder?        @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  createdBy     User?                 @relation("CreatedPurchaseInvoices", fields: [createdById], references: [id])
+  items         PurchaseInvoiceItem[]
+}
+
+model PurchaseInvoiceItem {
+  id                Int             @id @default(autoincrement())
+  purchaseInvoiceId Int
+  medicineId        Int
+  medicineName      String
+  batchNumber       String
+  expiryDate        DateTime
+  quantity          Int             @default(1)
+  bonusQuantity     Int             @default(0)
+  unit              String          @default("Tablet")
+  hnaPrice          Float           @default(0) // HNA per item
+  discountPercent   Float           @default(0) // Diskon item (%)
+  isTaxable         Boolean         @default(true) // Pajak / Non-pajak
+  hnaWithTax        Float           @default(0) // HNA + PPN
+  discountWithTax   Float           @default(0) // Diskon + PPN
+  subtotal          Float           @default(0) // Subtotal sebelum diskon
+  netPrice          Float           @default(0) // Harga beli NET per satuan
+  batchId           Int?            // Relasi batch yang terbuat
+
+  purchaseInvoice PurchaseInvoice @relation(fields: [purchaseInvoiceId], references: [id], onDelete: Cascade)
+  medicine        Medicine        @relation(fields: [medicineId], references: [id])
+  batch           MedicineBatch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
 }

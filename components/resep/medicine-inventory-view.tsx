@@ -54,8 +54,11 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
   // Form inputs
   const [medName, setMedName] = useState('')
   const [medCode, setMedCode] = useState('')
-  const [medUnit, setMedUnit] = useState('Pcs')
+  const [medUnit, setMedUnit] = useState('Tablet')
   const [medCategory, setMedCategory] = useState('Obat Bebas')
+  const [medBrandType, setMedBrandType] = useState('GENERIK')
+  const [medBrandName, setMedBrandName] = useState('')
+  const [medGenericName, setMedGenericName] = useState('')
   const [medUnitPrice, setMedUnitPrice] = useState('15000')
   const [medPurchasePrice, setMedPurchasePrice] = useState('10000')
   const [medMinStock, setMedMinStock] = useState('10')
@@ -115,8 +118,11 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
     setEditingMed(null)
     setMedName('')
     setMedCode('')
-    setMedUnit('Pcs')
+    setMedUnit('Tablet')
     setMedCategory('Obat Bebas')
+    setMedBrandType('GENERIK')
+    setMedBrandName('')
+    setMedGenericName('')
     setMedUnitPrice('15000')
     setMedPurchasePrice('10000')
     setMedMinStock('10')
@@ -131,6 +137,9 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
     setMedCode(`TND-${Math.floor(Math.random() * 900 + 100)}`)
     setMedUnit('Kali')
     setMedCategory('Tindakan / Layanan Medis')
+    setMedBrandType('GENERIK')
+    setMedBrandName('')
+    setMedGenericName('')
     setMedUnitPrice('50000')
     setMedPurchasePrice('10000')
     setMedMinStock('0')
@@ -145,6 +154,9 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
     setMedCode(med.code || '')
     setMedUnit(med.unit)
     setMedCategory(med.category || 'Obat Bebas')
+    setMedBrandType(med.brandType || 'GENERIK')
+    setMedBrandName(med.brandName || '')
+    setMedGenericName(med.genericName || '')
     setMedUnitPrice(med.unitPrice.toString())
     setMedPurchasePrice((med.purchasePrice || 0).toString())
     setMedMinStock(med.minStock.toString())
@@ -181,6 +193,9 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
           code: medCode,
           unit: medUnit,
           category: medCategory,
+          brandType: medBrandType,
+          brandName: medBrandName,
+          genericName: medGenericName,
           unitPrice: parseFloat(medUnitPrice) || 0,
           purchasePrice: parseFloat(medPurchasePrice) || 0,
           minStock: parseInt(medMinStock, 10) || 10,
@@ -198,6 +213,9 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
           code: medCode,
           unit: medUnit,
           category: medCategory,
+          brandType: medBrandType,
+          brandName: medBrandName,
+          genericName: medGenericName,
           unitPrice: parseFloat(medUnitPrice) || 0,
           purchasePrice: parseFloat(medPurchasePrice) || 0,
           minStock: parseInt(medMinStock, 10) || 0,
@@ -337,15 +355,34 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
         </div>
       </div>
 
-      {/* Alert Notifications */}
-      {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center justify-between">
-          <span>{successMsg}</span>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer">
-            Tutup
-          </button>
+      {/* Anti-Fraud Notice & Restock Shortcut Banner */}
+      <div className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/10 dark:bg-blue-950/20 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-2 rounded-lg bg-blue-600 text-white shrink-0 mt-0.5 sm:mt-0">
+            <Info className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+              <span>Pengendalian Stok &amp; Pencegahan Fraud Farmasi</span>
+              <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase bg-blue-600 text-white rounded-full">
+                Sistem Terkunci
+              </span>
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Stok tidak boleh diedit atau dihapus manual. Penambahan stok hanya melalui menu <strong>Faktur Pembelian (PBF)</strong> dan berkurang otomatis dari <strong>Resep Pasien</strong>.
+            </p>
+          </div>
         </div>
-      )}
+        {isNurse && (
+          <Link
+            href="/transaksi"
+            className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs whitespace-nowrap shadow-xs flex items-center gap-1.5 shrink-0 self-start sm:self-center transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Input Faktur Pembelian</span>
+          </Link>
+        )}
+      </div>
 
       {/* Widget Banner Peringatan Expiry H-30 & H-60 */}
       {(nearExpiry30Count > 0 || nearExpiry60Count > 0 || expiredCount > 0) && (
@@ -581,9 +618,25 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                     <td className="px-4 py-3 font-mono text-muted-foreground font-semibold">
                       {med.code || `OBT-${med.id.toString().padStart(3, '0')}`}
                     </td>
-                    <td className="px-4 py-3 font-bold text-foreground">{med.name}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-foreground">{med.name}</div>
+                      {(med.genericName || med.brandName) && (
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          {med.brandType === 'PATEN_BERMEREK' ? (
+                            <span>Paten: <strong className="text-foreground">{med.brandName || med.name}</strong> {med.genericName ? `(${med.genericName})` : ''}</span>
+                          ) : (
+                            <span>Zat aktif: {med.genericName || med.name}</span>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      <MedicineCategoryBadge category={med.category} size="sm" />
+                      <MedicineCategoryBadge
+                        category={med.category}
+                        brandType={med.brandType}
+                        showBrandBadge={true}
+                        size="sm"
+                      />
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{med.unit}</td>
                     <td className="px-4 py-3 text-right font-bold text-foreground">
@@ -643,22 +696,13 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                         </button>
 
                         {isNurse && (
-                          <>
-                            <button
-                              title="Tambah Batch (Restock)"
-                              onClick={() => openAddBatchModal(med)}
-                              className="p-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              title="Edit Master Obat"
-                              onClick={() => openEditModal(med)}
-                              className="p-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                          </>
+                          <button
+                            title="Edit Master Obat"
+                            onClick={() => openEditModal(med)}
+                            className="p-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
                         )}
                       </div>
                     </td>
@@ -718,42 +762,97 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">Kategori Obat (Golongan BPOM) *</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Jenis Karakteristik Obat *</label>
                   <select
-                    value={medCategory}
-                    onChange={(e) => setMedCategory(e.target.value)}
+                    value={medBrandType}
+                    onChange={(e) => setMedBrandType(e.target.value)}
                     className="w-full px-3 py-2 border border-border rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-background text-foreground"
                   >
-                    <option value="Obat Bebas">Obat Bebas (Lingkaran Hijau Tepi Hitam)</option>
-                    <option value="Obat Bebas Terbatas">Obat Bebas Terbatas (Lingkaran Biru Tepi Hitam)</option>
-                    <option value="Obat Keras">Obat Keras & Psikotropika (Huruf K Merah Tepi Hitam)</option>
-                    <option value="Alat Kesehatan / BMHP">Alat Kesehatan / BMHP (Bahan Medis Habis Pakai)</option>
+                    <option value="GENERIK">Obat Generik (Nama Zat Aktif)</option>
+                    <option value="PATEN_BERMEREK">Obat Paten / Bermerek Dagang</option>
                   </select>
                 </div>
               </div>
 
+              {medBrandType === 'PATEN_BERMEREK' ? (
+                <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">Nama Dagang / Merk *</label>
+                    <input
+                      type="text"
+                      value={medBrandName}
+                      onChange={(e) => setMedBrandName(e.target.value)}
+                      placeholder="mis. Norvask 5 mg"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">Zat Aktif Generik</label>
+                    <input
+                      type="text"
+                      value={medGenericName}
+                      onChange={(e) => setMedGenericName(e.target.value)}
+                      placeholder="mis. Amlodipine 5 mg"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Zat Aktif Generik (INN)</label>
+                  <input
+                    type="text"
+                    value={medGenericName}
+                    onChange={(e) => setMedGenericName(e.target.value)}
+                    placeholder="mis. Amlodipine 5 mg, Paracetamol 500 mg"
+                    className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">Kategori Golongan Obat (Resmi BPOM &amp; Kemenkes) *</label>
+                <select
+                  value={medCategory}
+                  onChange={(e) => setMedCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none bg-background text-foreground"
+                >
+                  <option value="Obat Bebas">Obat Bebas (Lingkaran Hijau Tepi Hitam)</option>
+                  <option value="Obat Bebas Terbatas">Obat Bebas Terbatas (Lingkaran Biru Tepi Hitam)</option>
+                  <option value="Obat Keras">Obat Keras (Huruf K dalam Lingkaran Merah Tepi Hitam)</option>
+                  <option value="Obat Narkotika">Obat Narkotika (Palang Medali Merah)</option>
+                  <option value="Obat Jamu">Obat Jamu (Ranting Daun Lingkaran Hijau)</option>
+                  <option value="Obat Herbal Terstandar">Obat Herbal Terstandar (OHT - 3 Bintang Daun)</option>
+                  <option value="Obat Fitofarmaka">Obat Fitofarmaka (Kristal Salju Ranting)</option>
+                  <option value="Alat Kesehatan / BMHP">Alat Kesehatan / BMHP</option>
+                </select>
+              </div>
+
               {/* BPOM Symbol & Description Live Preview */}
               <div className="p-3 rounded-xl bg-muted/40 border border-border">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Simbol Golongan Obat (BPOM)</span>
-                <MedicineCategoryBadge category={medCategory} showDescription={true} size="md" />
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Simbol Golongan Obat (BPOM &amp; Kemenkes)</span>
+                <MedicineCategoryBadge category={medCategory} brandType={medBrandType} showDescription={true} showBrandBadge={true} size="md" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">Satuan</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1">Satuan Terkecil / Satuan Pakai *</label>
                   <select
                     value={medUnit}
                     onChange={(e) => setMedUnit(e.target.value)}
                     className="w-full px-3 py-2 border border-border rounded-lg text-xs focus:ring-2 focus:ring-primary focus:outline-none bg-background text-foreground"
                   >
-                    <option value="Pcs">Pcs</option>
                     <option value="Tablet">Tablet</option>
-                    <option value="Botol">Botol</option>
-                    <option value="Strip">Strip</option>
+                    <option value="Kapsul">Kapsul</option>
                     <option value="Kaplet">Kaplet</option>
+                    <option value="Botol">Botol</option>
                     <option value="Tube">Tube</option>
                     <option value="Ampul">Ampul</option>
+                    <option value="Strip">Strip</option>
+                    <option value="Dos">Dos / Box</option>
+                    <option value="Pcs">Pcs</option>
                   </select>
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">Saran: gunakan satuan terkecil agar resep dokter presisi.</span>
                 </div>
 
                 <div>
@@ -992,25 +1091,10 @@ export function MedicineInventoryView({ initialInventory, userRole }: MedicineIn
                             )}
                           </td>
                           {isNurse && (
-                            <td className="px-3 py-2 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <button
-                                  type="button"
-                                  title="Ubah Tanggal ED Batch"
-                                  onClick={() => openEditBatchExpiryModal(b.id, b.batchNumber, b.expiryDate)}
-                                  className="p-1 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/30 transition-colors cursor-pointer"
-                                >
-                                  <Edit2 className="w-3 h-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  title="Hapus Batch Ini"
-                                  onClick={() => openDeleteBatchModal(b.id, b.batchNumber)}
-                                  className="p-1 rounded text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
+                            <td className="px-3 py-2 text-center text-muted-foreground text-[10px]">
+                              <span className="px-2 py-0.5 rounded bg-muted font-mono font-medium border border-border">
+                                Terkunci (Faktur)
+                              </span>
                             </td>
                           )}
                         </tr>
