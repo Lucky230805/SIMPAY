@@ -994,7 +994,7 @@ export function TransaksiView({
                   />
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Catatan Pembimbing: Total barang dan total harga saat dimasukkan ke sistem <strong>harus sama persis</strong> dengan yang tertera di fisik faktur.
+                  <strong>Petunjuk Verifikasi:</strong> Total barang dan total harga saat dimasukkan ke sistem <strong>wajib sama persis</strong> dengan yang tertera di lembar fisik faktur PBF.
                 </p>
               </div>
 
