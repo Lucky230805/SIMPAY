@@ -20,6 +20,8 @@ model User {
   stockMovements     StockMovement[]
   createdPurchaseOrders   PurchaseOrder[]   @relation("CreatedPurchaseOrders")
   createdPurchaseInvoices PurchaseInvoice[] @relation("CreatedPurchaseInvoices")
+  medicalRecordAddendums  MedicalRecordAddendum[]
+  medicalRecordAuditLogs  MedicalRecordAuditLog[]
 }
 
 model Patient {
@@ -56,6 +58,9 @@ model MedicalRecord {
   allergy            String?
   nextControlDate    DateTime?
   status             String?        @default("ANTRE")
+  isLocked           Boolean        @default(false)
+  lockedAt           DateTime?
+  lockedById         Int?
 
   patient       Patient            @relation(fields: [patientId], references: [id])
   doctor        User?              @relation(fields: [doctorId], references: [id])
@@ -63,6 +68,8 @@ model MedicalRecord {
   prescriptions Prescription[]
   procedures    PatientProcedure[]
   billing       Billing?
+  addendums     MedicalRecordAddendum[]
+  auditLogs     MedicalRecordAuditLog[]
 }
 
 model Procedure {
@@ -368,4 +375,35 @@ model PurchaseInvoiceItem {
   purchaseInvoice PurchaseInvoice @relation(fields: [purchaseInvoiceId], references: [id], onDelete: Cascade)
   medicine        Medicine        @relation(fields: [medicineId], references: [id])
   batch           MedicineBatch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
+}
+
+model MedicalRecordAddendum {
+  id              Int           @id @default(autoincrement())
+  medicalRecordId Int
+  doctorId        Int?
+  doctorName      String
+  doctorSip       String?
+  fieldChanged    String        // e.g. "Diagnosis", "Tanda Vital", "Terapi", "Catatan"
+  reason          String        // Alasan koreksi resmi
+  content         String        // Catatan addendum / hasil koreksi
+  previousValue   String?       // Nilai sebelum koreksi jika ada
+  createdAt       DateTime      @default(now())
+
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  doctor          User?         @relation(fields: [doctorId], references: [id])
+}
+
+model MedicalRecordAuditLog {
+  id              Int           @id @default(autoincrement())
+  medicalRecordId Int
+  userId          Int?
+  userName        String
+  userRole        String
+  action          String        // "CREATE", "FINALIZE", "LOCK", "VIEW", "ADDENDUM", "UPDATE_DRAFT"
+  details         String?
+  ipAddress       String?
+  createdAt       DateTime      @default(now())
+
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  user            User?         @relation(fields: [userId], references: [id])
 }

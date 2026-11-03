@@ -15,10 +15,36 @@ export interface GetMedicalRecordsParams {
   pageSize?: number
 }
 
+export interface MedicalRecordAddendumItem {
+  id: number
+  medicalRecordId: number
+  doctorId: number | null
+  doctorName: string
+  doctorSip: string | null
+  fieldChanged: string
+  reason: string
+  content: string
+  previousValue: string | null
+  createdAt: Date
+}
+
+export interface MedicalRecordAuditLogItem {
+  id: number
+  medicalRecordId: number
+  userId: number | null
+  userName: string
+  userRole: string
+  action: string
+  details: string | null
+  ipAddress: string | null
+  createdAt: Date
+}
+
 export interface MedicalRecordItem {
   id: number
   patientId: number
   doctorId: number | null
+  queueId?: number | null
   examinationDate: Date
   complaint: string | null
   diagnosis: string | null
@@ -31,6 +57,9 @@ export interface MedicalRecordItem {
   heartRate: string | null
   respiratoryRate: string | null
   allergy: string | null
+  status?: string | null
+  isLocked?: boolean
+  lockedAt?: Date | null
   patient: {
     id: number
     name: string
@@ -50,6 +79,8 @@ export interface MedicalRecordItem {
     dosage: string
     instructions: string | null
   }[]
+  addendums?: MedicalRecordAddendumItem[]
+  auditLogs?: MedicalRecordAuditLogItem[]
 }
 
 export interface GetMedicalRecordsResult {
@@ -88,12 +119,17 @@ function enrichMedicalRecord(mr: any): MedicalRecordItem {
     }
   }
 
+  const isLocked = Boolean(mr.isLocked || mr.status === 'SELESAI')
+
   return {
     ...mr,
     bloodPressure: bp,
     temperature: temp,
     heartRate: hr,
     notes: notes,
+    isLocked,
+    addendums: mr.addendums || [],
+    auditLogs: mr.auditLogs || [],
   }
 }
 
@@ -189,6 +225,12 @@ export async function getMedicalRecords(
           patient: true,
           doctor: true,
           prescriptions: true,
+          addendums: {
+            orderBy: { createdAt: 'asc' },
+          },
+          auditLogs: {
+            orderBy: { createdAt: 'desc' },
+          },
         },
       }),
     ])
@@ -221,6 +263,12 @@ export async function getMedicalRecordById(id: number): Promise<MedicalRecordIte
         patient: true,
         doctor: true,
         prescriptions: true,
+        addendums: {
+          orderBy: { createdAt: 'asc' },
+        },
+        auditLogs: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     })
     return record ? enrichMedicalRecord(record) : null
@@ -240,6 +288,12 @@ export async function getPatientMedicalHistory(patientId: number): Promise<Medic
         patient: true,
         doctor: true,
         prescriptions: true,
+        addendums: {
+          orderBy: { createdAt: 'asc' },
+        },
+        auditLogs: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     })
     return records.map(enrichMedicalRecord)
@@ -316,28 +370,48 @@ export async function createMedicalRecord(data: MedicalRecordInput) {
   try {
     const doctorId = doctorUser.id
 
-    const created = await prisma.medicalRecord.create({
-      data: {
-        patientId: data.patientId,
-        doctorId: doctorId,
-        examinationDate: data.examinationDate ? new Date(data.examinationDate) : new Date(),
-        complaint: data.complaint?.trim() || null,
-        diagnosis: data.diagnosis.trim(),
-        icd10Code: data.icd10Code?.trim() || null,
-        secondaryDiagnosis: data.secondaryDiagnosis?.trim() || null,
-        bloodPressure: data.bloodPressure?.trim() || null,
-        temperature: data.temperature?.trim() || null,
-        heartRate: data.heartRate?.trim() || null,
-        respiratoryRate: data.respiratoryRate?.trim() || null,
-        allergy: data.allergy?.trim() || null,
-        treatment: data.treatment?.trim() || null,
-        notes: data.notes?.trim() || null,
-      },
-      include: {
-        patient: true,
-        doctor: true,
-        prescriptions: true,
-      },
+    const created = await prisma.$transaction(async (tx) => {
+      const rec = await tx.medicalRecord.create({
+        data: {
+          patientId: data.patientId,
+          doctorId: doctorId,
+          examinationDate: data.examinationDate ? new Date(data.examinationDate) : new Date(),
+          complaint: data.complaint?.trim() || null,
+          diagnosis: data.diagnosis.trim(),
+          icd10Code: data.icd10Code?.trim() || null,
+          secondaryDiagnosis: data.secondaryDiagnosis?.trim() || null,
+          bloodPressure: data.bloodPressure?.trim() || null,
+          temperature: data.temperature?.trim() || null,
+          heartRate: data.heartRate?.trim() || null,
+          respiratoryRate: data.respiratoryRate?.trim() || null,
+          allergy: data.allergy?.trim() || null,
+          treatment: data.treatment?.trim() || null,
+          notes: data.notes?.trim() || null,
+          status: 'ANTRE',
+          isLocked: false,
+        },
+        include: {
+          patient: true,
+          doctor: true,
+          prescriptions: true,
+          addendums: true,
+          auditLogs: true,
+        },
+      })
+
+      // Catat audit trail pembuatan
+      await tx.medicalRecordAuditLog.create({
+        data: {
+          medicalRecordId: rec.id,
+          userId: doctorUser.id,
+          userName: doctorUser.name,
+          userRole: 'DOKTER',
+          action: 'CREATE',
+          details: `Pembuatan rekam medis awal untuk pasien ID #${data.patientId}. Diagnosis: ${rec.diagnosis}.`,
+        },
+      })
+
+      return rec
     })
 
     try {
@@ -348,7 +422,7 @@ export async function createMedicalRecord(data: MedicalRecordInput) {
       // Ignored outside request context
     }
 
-    return { success: true, record: created }
+    return { success: true, record: enrichMedicalRecord(created) }
   } catch (error: any) {
     console.error('Error creating medical record:', error)
     return {
@@ -359,8 +433,9 @@ export async function createMedicalRecord(data: MedicalRecordInput) {
 }
 
 export async function updateMedicalRecord(id: number, data: Partial<MedicalRecordInput>) {
+  let doctorUser: any
   try {
-    await requireRole('DOKTER')
+    doctorUser = await requireRole('DOKTER')
   } catch (err: any) {
     return { success: false, error: err.message || 'Akses ditolak' }
   }
@@ -376,28 +451,65 @@ export async function updateMedicalRecord(id: number, data: Partial<MedicalRecor
   }
 
   try {
-    const updated = await prisma.medicalRecord.update({
+    const existing = await prisma.medicalRecord.findUnique({
       where: { id },
-      data: {
-        complaint: data.complaint !== undefined ? data.complaint?.trim() || null : undefined,
-        diagnosis: data.diagnosis !== undefined ? data.diagnosis.trim() : undefined,
-        icd10Code: data.icd10Code !== undefined ? data.icd10Code?.trim() || null : undefined,
-        secondaryDiagnosis:
-          data.secondaryDiagnosis !== undefined ? data.secondaryDiagnosis?.trim() || null : undefined,
-        bloodPressure: data.bloodPressure !== undefined ? data.bloodPressure?.trim() || null : undefined,
-        temperature: data.temperature !== undefined ? data.temperature?.trim() || null : undefined,
-        heartRate: data.heartRate !== undefined ? data.heartRate?.trim() || null : undefined,
-        respiratoryRate:
-          data.respiratoryRate !== undefined ? data.respiratoryRate?.trim() || null : undefined,
-        allergy: data.allergy !== undefined ? data.allergy?.trim() || null : undefined,
-        treatment: data.treatment !== undefined ? data.treatment?.trim() || null : undefined,
-        notes: data.notes !== undefined ? data.notes?.trim() || null : undefined,
-      },
-      include: {
-        patient: true,
-        doctor: true,
-        prescriptions: true,
-      },
+      select: { id: true, isLocked: true, status: true, patientId: true, diagnosis: true },
+    })
+
+    if (!existing) {
+      return { success: false, error: 'Rekam medis tidak ditemukan' }
+    }
+
+    // Hard locking check: jika sudah dikunci atau status SELESAI, tolak direct edit!
+    if (existing.isLocked || existing.status === 'SELESAI') {
+      return {
+        success: false,
+        error:
+          'Rekam medis telah difinalisasi dan dikunci permanen. Perubahan atau koreksi klinis wajib dicatat melalui mekanisme Addendum sesuai standar Permenkes No. 24 Tahun 2022.',
+        isLocked: true,
+      }
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const rec = await tx.medicalRecord.update({
+        where: { id },
+        data: {
+          complaint: data.complaint !== undefined ? data.complaint?.trim() || null : undefined,
+          diagnosis: data.diagnosis !== undefined ? data.diagnosis.trim() : undefined,
+          icd10Code: data.icd10Code !== undefined ? data.icd10Code?.trim() || null : undefined,
+          secondaryDiagnosis:
+            data.secondaryDiagnosis !== undefined ? data.secondaryDiagnosis?.trim() || null : undefined,
+          bloodPressure: data.bloodPressure !== undefined ? data.bloodPressure?.trim() || null : undefined,
+          temperature: data.temperature !== undefined ? data.temperature?.trim() || null : undefined,
+          heartRate: data.heartRate !== undefined ? data.heartRate?.trim() || null : undefined,
+          respiratoryRate:
+            data.respiratoryRate !== undefined ? data.respiratoryRate?.trim() || null : undefined,
+          allergy: data.allergy !== undefined ? data.allergy?.trim() || null : undefined,
+          treatment: data.treatment !== undefined ? data.treatment?.trim() || null : undefined,
+          notes: data.notes !== undefined ? data.notes?.trim() || null : undefined,
+        },
+        include: {
+          patient: true,
+          doctor: true,
+          prescriptions: true,
+          addendums: { orderBy: { createdAt: 'asc' } },
+          auditLogs: { orderBy: { createdAt: 'desc' } },
+        },
+      })
+
+      // Catat audit trail perubahan draft
+      await tx.medicalRecordAuditLog.create({
+        data: {
+          medicalRecordId: id,
+          userId: doctorUser.id,
+          userName: doctorUser.name,
+          userRole: 'DOKTER',
+          action: 'UPDATE_DRAFT',
+          details: `Pembaruan draf sebelum finalisasi. Diagnosis baru: ${rec.diagnosis}.`,
+        },
+      })
+
+      return rec
     })
 
     try {
@@ -408,12 +520,128 @@ export async function updateMedicalRecord(id: number, data: Partial<MedicalRecor
       // Ignored outside request context
     }
 
-    return { success: true, record: updated }
+    return { success: true, record: enrichMedicalRecord(updated) }
   } catch (error: any) {
     console.error(`Error updating medical record ${id}:`, error)
     return {
       success: false,
       error: 'Gagal memperbarui rekam medis: ' + (error.message || 'Kesalahan server'),
     }
+  }
+}
+
+export interface CreateAddendumInput {
+  medicalRecordId: number
+  fieldChanged: string // 'Diagnosis' | 'Terapi' | 'Tanda Vital' | 'Catatan' | 'Lainnya'
+  reason: string
+  content: string
+  previousValue?: string
+}
+
+export async function createMedicalRecordAddendum(data: CreateAddendumInput) {
+  let doctorUser: any
+  try {
+    doctorUser = await requireRole('DOKTER')
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Akses ditolak' }
+  }
+
+  if (!data.medicalRecordId) {
+    return { success: false, error: 'ID Rekam Medis wajib ditentukan' }
+  }
+
+  if (!data.fieldChanged || data.fieldChanged.trim().length < 2) {
+    return { success: false, error: 'Kategori/bagian yang dikoreksi wajib diisi' }
+  }
+
+  if (!data.reason || data.reason.trim().length < 3) {
+    return { success: false, error: 'Alasan koreksi resmi wajib diisi (minimal 3 karakter)' }
+  }
+
+  if (!data.content || data.content.trim().length < 3) {
+    return { success: false, error: 'Catatan koreksi / addendum wajib diisi (minimal 3 karakter)' }
+  }
+
+  try {
+    const mr = await prisma.medicalRecord.findUnique({
+      where: { id: data.medicalRecordId },
+      include: { doctor: true },
+    })
+
+    if (!mr) {
+      return { success: false, error: 'Rekam medis tidak ditemukan' }
+    }
+
+    const doctorProfile = await prisma.user.findUnique({
+      where: { id: doctorUser.id },
+      select: { name: true, sipNumber: true },
+    })
+
+    const addendum = await prisma.$transaction(async (tx) => {
+      // 1. Buat catatan addendum resmi
+      const created = await tx.medicalRecordAddendum.create({
+        data: {
+          medicalRecordId: data.medicalRecordId,
+          doctorId: doctorUser.id,
+          doctorName: doctorProfile?.name || doctorUser.name,
+          doctorSip: doctorProfile?.sipNumber || null,
+          fieldChanged: data.fieldChanged.trim(),
+          reason: data.reason.trim(),
+          content: data.content.trim(),
+          previousValue: data.previousValue?.trim() || null,
+        },
+      })
+
+      // 2. Pastikan rekam medis terkunci secara permanen
+      await tx.medicalRecord.update({
+        where: { id: data.medicalRecordId },
+        data: {
+          isLocked: true,
+          lockedAt: mr.lockedAt || new Date(),
+          lockedById: mr.lockedById || doctorUser.id,
+        },
+      })
+
+      // 3. Catat jejak audit forensik
+      await tx.medicalRecordAuditLog.create({
+        data: {
+          medicalRecordId: data.medicalRecordId,
+          userId: doctorUser.id,
+          userName: doctorProfile?.name || doctorUser.name,
+          userRole: 'DOKTER',
+          action: 'ADDENDUM',
+          details: `Addendum pada bagian [${data.fieldChanged.trim()}]. Alasan: ${data.reason.trim()}. Koreksi: ${data.content.trim()}`,
+        },
+      })
+
+      return created
+    })
+
+    try {
+      revalidatePath('/rekam-medis')
+      revalidatePath(`/pasien/${mr.patientId}`)
+      revalidatePath('/dashboard')
+    } catch {}
+
+    return { success: true, addendum }
+  } catch (error: any) {
+    console.error('Error creating medical record addendum:', error)
+    return {
+      success: false,
+      error: 'Gagal mencatat addendum: ' + (error.message || 'Kesalahan server'),
+    }
+  }
+}
+
+export async function getMedicalRecordAuditTrail(medicalRecordId: number) {
+  await requireAuth()
+  try {
+    const logs = await prisma.medicalRecordAuditLog.findMany({
+      where: { medicalRecordId },
+      orderBy: { createdAt: 'desc' },
+    })
+    return { success: true, logs }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Gagal memuat log audit' }
   }
 }

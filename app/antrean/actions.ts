@@ -503,6 +503,12 @@ export async function saveMedicalRecordAndComplete(data: {
         where: { queueId: Number(data.queueId) },
       })
 
+      if (existingMR && (existingMR.isLocked || existingMR.status === 'SELESAI')) {
+        throw new Error(
+          'Rekam medis telah difinalisasi dan dikunci permanen. Perubahan atau koreksi klinis wajib dicatat melalui mekanisme Addendum sesuai standar Permenkes No. 24 Tahun 2022.'
+        )
+      }
+
       const recordData = {
         patientId: Number(data.patientId),
         queueId: Number(data.queueId),
@@ -521,6 +527,9 @@ export async function saveMedicalRecordAndComplete(data: {
         nextControlDate: data.nextControlDate ? new Date(data.nextControlDate) : null,
         notes: data.objectiveNotes ? String(data.objectiveNotes) : null,
         status: 'SELESAI',
+        isLocked: true,
+        lockedAt: new Date(),
+        lockedById: doctorUser.id,
       }
 
       let createdRecord
@@ -538,6 +547,18 @@ export async function saveMedicalRecordAndComplete(data: {
           data: recordData,
         })
       }
+
+      // Catat audit trail forensik finalisasi
+      await tx.medicalRecordAuditLog.create({
+        data: {
+          medicalRecordId: createdRecord.id,
+          userId: doctorUser.id,
+          userName: doctorUser.name,
+          userRole: 'DOKTER',
+          action: 'FINALIZE',
+          details: `Pemeriksaan antrean #${data.queueId} selesai. Rekam medis difinalisasi dan dikunci permanen. Diagnosis: ${data.diagnosis || '-'}. ICD-10: ${data.icd10Code || '-'}.`,
+        },
+      })
 
       // 2. Simpan relasi Prescription dengan quantity & unit price persisten
       let totalMedicineFee = 0

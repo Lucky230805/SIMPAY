@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { X, Loader2, AlertCircle, Stethoscope, Activity, FileText } from 'lucide-react'
+import { X, Loader2, AlertCircle, Stethoscope, Activity, FileText, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { updateMedicalRecord, MedicalRecordItem } from '@/app/rekam-medis/actions'
@@ -126,6 +126,18 @@ export function MedicalRecordEditDialog({
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+          {record.isLocked && (
+            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs">
+              <Lock className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="font-semibold">Rekam Medis Telah Terkunci (Final)</p>
+                <p className="mt-0.5 leading-relaxed">
+                  Pemeriksaan ini telah difinalisasi. Berdasarkan Permenkes No. 24/2022, data tidak boleh ditimpa langsung. Silakan gunakan tombol <strong>+ Addendum</strong> untuk mencatat perbaikan klinis resmi.
+                </p>
+              </div>
+            </div>
+          )}
+
           {generalError && (
             <div className="flex items-start gap-2.5 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -313,12 +325,14 @@ export function MedicalRecordEditDialog({
             >
               Batal
             </Button>
-            <Button type="submit" size="sm" disabled={isSubmitting}>
+            <Button type="submit" size="sm" disabled={isSubmitting || record.isLocked}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                   Menyimpan...
                 </>
+              ) : record.isLocked ? (
+                'Terkunci (Hanya Mode Baca)'
               ) : (
                 'Simpan Perubahan'
               )}

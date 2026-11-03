@@ -21,11 +21,17 @@ import {
   ChevronRight,
   Loader2,
   ArrowUpRight,
+  Lock,
+  FilePlus2,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatNoRM, calculateAge, formatDateIndo } from '@/lib/patient-utils'
 import { MedicalRecordItem, getPatientMedicalHistory } from '@/app/rekam-medis/actions'
+import { MedicalRecordAddendumDialog } from '@/components/rekam-medis/medical-record-addendum-dialog'
 
 interface MedicalRecordDrawerProps {
   isOpen: boolean
@@ -43,6 +49,8 @@ export function MedicalRecordDrawer({
   const [currentRecord, setCurrentRecord] = useState<MedicalRecordItem | null>(record)
   const [historyRecords, setHistoryRecords] = useState<MedicalRecordItem[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [isAddendumOpen, setIsAddendumOpen] = useState(false)
+  const [showAuditTrail, setShowAuditTrail] = useState(false)
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -126,6 +134,12 @@ export function MedicalRecordDrawer({
                 <h2 className="text-base font-bold text-foreground">
                   Detail Rekam Medis Pasien
                 </h2>
+                {currentRecord.isLocked && (
+                  <Badge variant="outline" className="text-[10px] font-sans px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 font-semibold">
+                    <Lock className="w-3 h-3" />
+                    Terkunci (Final)
+                  </Badge>
+                )}
                 {historyRecords.length > 1 && (
                   <Badge variant="secondary" className="text-[10px] font-mono px-2 py-0.5 bg-primary/10 text-primary border border-primary/20">
                     {historyRecords.length} Kunjungan
@@ -148,15 +162,27 @@ export function MedicalRecordDrawer({
               <Printer className="w-3.5 h-3.5" />
               <span>Cetak</span>
             </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => onOpenEdit(currentRecord)}
-              className="h-8 gap-1.5 text-xs font-medium"
-            >
-              <Edit className="w-3.5 h-3.5" />
-              <span>Edit</span>
-            </Button>
+            {currentRecord.isLocked ? (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setIsAddendumOpen(true)}
+                className="h-8 gap-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white shadow-xs"
+              >
+                <FilePlus2 className="w-3.5 h-3.5" />
+                <span>+ Addendum</span>
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => onOpenEdit(currentRecord)}
+                className="h-8 gap-1.5 text-xs font-medium"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>Edit Draf</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -430,11 +456,158 @@ export function MedicalRecordDrawer({
                 SIP: 446.1/128/SIP.DU/2022
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right flex flex-col items-end gap-1">
               <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
                 TERVALIDASI
               </span>
+              {currentRecord.isLocked && (
+                <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono">
+                  <Lock className="w-2.5 h-2.5 text-amber-500" />
+                  RME Difinalisasi
+                </span>
+              )}
             </div>
+          </div>
+
+          {/* 7.1. CATATAN ADDENDUM RESMI (PERMENKES NO. 24 TAHUN 2022) */}
+          <div className="space-y-3 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FilePlus2 className="w-4 h-4 text-amber-500" />
+                <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">
+                  Catatan Addendum & Koreksi Resmi ({currentRecord.addendums?.length || 0})
+                </h3>
+              </div>
+              {currentRecord.isLocked && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAddendumOpen(true)}
+                  className="h-7 text-[11px] border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 gap-1 print:hidden"
+                >
+                  <FilePlus2 className="w-3 h-3" />
+                  <span>Tambah Addendum</span>
+                </Button>
+              )}
+            </div>
+
+            {(!currentRecord.addendums || currentRecord.addendums.length === 0) ? (
+              <div className="p-3 rounded-lg border border-dashed border-border bg-muted/10 text-muted-foreground text-xs italic">
+                {currentRecord.isLocked
+                  ? 'Tidak ada catatan addendum (koreksi). Data rekam medis asli terkunci dan sah tanpa revisi.'
+                  : 'Pemeriksaan masih berupa draf sebelum difinalisasi.'}
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {currentRecord.addendums.map((addendum, idx) => {
+                  const addendumDate = formatDateIndo(addendum.createdAt)
+                  const addendumTime = new Date(addendum.createdAt).toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                  return (
+                    <div
+                      key={addendum.id || idx}
+                      className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 space-y-2 shadow-2xs"
+                    >
+                      <div className="flex items-start justify-between gap-2 border-b border-amber-500/20 pb-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-amber-600 text-white font-mono text-[10px] px-2 py-0.2">
+                              ADDENDUM #{idx + 1}
+                            </Badge>
+                            <span className="font-bold text-foreground text-xs">
+                              Bagian: {addendum.fieldChanged}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            Oleh: <strong className="text-foreground">{addendum.doctorName}</strong>
+                            {addendum.doctorSip && ` (SIP: ${addendum.doctorSip})`}
+                          </p>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground shrink-0 font-mono">
+                          {addendumDate}, {addendumTime} WIB
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 text-xs">
+                        <p className="text-muted-foreground text-[11px]">
+                          <strong>Alasan Koreksi:</strong> {addendum.reason}
+                        </p>
+                        {addendum.previousValue && (
+                          <p className="text-muted-foreground/80 line-through text-[11px]">
+                            Catatan Sebelumnya: {addendum.previousValue}
+                          </p>
+                        )}
+                        <div className="p-2 rounded-lg bg-card border border-amber-500/20 text-foreground font-medium leading-relaxed">
+                          {addendum.content}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* 7.2. FORENSIC AUDIT TRAIL COLLAPSIBLE (UU PDP NO. 27 TAHUN 2022) */}
+          <div className="pt-2 border-t border-border print:hidden">
+            <button
+              onClick={() => setShowAuditTrail(!showAuditTrail)}
+              className="w-full flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/15 hover:bg-muted/30 transition-colors text-left"
+            >
+              <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                <span>Jejak Audit Forensik & Riwayat Log ({currentRecord.auditLogs?.length || 0})</span>
+              </div>
+              {showAuditTrail ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+
+            {showAuditTrail && (
+              <div className="mt-2 p-3 rounded-lg border border-border bg-card space-y-2 text-xs">
+                {(!currentRecord.auditLogs || currentRecord.auditLogs.length === 0) ? (
+                  <p className="text-muted-foreground italic text-xs">Belum ada riwayat audit log tercatat.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {currentRecord.auditLogs.map((log) => {
+                      const logDate = formatDateIndo(log.createdAt)
+                      const logTime = new Date(log.createdAt).toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })
+                      return (
+                        <div
+                          key={log.id}
+                          className="flex items-start justify-between p-2 rounded-md bg-muted/20 border border-border/50 text-[11px]"
+                        >
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-primary">
+                                [{log.action}]
+                              </span>
+                              <span className="font-semibold text-foreground">
+                                {log.userName} ({log.userRole})
+                              </span>
+                            </div>
+                            {log.details && (
+                              <p className="text-muted-foreground">{log.details}</p>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-mono shrink-0">
+                            {logDate} {logTime}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 8. COMPLETE PATIENT MEDICAL HISTORY TIMELINE SECTION */}
@@ -549,6 +722,19 @@ export function MedicalRecordDrawer({
           </div>
         </div>
       </div>
+
+      {/* Official Addendum Dialog */}
+      <MedicalRecordAddendumDialog
+        isOpen={isAddendumOpen}
+        onClose={() => setIsAddendumOpen(false)}
+        record={currentRecord}
+        onSuccess={(updated) => {
+          setCurrentRecord(updated)
+          setHistoryRecords((prev) =>
+            prev.map((r) => (r.id === updated.id ? updated : r))
+          )
+        }}
+      />
     </div>
   )
 }

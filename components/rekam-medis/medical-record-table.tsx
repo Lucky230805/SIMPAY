@@ -12,6 +12,7 @@ import {
   RefreshCw,
   AlertCircle,
   Stethoscope,
+  Lock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -252,7 +253,14 @@ export function MedicalRecordTable({
                     >
                       {/* TANGGAL */}
                       <td className="px-4 py-3.5 font-medium text-foreground whitespace-nowrap">
-                        {formattedDate}
+                        <div className="flex items-center gap-1.5">
+                          <span>{formattedDate}</span>
+                          {record.isLocked && (
+                            <span title="Rekam Medis Terkunci (Final)">
+                              <Lock className="w-3 h-3 text-amber-500 shrink-0" />
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* NO. RM */}
@@ -283,6 +291,11 @@ export function MedicalRecordTable({
                           <span className="font-medium text-foreground truncate max-w-xs">
                             {record.diagnosis || '—'}
                           </span>
+                          {record.addendums && record.addendums.length > 0 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 shrink-0">
+                              +{record.addendums.length} Addendum
+                            </span>
+                          )}
                         </div>
                       </td>
 
