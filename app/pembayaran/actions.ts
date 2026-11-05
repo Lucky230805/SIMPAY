@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { requireAuth, requireRole } from '@/lib/auth'
+import { getClinicProfile } from '@/app/pengaturan/actions'
 
 
 export interface BillingDetailItem {
@@ -29,6 +30,12 @@ export interface BillingDetail {
   doctorName?: string
   polyclinic?: string
   items: BillingDetailItem[]
+  clinicInfo?: {
+    name: string
+    address: string
+    phone?: string | null
+    primaryDoctorName?: string
+  }
   payment?: {
     id: number
     paymentNumber: string
@@ -85,15 +92,16 @@ export async function getOrCreateBillingForVisit(queueId: number) {
 
     const patient = queue.patient
     const mr = queue.medicalRecord
-    const doctorName = mr?.doctor?.name || 'dr. Raniisyana R.R.'
+    const clinicProfile = await getClinicProfile()
+    const doctorName = mr?.doctor?.name || clinicProfile.primaryDoctorName
 
     // Check if Billing already exists in DB
     let billingRecord = queue.billing
 
     if (!billingRecord) {
-      // Calculate fees from persisted database records
-      const registrationFee = 0
-      const consultationFee = 50000
+      // Calculate fees from persisted database records and dynamic clinic settings
+      const registrationFee = clinicProfile.defaultRegistrationFee
+      const consultationFee = clinicProfile.defaultConsultationFee
 
       let medicineFee = 0
       if (mr && mr.prescriptions && mr.prescriptions.length > 0) {
@@ -264,6 +272,12 @@ export async function getOrCreateBillingForVisit(queueId: number) {
       doctorName,
       polyclinic: queue.polyclinic || 'Poli Umum',
       items,
+      clinicInfo: {
+        name: clinicProfile.name,
+        address: clinicProfile.address,
+        phone: clinicProfile.phone,
+        primaryDoctorName: clinicProfile.primaryDoctorName,
+      },
       payment: billingRecord.payment
         ? {
           id: billingRecord.payment.id,

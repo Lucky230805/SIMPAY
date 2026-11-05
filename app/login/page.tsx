@@ -54,6 +54,8 @@ function LoginFormContent() {
                 email: res.user.email,
               })
             )
+            document.cookie = `simpay_role=${res.user.role}; path=/; max-age=86400; SameSite=Lax`
+            document.documentElement.setAttribute('data-simpay-role', res.user.role)
           } catch (e) {}
         }
         router.push(fromPath)

@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { X, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SuratItem } from '@/app/surat/actions'
+import { getClinicProfile, ClinicProfileData } from '@/app/pengaturan/actions'
 
 interface SuratDetailPrintModalProps {
   surat: SuratItem | null
@@ -55,6 +57,14 @@ export function SuratDetailPrintModal({
   isOpen,
   onClose,
 }: SuratDetailPrintModalProps) {
+  const [profile, setProfile] = useState<ClinicProfileData | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      getClinicProfile().then((p) => setProfile(p)).catch(() => {})
+    }
+  }, [isOpen])
+
   if (!isOpen || !surat) return null
 
   const handlePrint = () => {
@@ -133,6 +143,7 @@ export function SuratDetailPrintModal({
                 formattedIssuedDate={formattedIssuedDate}
                 formattedStartDate={formattedStartDate}
                 formattedEndDate={formattedEndDate}
+                profile={profile}
               />
             </div>
           </div>
@@ -148,6 +159,7 @@ export function SuratDetailPrintModal({
           formattedStartDate={formattedStartDate}
           formattedEndDate={formattedEndDate}
           isPrintMode
+          profile={profile}
         />
       </div>
     </div>
@@ -161,6 +173,7 @@ function CertificateContent({
   formattedStartDate,
   formattedEndDate,
   isPrintMode = false,
+  profile,
 }: {
   surat: SuratItem
   calculateAge: (dob: Date | string) => number
@@ -168,6 +181,7 @@ function CertificateContent({
   formattedStartDate: string
   formattedEndDate: string
   isPrintMode?: boolean
+  profile?: ClinicProfileData | null
 }) {
   const isMale = surat.patientGender === 'L' || surat.patientGender === 'Laki-laki'
 
@@ -176,22 +190,29 @@ function CertificateContent({
       {/* Header / Kop Surat Dokter Bersama */}
       <div className="text-center leading-tight pb-1">
         <h1 className="font-bold text-sm sm:text-base tracking-[0.2em] uppercase text-slate-900">
-          PRAKTEK UMUM
+          {profile?.headerType || 'PRAKTEK UMUM'}
         </h1>
+        {profile?.secondaryDoctorName && (
+          <>
+            <h2 className="font-bold text-lg sm:text-xl uppercase mt-1 tracking-wide text-slate-950">
+              {profile.secondaryDoctorName}
+            </h2>
+            {profile.secondaryDoctorSip && (
+              <p className="text-[11px] sm:text-xs font-normal tracking-wide text-slate-700">
+                {profile.secondaryDoctorSip}
+              </p>
+            )}
+          </>
+        )}
         <h2 className="font-bold text-lg sm:text-xl uppercase mt-1 tracking-wide text-slate-950">
-          dr. FARISI
+          {profile?.primaryDoctorName || 'dr. RANIISYANA R. REKKERS'}
         </h2>
         <p className="text-[11px] sm:text-xs font-normal tracking-wide text-slate-700">
-          SIP : No. 446.1/0086/DPMPTSP/SIP-3/DUM/VI/2020
-        </p>
-        <h2 className="font-bold text-lg sm:text-xl uppercase mt-1 tracking-wide text-slate-950">
-          dr. RANIISYANA R. REKKERS
-        </h2>
-        <p className="text-[11px] sm:text-xs font-normal tracking-wide text-slate-700">
-          SIP : No. 446.1/0085/DPMPTSP/SIP-3/DUM/VI/2020
+          {profile?.primaryDoctorSip || 'SIP : No. 446.1/0085/DPMPTSP/SIP-3/DUM/VI/2020'}
         </p>
         <p className="text-[11px] sm:text-xs font-normal mt-1 text-slate-700">
-          Alamat : Desa Cibogo Rt. 19 Rw. 05 Kecamatan Cibogo - Subang
+          Alamat : {profile?.address || 'Desa Cibogo Rt. 19 Rw. 05 Kecamatan Cibogo - Subang'}
+          {profile?.phone ? ` • Telp/WA: ${profile.phone}` : ''}
         </p>
       </div>
 
@@ -362,7 +383,7 @@ function CertificateContent({
           </div>
           <div className="space-y-0.5">
             <p className="font-bold underline underline-offset-4 decoration-1 text-slate-950 whitespace-nowrap text-xs sm:text-sm">
-              (&nbsp;{surat.doctorName || 'dr. Raniisyana R. Rekkers'}&nbsp;)
+              (&nbsp;{surat.doctorName || profile?.primaryDoctorName || 'dr. Raniisyana R. Rekkers'}&nbsp;)
             </p>
             {surat.doctorSip && (
               <p className="text-[11px] text-slate-600 whitespace-nowrap">

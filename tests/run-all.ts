@@ -12,6 +12,7 @@ const testFiles = [
   'procedure-separation.test.ts',
   'financial-report-rbac.test.ts',
   'medical-record-immutability.test.ts',
+  'clinic-settings.test.ts',
 ]
 
 console.log('====================================================')

@@ -32,6 +32,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatNoRM, calculateAge, formatDateIndo } from '@/lib/patient-utils'
 import { MedicalRecordItem, getPatientMedicalHistory } from '@/app/rekam-medis/actions'
 import { MedicalRecordAddendumDialog } from '@/components/rekam-medis/medical-record-addendum-dialog'
+import { getClinicProfile, ClinicProfileData } from '@/app/pengaturan/actions'
 
 interface MedicalRecordDrawerProps {
   isOpen: boolean
@@ -51,6 +52,13 @@ export function MedicalRecordDrawer({
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [isAddendumOpen, setIsAddendumOpen] = useState(false)
   const [showAuditTrail, setShowAuditTrail] = useState(false)
+  const [clinicProfile, setClinicProfile] = useState<ClinicProfileData | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      getClinicProfile().then((p) => setClinicProfile(p)).catch(() => {})
+    }
+  }, [isOpen])
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -190,8 +198,8 @@ export function MedicalRecordDrawer({
         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs print:p-0 print:overflow-visible">
           {/* Print Only Header Banner */}
           <div className="hidden print:block mb-6 border-b pb-4">
-            <h1 className="text-xl font-bold">SIMPAY KLINIK PRATAMA</h1>
-            <p className="text-xs text-muted-foreground">Catatan Rekam Medis Pasien Rawat Jalan</p>
+            <h1 className="text-xl font-bold uppercase">{clinicProfile?.name || 'SIMPAY KLINIK PRATAMA'}</h1>
+            <p className="text-xs text-muted-foreground">{clinicProfile?.address || 'Catatan Rekam Medis Pasien Rawat Jalan'}</p>
           </div>
 
           {/* 1. PATIENT INFORMATION HEADER CARD */}
@@ -450,10 +458,10 @@ export function MedicalRecordDrawer({
                 Dokter Pemeriksa:
               </span>
               <p className="font-bold text-foreground text-xs mt-0.5">
-                {currentRecord.doctor?.name || 'dr. Raniisyana Romula Rekkers'}
+                {currentRecord.doctor?.name || clinicProfile?.primaryDoctorName || 'dr. Raniisyana Romula Rekkers'}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                SIP: 446.1/128/SIP.DU/2022
+                {(currentRecord.doctor as { name?: string; sipNumber?: string } | null)?.sipNumber || clinicProfile?.primaryDoctorSip || 'SIP: 446.1/128/SIP.DU/2022'}
               </p>
             </div>
             <div className="text-right flex flex-col items-end gap-1">

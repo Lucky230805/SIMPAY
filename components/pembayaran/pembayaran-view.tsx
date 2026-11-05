@@ -769,10 +769,11 @@ export function PembayaranView({
           {/* Header Klinik */}
           <div style={{ textAlign: 'center', paddingBottom: '8px', borderBottom: '1px dashed #64748b' }}>
             <h1 style={{ fontSize: '15px', fontWeight: 'bold', letterSpacing: '0.5px', textTransform: 'uppercase', margin: 0 }}>
-              KLINIK PRAKTEK DOKTER UMUM
+              {billing.clinicInfo?.name || 'KLINIK PRAKTEK DOKTER UMUM'}
             </h1>
             <p style={{ fontSize: '9px', color: '#64748b', margin: '2px 0 0 0' }}>
-              Perumahan Permata Hijau 2, Blok A59, Cinangsi, Kec. Cibogo, Kabupaten Subang, Jawa Barat
+              {billing.clinicInfo?.address || 'Perumahan Permata Hijau 2, Blok A59, Cinangsi, Kec. Cibogo, Kabupaten Subang, Jawa Barat'}
+              {billing.clinicInfo?.phone ? ` • Telp/WA: ${billing.clinicInfo.phone}` : ''}
             </p>
           </div>
 
@@ -810,7 +811,7 @@ export function PembayaranView({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Dokter Pemeriksa:</span>
-              <span>{billing.doctorName || 'dr. Raniisyana R.R.'}</span>
+              <span>{billing.doctorName || billing.clinicInfo?.primaryDoctorName || 'dr. Raniisyana R.R.'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Poliklinik:</span>

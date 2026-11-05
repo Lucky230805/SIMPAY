@@ -42,6 +42,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   }
                   if (role === 'DOKTER' || role === 'PERAWAT') {
                     document.documentElement.setAttribute('data-simpay-role', role);
+                  } else {
+                    document.documentElement.removeAttribute('data-simpay-role');
                   }
                 } catch (e) {}
               })();

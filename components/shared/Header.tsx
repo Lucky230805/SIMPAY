@@ -18,6 +18,8 @@ import {
   Layers,
   FileCheck,
   Syringe,
+  Settings,
+  ReceiptText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -32,10 +34,12 @@ const navItems = [
   { label: 'Rekam Medis', href: '/rekam-medis', icon: FileText, roles: ['DOKTER'] },
   { label: 'Resep & Penyerahan', href: '/resep', icon: Pill, roles: ['PERAWAT'] },
   { label: 'Stok Obat', href: '/obat', icon: Layers, roles: ['PERAWAT'] },
+  { label: 'Transaksi Farmasi', href: '/transaksi', icon: ReceiptText, roles: ['PERAWAT'] },
   { label: 'Tindakan Medis', href: '/tindakan', icon: Syringe, roles: ['DOKTER', 'PERAWAT'] },
   { label: 'Kasir & Pembayaran', href: '/pembayaran', icon: CreditCard, roles: ['PERAWAT'] },
   { label: 'Surat Keterangan', href: '/surat', icon: FileCheck, roles: ['PERAWAT'] },
   { label: 'Laporan', href: '/laporan', icon: BarChart2, roles: ['DOKTER', 'PERAWAT'] },
+  { label: 'Pengaturan Klinik', href: '/pengaturan', icon: Settings, roles: ['DOKTER', 'PERAWAT'] },
 ]
 
 interface HeaderProps {
@@ -73,6 +77,8 @@ export default function Header({ initialUser }: HeaderProps) {
         setUser({ name: u.name, role: u.role })
         try {
           localStorage.setItem('simpay_user', JSON.stringify({ name: u.name, role: u.role }))
+          document.documentElement.setAttribute('data-simpay-role', u.role)
+          document.cookie = `simpay_role=${u.role}; path=/; max-age=86400; SameSite=Lax`
         } catch (e) {}
       }
     })
@@ -106,7 +112,7 @@ export default function Header({ initialUser }: HeaderProps) {
     if (activeRole) {
       return item.roles.includes(activeRole)
     }
-    return item.roles.includes('DOKTER') && item.roles.includes('PERAWAT')
+    return true
   })
 
   const isDokter = activeRole === 'DOKTER'
@@ -200,12 +206,9 @@ export default function Header({ initialUser }: HeaderProps) {
                     item.href === '/dashboard'
                       ? pathname === '/dashboard' || pathname === '/'
                       : pathname.startsWith(item.href)
-                  const isDokterOnly = item.roles.length === 1 && item.roles[0] === 'DOKTER'
-                  const isPerawatOnly = item.roles.length === 1 && item.roles[0] === 'PERAWAT'
-                  const roleClass = isDokterOnly ? 'nav-dokter-only' : isPerawatOnly ? 'nav-perawat-only' : ''
 
                   return (
-                    <li key={item.href} className={roleClass}>
+                    <li key={item.href}>
                       <Link
                         href={item.href}
                         onClick={() => setMobileOpen(false)}

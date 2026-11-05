@@ -407,3 +407,26 @@ model MedicalRecordAuditLog {
   medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
   user            User?         @relation(fields: [userId], references: [id])
 }
+
+model ClinicProfile {
+  id                     Int      @id @default(autoincrement())
+  name                   String   @default("KLINIK PRAKTEK DOKTER UMUM")
+  legalName              String?  @default("Klinik Pratama SIMPAY")
+  licenseNumber          String?  @default("446.1/0085/DPMPTSP/SIP-3/DUM/VI/2020")
+  address                String   @default("Perumahan Permata Hijau 2, Blok A59, Cinangsi, Kec. Cibogo, Kabupaten Subang, Jawa Barat")
+  phone                  String?  @default("0812-3456-7890")
+  email                  String?  @default("klinik.simpay@gmail.com")
+  website                String?
+  logoUrl                String?
+  stampUrl               String?
+  headerType             String?  @default("PRAKTEK UMUM")
+  primaryDoctorName      String   @default("dr. RANIISYANA R. REKKERS")
+  primaryDoctorSip       String   @default("SIP : No. 446.1/0085/DPMPTSP/SIP-3/DUM/VI/2020")
+  secondaryDoctorName    String?  @default("dr. FARISI")
+  secondaryDoctorSip     String?  @default("SIP : No. 446.1/0086/DPMPTSP/SIP-3/DUM/VI/2020")
+  defaultRegistrationFee Float    @default(0)
+  defaultConsultationFee Float    @default(50000)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+

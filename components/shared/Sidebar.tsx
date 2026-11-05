@@ -19,6 +19,7 @@ import {
   FileCheck,
   Syringe,
   ReceiptText,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getSessionUserAction } from '@/app/login/actions'
@@ -93,6 +94,12 @@ const navItems = [
     icon: BarChart2,
     roles: ['DOKTER', 'PERAWAT'],
   },
+  {
+    label: 'Pengaturan Klinik',
+    href: '/pengaturan',
+    icon: Settings,
+    roles: ['DOKTER', 'PERAWAT'],
+  },
 ]
 
 
@@ -130,6 +137,8 @@ export default function Sidebar({ initialUser }: SidebarProps) {
         setUser({ name: u.name, role: u.role })
         try {
           localStorage.setItem('simpay_user', JSON.stringify({ name: u.name, role: u.role }))
+          document.documentElement.setAttribute('data-simpay-role', u.role)
+          document.cookie = `simpay_role=${u.role}; path=/; max-age=86400; SameSite=Lax`
         } catch (e) {}
       }
     })
@@ -159,13 +168,11 @@ export default function Sidebar({ initialUser }: SidebarProps) {
         })()
       : null)
 
-  // Strictly filter by confirmed active role.
-  // During loading/refresh, Perawat ONLY sees Perawat items, Dokter ONLY sees Dokter items.
   const filteredNavItems = navItems.filter((item) => {
     if (activeRole) {
       return item.roles.includes(activeRole)
     }
-    return item.roles.includes('DOKTER') && item.roles.includes('PERAWAT')
+    return true
   })
 
   const isDokter = activeRole === 'DOKTER'
@@ -197,12 +204,9 @@ export default function Sidebar({ initialUser }: SidebarProps) {
               item.href === '/dashboard'
                 ? pathname === '/dashboard' || pathname === '/'
                 : pathname.startsWith(item.href)
-            const isDokterOnly = item.roles.length === 1 && item.roles[0] === 'DOKTER'
-            const isPerawatOnly = item.roles.length === 1 && item.roles[0] === 'PERAWAT'
-            const roleClass = isDokterOnly ? 'nav-dokter-only' : isPerawatOnly ? 'nav-perawat-only' : ''
 
             return (
-              <li key={item.href} className={roleClass}>
+              <li key={item.href}>
                 <Link
                   href={item.href}
                   className={cn(

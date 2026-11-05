@@ -24,6 +24,8 @@ export function LogoutConfirmDialog({ open, onOpenChange }: LogoutConfirmDialogP
   const handleLogout = () => {
     try {
       localStorage.removeItem('simpay_user')
+      document.cookie = 'simpay_role=; path=/; max-age=0'
+      document.documentElement.removeAttribute('data-simpay-role')
     } catch (e) {}
     startTransition(async () => {
       await logoutAction()

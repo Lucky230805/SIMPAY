@@ -40,6 +40,7 @@ const isClientUpToDate = (client: any) => {
   if (!('patientProcedure' in client)) return false
   if (!('medicalRecordAddendum' in client)) return false
   if (!('medicalRecordAuditLog' in client)) return false
+  if (!('clinicProfile' in client)) return false
   try {
     const fields = (client as any)?._runtimeDataModel?.models?.MedicalRecord?.fields
     if (Array.isArray(fields) && !fields.some((f: any) => f.name === 'isLocked')) {
