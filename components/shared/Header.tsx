@@ -35,11 +35,11 @@ const navItems = [
   { label: 'Resep & Penyerahan', href: '/resep', icon: Pill, roles: ['PERAWAT'] },
   { label: 'Stok Obat', href: '/obat', icon: Layers, roles: ['PERAWAT'] },
   { label: 'Transaksi Farmasi', href: '/transaksi', icon: ReceiptText, roles: ['PERAWAT'] },
-  { label: 'Tindakan Medis', href: '/tindakan', icon: Syringe, roles: ['DOKTER', 'PERAWAT'] },
+  { label: 'Tindakan Medis', href: '/tindakan', icon: Syringe, roles: ['DOKTER'] },
   { label: 'Kasir & Pembayaran', href: '/pembayaran', icon: CreditCard, roles: ['PERAWAT'] },
   { label: 'Surat Keterangan', href: '/surat', icon: FileCheck, roles: ['PERAWAT'] },
-  { label: 'Laporan', href: '/laporan', icon: BarChart2, roles: ['DOKTER', 'PERAWAT'] },
-  { label: 'Pengaturan Klinik', href: '/pengaturan', icon: Settings, roles: ['DOKTER', 'PERAWAT'] },
+  { label: 'Laporan', href: '/laporan', icon: BarChart2, roles: ['DOKTER'] },
+  { label: 'Pengaturan Klinik', href: '/pengaturan', icon: Settings, roles: ['DOKTER'] },
 ]
 
 interface HeaderProps {

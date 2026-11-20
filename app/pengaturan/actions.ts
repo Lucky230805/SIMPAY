@@ -69,7 +69,11 @@ export async function getClinicProfile(): Promise<ClinicProfileData> {
  * Update the clinic profile settings.
  */
 export async function updateClinicProfile(data: ClinicProfileData) {
-  await requireAuth()
+  const auth = await requireAuth()
+
+  if (auth.role !== 'DOKTER') {
+    return { success: false, error: 'Hanya dokter yang memiliki wewenang untuk mengubah pengaturan profil klinik.' }
+  }
 
   if (!data.name || data.name.trim().length < 2) {
     return { success: false, error: 'Nama klinik wajib diisi (minimal 2 karakter).' }

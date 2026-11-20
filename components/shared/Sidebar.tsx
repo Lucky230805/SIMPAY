@@ -74,7 +74,7 @@ const navItems = [
     label: 'Tindakan Medis',
     href: '/tindakan',
     icon: Syringe,
-    roles: ['DOKTER', 'PERAWAT'],
+    roles: ['DOKTER'],
   },
   {
     label: 'Kasir & Pembayaran',
@@ -92,13 +92,13 @@ const navItems = [
     label: 'Laporan',
     href: '/laporan',
     icon: BarChart2,
-    roles: ['DOKTER', 'PERAWAT'],
+    roles: ['DOKTER'],
   },
   {
     label: 'Pengaturan Klinik',
     href: '/pengaturan',
     icon: Settings,
-    roles: ['DOKTER', 'PERAWAT'],
+    roles: ['DOKTER'],
   },
 ]
 
